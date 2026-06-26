@@ -1,6 +1,6 @@
 package it.zoo.animal.domain.exception;
 
-import it.zoo.animal.domain.model.AnimalStatus;
+import it.zoo.animal.domain.enums.AnimalStatus;
 
 public class InvalidStatusTransitionException extends RuntimeException {
     public InvalidStatusTransitionException(AnimalStatus from, AnimalStatus to) {

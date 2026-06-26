@@ -1,6 +1,6 @@
 package it.zoo.animal.domain.port.in;
 
-import it.zoo.animal.domain.model.Habitat;
+import it.zoo.animal.domain.enums.Habitat;
 import java.time.LocalDate;
 import java.util.UUID;
 

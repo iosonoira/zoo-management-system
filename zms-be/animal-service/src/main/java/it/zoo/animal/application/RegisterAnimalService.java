@@ -2,7 +2,7 @@ package it.zoo.animal.application;
 
 import it.zoo.animal.domain.exception.InvalidAnimalDataException;
 import it.zoo.animal.domain.model.Animal;
-import it.zoo.animal.domain.model.AnimalStatus;
+import it.zoo.animal.domain.enums.AnimalStatus;
 import it.zoo.animal.domain.port.in.RegisterAnimalCommand;
 import it.zoo.animal.domain.port.in.RegisterAnimalUseCase;
 import it.zoo.animal.domain.port.out.AnimalRepository;

@@ -1,8 +1,8 @@
 package it.zoo.animal.domain;
 
 import it.zoo.animal.domain.model.Animal;
-import it.zoo.animal.domain.model.AnimalStatus;
-import it.zoo.animal.domain.model.Habitat;
+import it.zoo.animal.domain.enums.AnimalStatus;
+import it.zoo.animal.domain.enums.Habitat;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;

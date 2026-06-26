@@ -1,4 +1,4 @@
-package it.zoo.animal.domain.model;
+package it.zoo.animal.domain.enums;
 
 public enum Habitat {
     TERRESTRIAL,

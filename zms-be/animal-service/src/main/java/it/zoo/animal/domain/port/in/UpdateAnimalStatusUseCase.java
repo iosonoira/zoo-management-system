@@ -1,7 +1,7 @@
 package it.zoo.animal.domain.port.in;
 
 import it.zoo.animal.domain.model.Animal;
-import it.zoo.animal.domain.model.AnimalStatus;
+import it.zoo.animal.domain.enums.AnimalStatus;
 import java.util.UUID;
 
 public interface UpdateAnimalStatusUseCase {

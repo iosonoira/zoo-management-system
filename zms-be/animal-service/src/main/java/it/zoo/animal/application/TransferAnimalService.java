@@ -3,7 +3,7 @@ package it.zoo.animal.application;
 import it.zoo.animal.domain.exception.AnimalNotFoundException;
 import it.zoo.animal.domain.exception.InvalidAnimalDataException;
 import it.zoo.animal.domain.model.Animal;
-import it.zoo.animal.domain.model.AnimalStatus;
+import it.zoo.animal.domain.enums.AnimalStatus;
 import it.zoo.animal.domain.port.in.TransferAnimalUseCase;
 import it.zoo.animal.domain.port.out.AnimalRepository;
 import jakarta.enterprise.context.ApplicationScoped;

@@ -1,5 +1,7 @@
 package it.zoo.animal.domain.model;
 
+import it.zoo.animal.domain.enums.AnimalStatus;
+import it.zoo.animal.domain.enums.Habitat;
 import java.time.LocalDate;
 import java.util.UUID;
 

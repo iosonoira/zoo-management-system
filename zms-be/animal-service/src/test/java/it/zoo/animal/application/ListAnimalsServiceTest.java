@@ -1,8 +1,8 @@
 package it.zoo.animal.application;
 
 import it.zoo.animal.domain.model.Animal;
-import it.zoo.animal.domain.model.AnimalStatus;
-import it.zoo.animal.domain.model.Habitat;
+import it.zoo.animal.domain.enums.AnimalStatus;
+import it.zoo.animal.domain.enums.Habitat;
 import it.zoo.animal.domain.port.out.AnimalRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
