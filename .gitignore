@@ -1,0 +1,47 @@
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+release.properties
+.flattened-pom.xml
+
+# IntelliJ IDEA
+.idea/
+*.ipr
+*.iml
+*.iws
+
+# Eclipse
+.project
+.classpath
+.settings/
+bin/
+
+# NetBeans
+nb-configuration.xml
+
+# VS Code
+.vscode/
+.factorypath
+
+# OSX
+.DS_Store
+
+# Vim
+*.swp
+*.swo
+
+# Patch
+*.orig
+*.rej
+
+# Local environment
+.env
+*.env.local
+
+# TLS / secrets
+.certs/
+
+# Quarkus
+/.quarkus/cli/plugins/

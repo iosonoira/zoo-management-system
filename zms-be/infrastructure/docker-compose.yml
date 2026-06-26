@@ -1,0 +1,14 @@
+services:
+  postgres-animal:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: animal_db
+      POSTGRES_USER: zoo
+      POSTGRES_PASSWORD: zoo_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - animal_data:/var/lib/postgresql/data
+
+volumes:
+  animal_data:

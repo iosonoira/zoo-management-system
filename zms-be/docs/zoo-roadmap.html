@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zoo Management System — Roadmap</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/tabler-icons.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --bg-secondary: #f5f5f4;
+      --bg-tertiary: #efede8;
+      --text: #1a1a1a;
+      --text-secondary: #6b6b6b;
+      --text-tertiary: #9c9c9c;
+      --border: rgba(0,0,0,0.12);
+      --border-secondary: rgba(0,0,0,0.22);
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-mono: "Cascadia Code", "Fira Code", "Consolas", monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1c1c;
+        --bg-secondary: #262626;
+        --bg-tertiary: #2e2e2e;
+        --text: #f0f0f0;
+        --text-secondary: #a0a0a0;
+        --text-tertiary: #6b6b6b;
+        --border: rgba(255,255,255,0.1);
+        --border-secondary: rgba(255,255,255,0.2);
+      }
+    }
+
+    body {
+      font-family: var(--font);
+      font-size: 13px;
+      background: var(--bg-tertiary);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+      background: var(--bg);
+      border-radius: var(--radius-lg);
+      border: 0.5px solid var(--border);
+      padding: 1.5rem;
+    }
+
+    .header { margin-bottom: 1.5rem; }
+    .header h1 { font-size: 18px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+    .header p { font-size: 12px; color: var(--text-secondary); }
+
+    .progress { display: flex; gap: 4px; margin-bottom: 1.25rem; align-items: center; }
+    .pseg { height: 5px; flex: 1; border-radius: 3px; background: var(--bg-secondary); transition: background .3s; }
+    .pseg.done { background: #1D9E75; }
+    .pseg.active { background: #378ADD; }
+    .plabel { font-size: 11px; color: var(--text-secondary); margin-left: 6px; white-space: nowrap; }
+
+    .phase-nav { display: flex; gap: 6px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .pnav {
+      flex: 1; min-width: 80px; padding: 7px 6px; font-size: 11px; cursor: pointer;
+      background: var(--bg-secondary); border: 0.5px solid var(--border-secondary);
+      border-radius: var(--radius-md); color: var(--text-secondary);
+      transition: all .15s; text-align: center; font-family: var(--font); line-height: 1.3;
+    }
+    .pnav .num { display: block; font-size: 16px; font-weight: 500; margin-bottom: 2px; }
+    .pnav.p1.on { background: #E1F5EE; border-color: #1D9E75; color: #085041; }
+    .pnav.p2.on { background: #E6F1FB; border-color: #378ADD; color: #0C447C; }
+    .pnav.p3.on { background: #FAEEDA; border-color: #EF9F27; color: #633806; }
+    .pnav.p4.on { background: #EEEDFE; border-color: #534AB7; color: #26215C; }
+    .pnav.p5.on { background: #FCEBEB; border-color: #E24B4A; color: #501313; }
+
+    .pn { display: none; }
+    .pn.on { display: block; }
+
+    .phase-hd { border-radius: var(--radius-lg); padding: 12px 14px; margin-bottom: 12px; }
+    .phase-hd.p1 { background: #E1F5EE; border: 0.5px solid #1D9E75; }
+    .phase-hd.p2 { background: #E6F1FB; border: 0.5px solid #378ADD; }
+    .phase-hd.p3 { background: #FAEEDA; border: 0.5px solid #EF9F27; }
+    .phase-hd.p4 { background: #EEEDFE; border: 0.5px solid #534AB7; }
+    .phase-hd.p5 { background: #FCEBEB; border: 0.5px solid #E24B4A; }
+    .phase-title { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+    .p1 .phase-title { color: #085041; } .p2 .phase-title { color: #0C447C; }
+    .p3 .phase-title { color: #633806; } .p4 .phase-title { color: #26215C; }
+    .p5 .phase-title { color: #501313; }
+    .phase-sub { font-size: 11px; }
+    .p1 .phase-sub { color: #0F6E56; } .p2 .phase-sub { color: #185FA5; }
+    .p3 .phase-sub { color: #854F0B; } .p4 .phase-sub { color: #3C3489; }
+    .p5 .phase-sub { color: #A32D2D; }
+
+    .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; }
+
+    .task { display: flex; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid var(--border); align-items: flex-start; }
+    .task:last-child { border-bottom: none; }
+    .task-icon { width: 28px; height: 28px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; }
+    .t1 .task-icon { background: #9FE1CB; color: #085041; }
+    .t2 .task-icon { background: #B5D4F4; color: #0C447C; }
+    .t3 .task-icon { background: #FAC775; color: #633806; }
+    .t4 .task-icon { background: #CECBF6; color: #26215C; }
+    .t5 .task-icon { background: #F7C1C1; color: #501313; }
+    .task-body { flex: 1; }
+    .task-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+    .task-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.55; }
+
+    .code {
+      background: var(--bg-secondary); border-radius: var(--radius-md);
+      padding: 8px 12px; font-family: var(--font-mono); font-size: 11px;
+      color: var(--text); white-space: pre; overflow-x: auto; line-height: 1.7; margin: 6px 0;
+    }
+    .cmt { color: var(--text-tertiary); }
+
+    .badge {
+      font-size: 10px; padding: 2px 6px; border-radius: 20px;
+      font-weight: 500; display: inline-block; vertical-align: middle; margin-left: 4px;
+    }
+    .b-key { background: #EEEDFE; color: #3C3489; }
+
+    .warn-box {
+      background: #FEF9EC; border: 0.5px solid #EF9F27;
+      border-radius: var(--radius-md); padding: 10px 12px;
+      font-size: 12px; color: #854F0B; margin: 10px 0; line-height: 1.5;
+    }
+    .ok-box {
+      background: #F0FAF5; border: 0.5px solid #1D9E75;
+      border-radius: var(--radius-md); padding: 10px 12px;
+      font-size: 12px; color: #0F6E56; margin: 10px 0; line-height: 1.5;
+    }
+
+    .nav-row { display: flex; justify-content: space-between; margin-top: 10px; }
+    .nav-row.end { justify-content: flex-end; }
+    .btn-nav {
+      padding: 7px 16px; font-size: 12px; cursor: pointer;
+      border-radius: var(--radius-md); font-family: var(--font);
+      transition: opacity .15s;
+    }
+    .btn-nav:hover { opacity: .8; }
+    .btn-p1 { background: #E1F5EE; border: 0.5px solid #1D9E75; color: #085041; }
+    .btn-p2 { background: #E6F1FB; border: 0.5px solid #378ADD; color: #0C447C; }
+    .btn-p3 { background: #FAEEDA; border: 0.5px solid #EF9F27; color: #633806; }
+    .btn-p4 { background: #EEEDFE; border: 0.5px solid #534AB7; color: #26215C; }
+    .btn-p5 { background: #FCEBEB; border: 0.5px solid #E24B4A; color: #501313; }
+    .btn-prev { background: var(--bg-secondary); border: 0.5px solid var(--border-secondary); color: var(--text-secondary); }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Zoo Management System — Roadmap iniziale</h1>
+    <p>Dalla cartella vuota al primo servizio funzionante end-to-end · animal-service</p>
+  </div>
+
+  <div class="progress">
+    <div class="pseg" id="ps1"></div>
+    <div class="pseg" id="ps2"></div>
+    <div class="pseg" id="ps3"></div>
+    <div class="pseg" id="ps4"></div>
+    <div class="pseg" id="ps5"></div>
+    <span class="plabel" id="plabel"></span>
+  </div>
+
+  <div class="phase-nav">
+    <button class="pnav p1" onclick="show(1)"><span class="num">01</span>Setup repo</button>
+    <button class="pnav p2" onclick="show(2)"><span class="num">02</span>Infrastruttura</button>
+    <button class="pnav p3" onclick="show(3)"><span class="num">03</span>Domain layer</button>
+    <button class="pnav p4" onclick="show(4)"><span class="num">04</span>Application layer</button>
+    <button class="pnav p5" onclick="show(5)"><span class="num">05</span>Infrastructure layer</button>
+  </div>
+
+  <!-- FASE 1 -->
+  <div id="pn-1" class="pn">
+    <div class="phase-hd p1">
+      <div class="phase-title">Setup del mono-repo Maven</div>
+      <div class="phase-sub">Obiettivo: struttura pulita, parent POM, Quarkus funzionante — prima di scrivere una riga di business logic</div>
+    </div>
+    <div class="card">
+      <div class="task t1">
+        <div class="task-icon"><i class="ti ti-folder"></i></div>
+        <div class="task-body">
+          <div class="task-title">Crea la struttura di directory</div>
+          <div class="task-desc">Una cartella radice, dentro le 4 sottocartelle per i servizi + infrastructure + docs. Niente di più.</div>
+          <div class="code">mkdir -p zoo-management-system/{animal-service,health-service,feeding-service,notification-service,infrastructure/keycloak,docs}
+cd zoo-management-system
+git init</div>
+        </div>
+      </div>
+      <div class="task t1">
+        <div class="task-icon"><i class="ti ti-file-code"></i></div>
+        <div class="task-body">
+          <div class="task-title">Parent POM <span class="badge b-key">chiave</span></div>
+          <div class="task-desc">Il <code>pom.xml</code> nella radice gestisce le versioni per tutti i moduli. Tutti i figli ereditano da qui — mai duplicare versioni tra servizi.</div>
+          <div class="code"><span class="cmt">&lt;!-- zoo-management-system/pom.xml --&gt;</span>
+&lt;groupId&gt;it.zoo&lt;/groupId&gt;
+&lt;artifactId&gt;zoo-management-system&lt;/artifactId&gt;
+&lt;packaging&gt;pom&lt;/packaging&gt;
+&lt;modules&gt;
+    &lt;module&gt;animal-service&lt;/module&gt;
+&lt;/modules&gt;
+&lt;properties&gt;
+    &lt;quarkus.platform.version&gt;3.20.0&lt;/quarkus.platform.version&gt;
+    &lt;java.version&gt;21&lt;/java.version&gt;
+&lt;/properties&gt;</div>
+        </div>
+      </div>
+      <div class="task t1">
+        <div class="task-icon"><i class="ti ti-terminal"></i></div>
+        <div class="task-body">
+          <div class="task-title">Genera animal-service con Quarkus CLI</div>
+          <div class="task-desc">Non scrivere il pom figlio a mano — usa il CLI o code.quarkus.io. Seleziona solo le estensioni che servono subito.</div>
+          <div class="code">quarkus create app it.zoo:animal-service \
+  --extension="rest-jackson,hibernate-orm-panache,jdbc-postgresql,flyway,oidc,smallrye-openapi" \
+  --no-code
+<span class="cmt"># --no-code: niente file di esempio da pulire dopo</span></div>
+        </div>
+      </div>
+      <div class="task t1">
+        <div class="task-icon"><i class="ti ti-package"></i></div>
+        <div class="task-body">
+          <div class="task-title">Struttura dei package Java</div>
+          <div class="task-desc">Crea subito la struttura esagonale — anche vuota. Avere i package chiari fin dall'inizio evita di ritrovarsi tutto in un unico package dopo.</div>
+          <div class="code">it.zoo.animal/
+├── domain/
+│   ├── model/        <span class="cmt">← Animal.java, AnimalStatus.java</span>
+│   ├── port/
+│   │   ├── in/       <span class="cmt">← use case interfaces</span>
+│   │   └── out/      <span class="cmt">← repository interfaces</span>
+│   └── exception/    <span class="cmt">← AnimalNotFoundException.java</span>
+├── application/      <span class="cmt">← use case implementations</span>
+└── infrastructure/
+    ├── persistence/  <span class="cmt">← JPA adapter</span>
+    ├── rest/         <span class="cmt">← REST resource</span>
+    └── event/        <span class="cmt">← Kafka producer</span></div>
+        </div>
+      </div>
+      <div class="warn-box">
+        <strong>⚠ Non aggiungere Kafka e OIDC al pom subito.</strong> Aggiungi le estensioni solo quando arrivi a quel layer — ogni estensione inutilizzata aggiunge configurazione e può rompere lo startup.
+      </div>
+    </div>
+    <div class="nav-row end">
+      <button class="btn-nav btn-p2" onclick="show(2)">Fase 2: infrastruttura →</button>
+    </div>
+  </div>
+
+  <!-- FASE 2 -->
+  <div id="pn-2" class="pn">
+    <div class="phase-hd p2">
+      <div class="phase-title">Infrastruttura locale con Docker Compose</div>
+      <div class="phase-sub">Obiettivo: PostgreSQL pronto prima di scrivere il primo adapter</div>
+    </div>
+    <div class="card">
+      <div class="task t2">
+        <div class="task-icon"><i class="ti ti-brand-docker"></i></div>
+        <div class="task-body">
+          <div class="task-title">docker-compose.yml minimale <span class="badge b-key">solo l'essenziale</span></div>
+          <div class="task-desc">In questa fase serve solo PostgreSQL per animal-service. Kafka e Keycloak li aggiungi più avanti. Un compose che parte senza errori vale più di uno completo che non si avvia.</div>
+          <div class="code"><span class="cmt"># infrastructure/docker-compose.yml</span>
+services:
+  postgres-animal:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: animal_db
+      POSTGRES_USER: zoo
+      POSTGRES_PASSWORD: zoo_secret
+    ports: ["5432:5432"]
+    volumes: ["animal_data:/var/lib/postgresql/data"]
+
+volumes:
+  animal_data:</div>
+        </div>
+      </div>
+      <div class="task t2">
+        <div class="task-icon"><i class="ti ti-settings"></i></div>
+        <div class="task-body">
+          <div class="task-title">application.properties per il dev profile</div>
+          <div class="task-desc">Configura il datasource puntando al container locale. Il dev profile di Quarkus usa <code>%dev.</code> come prefisso — non toccare il profile di produzione.</div>
+          <div class="code">%dev.quarkus.datasource.db-kind=postgresql
+%dev.quarkus.datasource.username=zoo
+%dev.quarkus.datasource.password=zoo_secret
+%dev.quarkus.datasource.jdbc.url=jdbc:postgresql://localhost:5432/animal_db
+%dev.quarkus.hibernate-orm.database.generation=none
+%dev.quarkus.flyway.migrate-at-start=true</div>
+        </div>
+      </div>
+      <div class="task t2">
+        <div class="task-icon"><i class="ti ti-check"></i></div>
+        <div class="task-body">
+          <div class="task-title">Verifica lo startup</div>
+          <div class="task-desc">Prima di toccare il domain, verifica che Quarkus parta senza errori contro il DB.</div>
+          <div class="code">docker compose up -d         <span class="cmt"># avvia postgres</span>
+cd animal-service
+mvn quarkus:dev              <span class="cmt"># deve partire senza eccezioni</span>
+<span class="cmt"># atteso: "Listening on: http://localhost:8080"</span></div>
+        </div>
+      </div>
+      <div class="ok-box">
+        ✓ Checkpoint: Quarkus parte, si connette al DB, Swagger UI risponde su <code>/q/swagger-ui</code>. Solo allora vai al domain layer.
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-nav btn-prev" onclick="show(1)">← Fase 1</button>
+      <button class="btn-nav btn-p3" onclick="show(3)">Fase 3: domain layer →</button>
+    </div>
+  </div>
+
+  <!-- FASE 3 -->
+  <div id="pn-3" class="pn">
+    <div class="phase-hd p3">
+      <div class="phase-title">Domain layer — zero dipendenze framework</div>
+      <div class="phase-sub">Obiettivo: modellare Animal, i port interfaces e le eccezioni. Nessuna annotazione Quarkus, Hibernate o Jakarta.</div>
+    </div>
+    <div class="card">
+      <div class="task t3">
+        <div class="task-icon"><i class="ti ti-box"></i></div>
+        <div class="task-body">
+          <div class="task-title">Animal — il model di dominio <span class="badge b-key">regola d'oro</span></div>
+          <div class="task-desc">Un POJO puro. Zero <code>@Entity</code>, zero <code>@Column</code>, zero <code>@JsonProperty</code>. Il domain non sa che esiste JPA né REST. Se vedi un'annotazione framework qui, è una violazione dell'architettura esagonale.</div>
+          <div class="code"><span class="cmt">// domain/model/Animal.java</span>
+public class Animal {
+    private UUID id;
+    private String name;
+    private String species;
+    private AnimalStatus status;
+    private LocalDate arrivalDate;
+    <span class="cmt">// costruttori, getter — nessuna annotazione</span>
+}</div>
+        </div>
+      </div>
+      <div class="task t3">
+        <div class="task-icon"><i class="ti ti-plug"></i></div>
+        <div class="task-body">
+          <div class="task-title">Port interfaces — in e out</div>
+          <div class="task-desc">Le porte definiscono cosa il domain espone (in/) e di cosa ha bisogno (out/). Sono interfacce Java pure — le implementazioni stanno nell'infrastructure layer.</div>
+          <div class="code"><span class="cmt">// port/in/RegisterAnimalUseCase.java</span>
+public interface RegisterAnimalUseCase {
+    Animal register(RegisterAnimalCommand command);
+}
+
+<span class="cmt">// port/out/AnimalRepository.java</span>
+public interface AnimalRepository {
+    Animal save(Animal animal);
+    Optional&lt;Animal&gt; findById(UUID id);
+    List&lt;Animal&gt; findAll();
+}</div>
+        </div>
+      </div>
+      <div class="task t3">
+        <div class="task-icon"><i class="ti ti-alert-circle"></i></div>
+        <div class="task-body">
+          <div class="task-title">Eccezioni di dominio</div>
+          <div class="task-desc">Estendono RuntimeException e vivono nel domain. Non contengono codici HTTP — quello è responsabilità dell'infrastructure layer.</div>
+          <div class="code"><span class="cmt">// domain/exception/AnimalNotFoundException.java</span>
+public class AnimalNotFoundException extends RuntimeException {
+    public AnimalNotFoundException(UUID id) {
+        super("Animal not found: " + id);
+    }
+}</div>
+        </div>
+      </div>
+      <div class="warn-box">
+        <strong>⚠ Test prima di andare avanti.</strong> Il domain layer si testa con JUnit puro — nessun <code>@QuarkusTest</code>, nessun mock di Quarkus. Se non riesci a testarlo con <code>new Animal()</code>, stai violando l'isolamento.
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-nav btn-prev" onclick="show(2)">← Fase 2</button>
+      <button class="btn-nav btn-p4" onclick="show(4)">Fase 4: application layer →</button>
+    </div>
+  </div>
+
+  <!-- FASE 4 -->
+  <div id="pn-4" class="pn">
+    <div class="phase-hd p4">
+      <div class="phase-title">Application layer — i Use Case</div>
+      <div class="phase-sub">Obiettivo: implementare i port "in" usando i port "out". Solo @ApplicationScoped e @Transactional — nient'altro di Quarkus.</div>
+    </div>
+    <div class="card">
+      <div class="task t4">
+        <div class="task-icon"><i class="ti ti-arrows-right-left"></i></div>
+        <div class="task-body">
+          <div class="task-title">Una classe = un use case <span class="badge b-key">regola</span></div>
+          <div class="task-desc">Ogni operazione di business ha la sua classe. RegisterAnimalService implementa RegisterAnimalUseCase e dipende solo da AnimalRepository (il port out) — mai dall'implementazione JPA concreta.</div>
+          <div class="code"><span class="cmt">// application/RegisterAnimalService.java</span>
+@ApplicationScoped
+public class RegisterAnimalService implements RegisterAnimalUseCase {
+
+    private final AnimalRepository repository; <span class="cmt">// port, non JPA!</span>
+
+    public RegisterAnimalService(AnimalRepository repository) {
+        this.repository = repository;
+    }
+
+    @Override
+    @Transactional
+    public Animal register(RegisterAnimalCommand cmd) {
+        var animal = new Animal(UUID.randomUUID(), cmd.name(), ...);
+        return repository.save(animal);
+    }
+}</div>
+        </div>
+      </div>
+      <div class="task t4">
+        <div class="task-icon"><i class="ti ti-list"></i></div>
+        <div class="task-body">
+          <div class="task-title">Quali use case implementare subito</div>
+          <div class="task-desc">Solo quelli strettamente necessari per una demo end-to-end. Gli altri li aggiungi dopo aver verificato il flusso completo.</div>
+          <div class="code">RegisterAnimalService      <span class="cmt">← POST /animals</span>
+GetAnimalService          <span class="cmt">← GET /animals/{id}</span>
+ListAnimalsService        <span class="cmt">← GET /animals</span>
+UpdateAnimalStatusService <span class="cmt">← PATCH /animals/{id}/status</span></div>
+        </div>
+      </div>
+      <div class="task t4">
+        <div class="task-icon"><i class="ti ti-test-pipe"></i></div>
+        <div class="task-body">
+          <div class="task-title">Test con Mockito — niente @QuarkusTest</div>
+          <div class="task-desc">I use case si testano mockando l'AnimalRepository. Nessun container Quarkus, nessun DB — test veloci e isolati.</div>
+          <div class="code"><span class="cmt">// RegisterAnimalServiceTest.java</span>
+@ExtendWith(MockitoExtension.class)
+class RegisterAnimalServiceTest {
+    @Mock AnimalRepository repository;
+    @InjectMocks RegisterAnimalService service;
+
+    @Test void shouldRegisterAnimal() { ... }
+}</div>
+        </div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-nav btn-prev" onclick="show(3)">← Fase 3</button>
+      <button class="btn-nav btn-p5" onclick="show(5)">Fase 5: infrastructure layer →</button>
+    </div>
+  </div>
+
+  <!-- FASE 5 -->
+  <div id="pn-5" class="pn">
+    <div class="phase-hd p5">
+      <div class="phase-title">Infrastructure layer — adapter JPA e REST</div>
+      <div class="phase-sub">Obiettivo: implementare i port "out" con JPA, esporre i port "in" via REST. Quarkus e Hibernate vivono solo qui.</div>
+    </div>
+    <div class="card">
+      <div class="task t5">
+        <div class="task-icon"><i class="ti ti-database"></i></div>
+        <div class="task-body">
+          <div class="task-title">JPA adapter — implementa AnimalRepository</div>
+          <div class="task-desc">La AnimalEntity ha le annotazioni JPA. L'adapter converte da domain model a entity e viceversa. Questa è l'unica classe che conosce Hibernate.</div>
+          <div class="code"><span class="cmt">// infrastructure/persistence/AnimalRepositoryAdapter.java</span>
+@ApplicationScoped
+public class AnimalRepositoryAdapter implements AnimalRepository {
+
+    @Override
+    public Animal save(Animal animal) {
+        AnimalEntity entity = AnimalMapper.toEntity(animal);
+        entity.persist();
+        return AnimalMapper.toDomain(entity);
+    }
+}</div>
+        </div>
+      </div>
+      <div class="task t5">
+        <div class="task-icon"><i class="ti ti-file-database"></i></div>
+        <div class="task-body">
+          <div class="task-title">Prima migration Flyway</div>
+          <div class="task-desc">Il file SQL va in src/main/resources/db/migration/. La naming convention di Flyway è obbligatoria: V{versione}__{descrizione}.sql</div>
+          <div class="code"><span class="cmt">-- V1__create_animal_table.sql</span>
+CREATE TABLE animal (
+    id           UUID         PRIMARY KEY,
+    name         VARCHAR(100) NOT NULL,
+    species      VARCHAR(100) NOT NULL,
+    status       VARCHAR(20)  NOT NULL,
+    arrival_date DATE         NOT NULL
+);</div>
+        </div>
+      </div>
+      <div class="task t5">
+        <div class="task-icon"><i class="ti ti-api"></i></div>
+        <div class="task-body">
+          <div class="task-title">REST resource — espone i use case</div>
+          <div class="task-desc">Il resource dipende dai port in, non dai service concreti. Converte HTTP → command → use case → response DTO. Non contiene business logic.</div>
+          <div class="code"><span class="cmt">// infrastructure/rest/AnimalResource.java</span>
+@Path("/animals")
+@Produces(APPLICATION_JSON) @Consumes(APPLICATION_JSON)
+public class AnimalResource {
+
+    private final RegisterAnimalUseCase register; <span class="cmt">// port!</span>
+    private final GetAnimalUseCase getAnimal;
+
+    @POST
+    public Response register(RegisterAnimalRequest req) {
+        Animal animal = register.register(toCommand(req));
+        return Response.created(...).entity(toResponse(animal)).build();
+    }
+}</div>
+        </div>
+      </div>
+      <div class="ok-box">
+        ✓ Checkpoint finale: POST /animals crea un record, GET /animals/{id} lo ritorna. Swagger UI funziona. I test passano. Hai il tuo primo servizio funzionante end-to-end.
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-nav btn-prev" onclick="show(4)">← Fase 4</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function show(n) {
+    [1,2,3,4,5].forEach(k => {
+      document.getElementById('pn-'+k).classList.toggle('on', k===n);
+    });
+    document.querySelectorAll('.pnav').forEach((b,i) => {
+      b.classList.toggle('on', i+1===n);
+    });
+    [1,2,3,4,5].forEach(k => {
+      const el = document.getElementById('ps'+k);
+      if(k < n) el.className = 'pseg done';
+      else if(k === n) el.className = 'pseg active';
+      else el.className = 'pseg';
+    });
+    const labels = {
+      1:'Fase 1 di 5 — Setup repo',
+      2:'Fase 2 di 5 — Infrastruttura',
+      3:'Fase 3 di 5 — Domain layer',
+      4:'Fase 4 di 5 — Application layer',
+      5:'Fase 5 di 5 — Infrastructure layer'
+    };
+    document.getElementById('plabel').textContent = labels[n] || '';
+  }
+  show(1);
+</script>
+</body>
+</html>
