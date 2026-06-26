@@ -67,6 +67,13 @@ class RegisterAnimalServiceTest {
     }
 
     @Test
+    void shouldThrowWhenSpeciesIsNull() {
+        RegisterAnimalCommand cmd = new RegisterAnimalCommand(
+                "Leo", null, true, Habitat.TERRESTRIAL, enclosureId, today);
+        assertThrows(InvalidAnimalDataException.class, () -> service.register(cmd));
+    }
+
+    @Test
     void shouldThrowWhenHabitatIsNull() {
         RegisterAnimalCommand cmd = new RegisterAnimalCommand(
                 "Leo", "Lion", true, null, enclosureId, today);
