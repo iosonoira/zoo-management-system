@@ -46,4 +46,11 @@ public class Animal {
     public void setEnclosureId(UUID enclosureId) { this.enclosureId = enclosureId; }
     public void setArrivalDate(LocalDate arrivalDate) { this.arrivalDate = arrivalDate; }
     public void setStatus(AnimalStatus status) { this.status = status; }
+
+    public boolean canTransitionTo(AnimalStatus target) {
+        if (this.status == AnimalStatus.DECEASED) {
+            return false;
+        }
+        return this.status != target;
+    }
 }
