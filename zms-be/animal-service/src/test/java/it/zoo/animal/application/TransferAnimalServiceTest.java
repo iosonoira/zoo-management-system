@@ -62,4 +62,16 @@ class TransferAnimalServiceTest {
         assertThrows(InvalidAnimalDataException.class,
                 () -> service.transfer(animalId, null));
     }
+
+    @Test
+    void shouldThrowWhenTransferringDeceasedAnimal() {
+        UUID animalId = UUID.randomUUID();
+        UUID newEnclosureId = UUID.randomUUID();
+        Animal deceased = new Animal(animalId, "Leo", "Lion", true,
+                Habitat.TERRESTRIAL, UUID.randomUUID(), LocalDate.now(), AnimalStatus.DECEASED);
+        when(repository.findById(animalId)).thenReturn(Optional.of(deceased));
+
+        assertThrows(InvalidAnimalDataException.class,
+                () -> service.transfer(animalId, newEnclosureId));
+    }
 }
