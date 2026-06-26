@@ -50,7 +50,12 @@
             <artifactId>quarkus-junit</artifactId>
             <version>3.36.1</version>
             <scope>test</scope>
-        </dependency>   
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
