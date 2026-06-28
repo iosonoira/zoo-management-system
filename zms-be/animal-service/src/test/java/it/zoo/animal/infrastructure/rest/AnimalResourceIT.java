@@ -153,6 +153,28 @@ class AnimalResourceIT {
             .statusCode(400);
     }
 
+    @Test
+    void shouldReturn400WhenTransferringDeceasedAnimal() {
+        String id = postAnimal("Leo", "Lion").extract().path("id");
+
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"status\": \"DECEASED\"}")
+        .when()
+            .put("/animals/" + id + "/status")
+        .then()
+            .statusCode(200);
+
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"targetEnclosureId\": \"660e8400-e29b-41d4-a716-446655440001\"}")
+        .when()
+            .put("/animals/" + id + "/transfer")
+        .then()
+            .statusCode(400)
+            .body("message", notNullValue());
+    }
+
     private ValidatableResponse postAnimal(String name, String species) {
         return given()
             .contentType(ContentType.JSON)
