@@ -3,7 +3,6 @@ package it.zoo.animal.infrastructure.persistence;
 import it.zoo.animal.domain.model.Animal;
 import it.zoo.animal.domain.port.out.AnimalRepository;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 
 import java.util.List;
@@ -13,8 +12,11 @@ import java.util.UUID;
 @ApplicationScoped
 public class AnimalPanacheRepository implements AnimalRepository {
 
-    @Inject
-    EntityManager em;
+    private final EntityManager em;
+
+    public AnimalPanacheRepository(EntityManager em) {
+        this.em = em;
+    }
 
     @Override
     public Animal save(Animal animal) {
