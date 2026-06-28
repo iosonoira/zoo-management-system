@@ -18,52 +18,52 @@ class AnimalStatusTransitionTest {
     }
 
     @Test
-    void healthyCanTransitionToUnderObservation() {
+    void shouldAllowTransitionFromHealthyToUnderObservation() {
         assertTrue(animalWithStatus(AnimalStatus.HEALTHY).canTransitionTo(AnimalStatus.UNDER_OBSERVATION));
     }
 
     @Test
-    void healthyCanTransitionToInTreatment() {
+    void shouldAllowTransitionFromHealthyToInTreatment() {
         assertTrue(animalWithStatus(AnimalStatus.HEALTHY).canTransitionTo(AnimalStatus.IN_TREATMENT));
     }
 
     @Test
-    void healthyCanTransitionToDeceased() {
+    void shouldAllowTransitionFromHealthyToDeceased() {
         assertTrue(animalWithStatus(AnimalStatus.HEALTHY).canTransitionTo(AnimalStatus.DECEASED));
     }
 
     @Test
-    void underObservationCanTransitionToHealthy() {
+    void shouldAllowTransitionFromUnderObservationToHealthy() {
         assertTrue(animalWithStatus(AnimalStatus.UNDER_OBSERVATION).canTransitionTo(AnimalStatus.HEALTHY));
     }
 
     @Test
-    void underObservationCanTransitionToInTreatment() {
+    void shouldAllowTransitionFromUnderObservationToInTreatment() {
         assertTrue(animalWithStatus(AnimalStatus.UNDER_OBSERVATION).canTransitionTo(AnimalStatus.IN_TREATMENT));
     }
 
     @Test
-    void underObservationCanTransitionToDeceased() {
+    void shouldAllowTransitionFromUnderObservationToDeceased() {
         assertTrue(animalWithStatus(AnimalStatus.UNDER_OBSERVATION).canTransitionTo(AnimalStatus.DECEASED));
     }
 
     @Test
-    void inTreatmentCanTransitionToHealthy() {
+    void shouldAllowTransitionFromInTreatmentToHealthy() {
         assertTrue(animalWithStatus(AnimalStatus.IN_TREATMENT).canTransitionTo(AnimalStatus.HEALTHY));
     }
 
     @Test
-    void inTreatmentCanTransitionToUnderObservation() {
+    void shouldAllowTransitionFromInTreatmentToUnderObservation() {
         assertTrue(animalWithStatus(AnimalStatus.IN_TREATMENT).canTransitionTo(AnimalStatus.UNDER_OBSERVATION));
     }
 
     @Test
-    void inTreatmentCanTransitionToDeceased() {
+    void shouldAllowTransitionFromInTreatmentToDeceased() {
         assertTrue(animalWithStatus(AnimalStatus.IN_TREATMENT).canTransitionTo(AnimalStatus.DECEASED));
     }
 
     @Test
-    void deceasedIsTerminal() {
+    void shouldBlockAllTransitionsWhenDeceased() {
         Animal deceased = animalWithStatus(AnimalStatus.DECEASED);
         assertFalse(deceased.canTransitionTo(AnimalStatus.HEALTHY));
         assertFalse(deceased.canTransitionTo(AnimalStatus.UNDER_OBSERVATION));
@@ -71,7 +71,7 @@ class AnimalStatusTransitionTest {
     }
 
     @Test
-    void cannotTransitionToSameStatus() {
+    void shouldBlockTransitionToSameStatus() {
         assertFalse(animalWithStatus(AnimalStatus.HEALTHY).canTransitionTo(AnimalStatus.HEALTHY));
     }
 }
