@@ -55,4 +55,8 @@ public class Animal {
         }
         return this.status != target;
     }
+
+    public boolean canBeTransferred() {
+        return this.status != AnimalStatus.DECEASED;
+    }
 }
