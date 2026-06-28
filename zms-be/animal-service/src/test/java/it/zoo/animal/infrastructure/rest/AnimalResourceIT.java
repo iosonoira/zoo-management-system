@@ -1,0 +1,172 @@
+package it.zoo.animal.infrastructure.rest;
+
+import io.quarkus.narayana.jta.QuarkusTransaction;
+import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.http.ContentType;
+import io.restassured.response.ValidatableResponse;
+import jakarta.persistence.EntityManager;
+import jakarta.inject.Inject;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.*;
+
+@QuarkusTest
+class AnimalResourceIT {
+
+    @Inject
+    EntityManager em;
+
+    @BeforeEach
+    void cleanUp() {
+        QuarkusTransaction.requiringNew().run(() ->
+            em.createQuery("DELETE FROM AnimalEntity").executeUpdate()
+        );
+    }
+
+    @Test
+    void shouldRegisterAnimal() {
+        given()
+            .contentType(ContentType.JSON)
+            .body("{" +
+                "  \"name\": \"Leo\"," +
+                "  \"species\": \"Lion\"," +
+                "  \"dangerous\": true," +
+                "  \"habitat\": \"TERRESTRIAL\"," +
+                "  \"enclosureId\": \"550e8400-e29b-41d4-a716-446655440000\"," +
+                "  \"arrivalDate\": \"2024-01-15\"" +
+                "}")
+        .when()
+            .post("/animals")
+        .then()
+            .statusCode(201)
+            .body("id", notNullValue())
+            .body("name", equalTo("Leo"))
+            .body("species", equalTo("Lion"))
+            .body("dangerous", equalTo(true))
+            .body("status", equalTo("HEALTHY"));
+    }
+
+    @Test
+    void shouldListAllAnimals() {
+        postAnimal("Leo", "Lion");
+        postAnimal("Nemo", "Fish");
+
+        given()
+        .when()
+            .get("/animals")
+        .then()
+            .statusCode(200)
+            .body("size()", equalTo(2));
+    }
+
+    @Test
+    void shouldGetAnimalById() {
+        String id = postAnimal("Leo", "Lion").extract().path("id");
+
+        given()
+        .when()
+            .get("/animals/" + id)
+        .then()
+            .statusCode(200)
+            .body("id", equalTo(id))
+            .body("name", equalTo("Leo"));
+    }
+
+    @Test
+    void shouldReturn404WhenAnimalNotFound() {
+        given()
+        .when()
+            .get("/animals/00000000-0000-0000-0000-000000000000")
+        .then()
+            .statusCode(404)
+            .body("message", notNullValue());
+    }
+
+    @Test
+    void shouldUpdateAnimalStatus() {
+        String id = postAnimal("Leo", "Lion").extract().path("id");
+
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"status\": \"UNDER_OBSERVATION\"}")
+        .when()
+            .put("/animals/" + id + "/status")
+        .then()
+            .statusCode(200)
+            .body("status", equalTo("UNDER_OBSERVATION"));
+    }
+
+    @Test
+    void shouldReturn422OnInvalidStatusTransition() {
+        String id = postAnimal("Leo", "Lion").extract().path("id");
+
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"status\": \"DECEASED\"}")
+        .when()
+            .put("/animals/" + id + "/status")
+        .then()
+            .statusCode(200);
+
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"status\": \"HEALTHY\"}")
+        .when()
+            .put("/animals/" + id + "/status")
+        .then()
+            .statusCode(422)
+            .body("message", notNullValue());
+    }
+
+    @Test
+    void shouldTransferAnimal() {
+        String id = postAnimal("Leo", "Lion").extract().path("id");
+        String newEnclosureId = "660e8400-e29b-41d4-a716-446655440001";
+
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"targetEnclosureId\": \"" + newEnclosureId + "\"}")
+        .when()
+            .put("/animals/" + id + "/transfer")
+        .then()
+            .statusCode(200)
+            .body("enclosureId", equalTo(newEnclosureId));
+    }
+
+    @Test
+    void shouldReturn400OnBlankName() {
+        given()
+            .contentType(ContentType.JSON)
+            .body("{" +
+                "  \"name\": \"\"," +
+                "  \"species\": \"Lion\"," +
+                "  \"dangerous\": false," +
+                "  \"habitat\": \"TERRESTRIAL\"," +
+                "  \"enclosureId\": \"550e8400-e29b-41d4-a716-446655440000\"," +
+                "  \"arrivalDate\": \"2024-01-15\"" +
+                "}")
+        .when()
+            .post("/animals")
+        .then()
+            .statusCode(400);
+    }
+
+    private ValidatableResponse postAnimal(String name, String species) {
+        return given()
+            .contentType(ContentType.JSON)
+            .body("{" +
+                "  \"name\": \"" + name + "\"," +
+                "  \"species\": \"" + species + "\"," +
+                "  \"dangerous\": false," +
+                "  \"habitat\": \"TERRESTRIAL\"," +
+                "  \"enclosureId\": \"550e8400-e29b-41d4-a716-446655440000\"," +
+                "  \"arrivalDate\": \"2024-01-15\"" +
+                "}")
+        .when()
+            .post("/animals")
+        .then()
+            .statusCode(201);
+    }
+}
