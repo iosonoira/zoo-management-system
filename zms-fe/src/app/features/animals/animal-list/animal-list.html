@@ -1,5 +1,5 @@
 <div class="page">
-  <header class="head sign-plate">
+  <header class="head">
     <h1>Animals</h1>
     <p class="summary">
       @if (store.state() === 'ready') {
@@ -34,9 +34,7 @@
           (click)="filter.set(f.value)"
         >
           @if (f.value !== 'ALL') {
-            <span class="status-panel dot" [attr.data-status]="f.value">
-              <app-icon [name]="statusLabels[f.value].icon" />
-            </span>
+            <span class="dot" [attr.data-status]="f.value"></span>
           }
           {{ f.label }}
           @if (store.state() === 'ready') {
@@ -55,7 +53,7 @@
 
   @switch (store.state()) {
     @case ('error') {
-      <div class="notice white-plate" role="alert">
+      <div class="notice pane" role="alert">
         <app-icon name="alert" />
         <div>
           <h2>The roster didn’t load</h2>
@@ -66,7 +64,7 @@
     }
     @case ('ready') {
       @if (groups().length === 0) {
-        <div class="notice white-plate">
+        <div class="notice pane">
           <app-icon name="search" />
           <div>
             <h2>No animals match</h2>
@@ -77,7 +75,7 @@
       } @else {
         <div class="groups">
           @for (group of groups(); track group.enclosure.id) {
-            <section class="group">
+            <section class="group pane">
               <app-enclosure-sign
                 class="group-sign"
                 [name]="group.enclosure.name"
@@ -99,14 +97,7 @@
     @default {
       <div class="groups" aria-busy="true" aria-label="Loading animals">
         @for (g of skeleton; track $index) {
-          <div class="group">
-            <div class="skeleton skeleton-sign"></div>
-            <div class="plates">
-              @for (p of g; track $index) {
-                <div class="skeleton skeleton-plate"></div>
-              }
-            </div>
-          </div>
+          <div class="skeleton" [style.block-size.rem]="3.75 + g.length * 4.25"></div>
         }
       </div>
     }

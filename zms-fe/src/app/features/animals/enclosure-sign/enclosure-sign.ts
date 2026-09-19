@@ -3,13 +3,13 @@ import { Habitat } from '../../../core/models/animal';
 import { HABITAT_LABELS } from '../../../core/models/labels';
 import { Icon } from '../../../core/ui/icon/icon';
 
-/** Brown direction sign naming an enclosure: habitat pictogram, name, arrow. */
+/** Bed marker naming an enclosure: habitat stake, name, count, arrow. */
 @Component({
   selector: 'app-enclosure-sign',
   imports: [Icon],
   templateUrl: './enclosure-sign.html',
   styleUrl: './enclosure-sign.scss',
-  host: { '[attr.data-size]': 'size()' },
+  host: { '[attr.data-size]': 'size()', '[attr.data-habitat]': 'habitat()' },
 })
 export class EnclosureSign {
   readonly name = input.required<string>();

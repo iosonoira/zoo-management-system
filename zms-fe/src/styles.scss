@@ -1,55 +1,73 @@
-@use '@fontsource-variable/overpass';
+@use '@fontsource-variable/atkinson-hyperlegible-next';
+@use '@fontsource/atkinson-hyperlegible-mono/500.css' as mono-500;
+@use '@fontsource/atkinson-hyperlegible-mono/700.css' as mono-700;
 
 /*
- * Enclosure signage system.
- * Routed enamel plates: sign brown with white lettering, white plates with a
- * brown routed rule. Safety-sign colour law for status; red only for danger.
+ * Glasshouse register.
+ * Clear panes on a cool glass ground, 1px glazing rules, one conservatory
+ * green for action, one full-strength hue per habitat. Every status owns
+ * one tint, healthy included. Red is danger only.
  */
 :root {
   color-scheme: light;
 
-  /* Ground and plates */
-  --ground: oklch(0.955 0 0);
-  --ground-deep: oklch(0.915 0.003 60);
-  --plate: oklch(0.995 0 0);
-  --sign: oklch(0.31 0.048 52);
-  --sign-raised: oklch(0.38 0.052 52);
-  --sign-ink: oklch(0.99 0.004 80);
-  --sign-ink-2: oklch(0.86 0.02 70);
+  /* Ground and panes */
+  --ground: oklch(0.972 0.005 165);
+  --ground-deep: oklch(0.945 0.007 165);
+  --pane: oklch(1 0 0);
+  --pane-hover: oklch(0.985 0.006 165);
+  --rule: oklch(0.26 0.03 170 / 0.12);
+  --rule-strong: oklch(0.26 0.03 170 / 0.24);
 
   /* Ink */
-  --ink: oklch(0.22 0.018 52);
-  --ink-2: oklch(0.43 0.016 52);
-  --ink-3: oklch(0.62 0.01 52);
-  --rule: oklch(0.84 0.006 52);
+  --ink: oklch(0.24 0.028 170);
+  --ink-2: oklch(0.45 0.02 170);
+  --ink-3: oklch(0.62 0.014 170);
 
-  /* Status law (safety-sign colours) */
-  --healthy: oklch(0.5 0.12 152);
-  --healthy-ink: oklch(0.99 0 0);
-  --observation: oklch(0.86 0.165 92);
-  --observation-ink: oklch(0.24 0.03 80);
-  --treatment: oklch(0.7 0.17 52);
-  --treatment-ink: oklch(0.2 0.03 45);
-  --deceased: oklch(0.52 0.004 52);
-  --deceased-ink: oklch(0.99 0 0);
-  --danger: oklch(0.52 0.2 27);
-  --danger-ink: oklch(0.99 0 0);
+  /* Conservatory green: primary action, selection, focus */
+  --brand: oklch(0.4 0.07 172);
+  --brand-hover: oklch(0.34 0.065 172);
+  --brand-ink: oklch(0.99 0.004 165);
+  --brand-tint: oklch(0.94 0.03 170);
+
+  /* Habitat stakes (full strength, ink on top is white) */
+  --terrestrial: oklch(0.56 0.12 125);
+  --aquatic: oklch(0.54 0.1 235);
+  --amphibious: oklch(0.54 0.09 180);
+  --stake-ink: oklch(0.995 0 0);
+
+  /* Status: one ink + tint pair per status, everywhere */
+  --healthy: oklch(0.48 0.09 160);
+  --healthy-tint: oklch(0.95 0.03 160);
+  --observation: oklch(0.47 0.1 75);
+  --observation-tint: oklch(0.955 0.06 90);
+  --treatment: oklch(0.5 0.14 40);
+  --treatment-tint: oklch(0.945 0.035 45);
+  --deceased: oklch(0.47 0.01 170);
+  --deceased-tint: oklch(0.935 0.004 170);
+  --danger: oklch(0.53 0.19 29);
+  --danger-tint: oklch(0.955 0.025 25);
+
+  /* Depth */
+  --shadow-pane: 0 1px 2px oklch(0.26 0.03 170 / 0.05);
+  --shadow-lift: 0 12px 32px -12px oklch(0.2 0.03 170 / 0.35);
+  --scrim: oklch(0.2 0.03 170 / 0.45);
 
   /* Shape */
-  --radius-plate: 0.75rem;
-  --radius-panel: 0.5rem;
-  --routed-inset: 0.3125rem;
+  --radius-sm: 0.375rem;
+  --radius: 0.625rem;
+  --radius-pane: 1rem;
 
-  /* Type scale (fixed rem, ratio ~1.2) */
+  /* Type scale */
   --text-xs: 0.8125rem;
   --text-sm: 0.9375rem;
   --text-md: 1.0625rem;
-  --text-lg: 1.25rem;
-  --text-xl: 1.5rem;
-  --text-2xl: 2rem;
-  --text-3xl: 2.625rem;
+  --text-lg: 1.1875rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
 
-  /* Space */
+  /* Space (4px rhythm) */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -66,11 +84,63 @@
   --z-toast: 40;
 
   /* Motion */
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --dur-fast: 150ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 140ms;
   --dur: 220ms;
 
-  --font: 'Overpass Variable', 'Overpass', system-ui, sans-serif;
+  --font: 'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible Next', system-ui, sans-serif;
+  --font-mono: 'Atkinson Hyperlegible Mono', ui-monospace, monospace;
+}
+
+/* The glasshouse at night: graphite glass, green only where it acts */
+@mixin dark-tokens {
+  color-scheme: dark;
+
+  --ground: oklch(0.165 0.004 250);
+  --ground-deep: oklch(0.135 0.004 250);
+  --pane: oklch(0.205 0.005 250);
+  --pane-hover: oklch(0.235 0.006 250);
+  --rule: oklch(0.95 0.005 250 / 0.09);
+  --rule-strong: oklch(0.95 0.005 250 / 0.2);
+
+  --ink: oklch(0.95 0.003 250);
+  --ink-2: oklch(0.75 0.008 250);
+  --ink-3: oklch(0.58 0.008 250);
+
+  --brand: oklch(0.8 0.1 165);
+  --brand-hover: oklch(0.86 0.09 165);
+  --brand-ink: oklch(0.17 0.01 200);
+  --brand-tint: oklch(0.8 0.1 165 / 0.14);
+
+  --terrestrial: oklch(0.74 0.13 125);
+  --aquatic: oklch(0.74 0.1 235);
+  --amphibious: oklch(0.75 0.09 180);
+  --stake-ink: oklch(0.17 0.005 250);
+
+  --healthy: oklch(0.8 0.1 160);
+  --healthy-tint: oklch(0.8 0.1 160 / 0.13);
+  --observation: oklch(0.85 0.13 88);
+  --observation-tint: oklch(0.85 0.13 88 / 0.14);
+  --treatment: oklch(0.78 0.12 45);
+  --treatment-tint: oklch(0.78 0.12 45 / 0.15);
+  --deceased: oklch(0.74 0.008 250);
+  --deceased-tint: oklch(0.74 0.008 250 / 0.12);
+  --danger: oklch(0.72 0.17 28);
+  --danger-tint: oklch(0.72 0.17 28 / 0.14);
+
+  --shadow-pane: 0 1px 2px oklch(0 0 0 / 0.25);
+  --shadow-lift: 0 16px 40px -12px oklch(0 0 0 / 0.6);
+  --scrim: oklch(0.08 0.004 250 / 0.65);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    @include dark-tokens;
+  }
+}
+
+:root[data-theme='dark'] {
+  @include dark-tokens;
 }
 
 @media (min-width: 48rem) {
@@ -98,7 +168,6 @@ body {
   font-family: var(--font);
   font-size: var(--text-md);
   line-height: 1.45;
-  font-feature-settings: 'tnum' 0;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -118,7 +187,7 @@ h2,
 h3 {
   text-wrap: balance;
   line-height: 1.1;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 
 ul,
@@ -139,19 +208,24 @@ a {
   text-underline-offset: 0.2em;
 }
 
+code {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+}
+
 ::selection {
-  background: var(--observation);
-  color: var(--observation-ink);
+  background: var(--brand);
+  color: var(--brand-ink);
 }
 
 :focus-visible {
-  outline: 3px solid var(--ink);
+  outline: 2px solid var(--brand);
   outline-offset: 3px;
-  border-radius: 0.25rem;
+  border-radius: var(--radius-sm);
 }
 
 input {
-  caret-color: var(--sign);
+  caret-color: var(--brand);
 }
 
 .visually-hidden {
@@ -163,84 +237,101 @@ input {
   white-space: nowrap;
 }
 
+/* Counts and dates line up; tag codes are set in mono */
 .tabular {
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
 }
 
-/* ---------- Plates ---------- */
-
-.sign-plate {
-  position: relative;
-  background: var(--sign);
-  color: var(--sign-ink);
-  border-radius: var(--radius-plate);
-  box-shadow:
-    inset 0 0 0 var(--routed-inset) var(--sign),
-    inset 0 0 0 calc(var(--routed-inset) + 1.5px) var(--sign-ink-2),
-    0 1px 2px oklch(0.2 0.02 52 / 0.18),
-    0 4px 12px -4px oklch(0.2 0.02 52 / 0.2);
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }
 
-.white-plate {
-  --routed-rule: var(--sign);
-  background: var(--plate);
+/* ---------- Panes ---------- */
+
+.pane {
+  background: var(--pane);
   color: var(--ink);
-  border-radius: var(--radius-plate);
+  border-radius: var(--radius-pane);
   box-shadow:
-    inset 0 0 0 var(--routed-inset) var(--plate),
-    inset 0 0 0 calc(var(--routed-inset) + 1.5px) var(--routed-rule),
     0 0 0 1px var(--rule),
-    0 1px 2px oklch(0.2 0.02 52 / 0.1);
+    var(--shadow-pane);
 }
 
-/* ---------- Status panel (symbol + colour, always paired with text) ---------- */
+/* ---------- Status tile (tint + icon, always paired with the word) ---------- */
 
-.status-panel {
+.status-tile {
   display: inline-grid;
   place-items: center;
-  border-radius: var(--radius-panel);
   flex: none;
-
-  &[data-status='HEALTHY'] {
-    background: var(--healthy);
-    color: var(--healthy-ink);
-  }
-  &[data-status='UNDER_OBSERVATION'] {
-    background: var(--observation);
-    color: var(--observation-ink);
-  }
-  &[data-status='IN_TREATMENT'] {
-    background: var(--treatment);
-    color: var(--treatment-ink);
-  }
-  &[data-status='DECEASED'] {
-    background: var(--deceased);
-    color: var(--deceased-ink);
-  }
+  border-radius: var(--radius);
+  background: var(--status-tint);
+  color: var(--status);
 }
 
-.danger-panel {
+[data-status='HEALTHY'] {
+  --status: var(--healthy);
+  --status-tint: var(--healthy-tint);
+}
+[data-status='UNDER_OBSERVATION'] {
+  --status: var(--observation);
+  --status-tint: var(--observation-tint);
+}
+[data-status='IN_TREATMENT'] {
+  --status: var(--treatment);
+  --status-tint: var(--treatment-tint);
+}
+[data-status='DECEASED'] {
+  --status: var(--deceased);
+  --status-tint: var(--deceased-tint);
+}
+
+[data-habitat='TERRESTRIAL'] {
+  --habitat: var(--terrestrial);
+}
+[data-habitat='AQUATIC'] {
+  --habitat: var(--aquatic);
+}
+[data-habitat='AMPHIBIOUS'] {
+  --habitat: var(--amphibious);
+}
+
+/* Solid habitat hue: the only saturated field on a pane */
+.stake {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: 2rem;
+  block-size: 2rem;
+  border-radius: var(--radius-sm);
+  background: var(--habitat, var(--ink-3));
+  color: var(--stake-ink);
+  --icon-size: 1.25rem;
+  --icon-stroke: 2.2;
+}
+
+.danger-tab {
   display: inline-flex;
   align-items: center;
   gap: 0.3em;
-  padding: 0.2em 0.5em 0.1em;
-  border-radius: 0.3rem;
-  background: var(--danger);
-  color: var(--danger-ink);
-  font-size: var(--text-xs);
-  font-weight: 800;
-  letter-spacing: 0.06em;
+  padding: 0.1em 0.45em;
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 0 0 1.5px currentColor;
+  color: var(--danger);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  line-height: 1.5;
   text-transform: uppercase;
-  --icon-size: 1em;
+  --icon-size: 1.1em;
   --icon-stroke: 2.6;
 }
 
 /* ---------- Loading ---------- */
 
 .skeleton {
-  border-radius: var(--radius-plate);
-  background: linear-gradient(90deg, var(--ground-deep) 0 40%, oklch(0.94 0.002 60) 50%, var(--ground-deep) 60% 100%) 0 0 / 250% 100%;
+  border-radius: var(--radius-pane);
+  background: linear-gradient(90deg, var(--ground-deep) 0 40%, var(--pane) 50%, var(--ground-deep) 60% 100%) 0 0 / 250% 100%;
   animation: shimmer 1.4s linear infinite;
 }
 
@@ -258,11 +349,11 @@ input {
   justify-content: center;
   gap: var(--space-2);
   min-block-size: 3.25rem;
-  padding: 0.25rem var(--space-5) 0;
+  padding: 0 var(--space-5);
   border: 0;
-  border-radius: var(--radius-panel);
+  border-radius: var(--radius);
   font-size: var(--text-md);
-  font-weight: 750;
+  font-weight: 700;
   cursor: pointer;
   text-decoration: none;
   transition:
@@ -281,11 +372,11 @@ input {
 }
 
 .btn-primary {
-  background: var(--sign);
-  color: var(--sign-ink);
+  background: var(--brand);
+  color: var(--brand-ink);
 
   &:hover:not(:disabled) {
-    background: var(--sign-raised);
+    background: var(--brand-hover);
   }
   &:disabled {
     background: var(--ground-deep);
@@ -294,32 +385,33 @@ input {
 }
 
 .btn-secondary {
-  background: var(--plate);
+  background: var(--pane);
   color: var(--ink);
-  box-shadow: inset 0 0 0 2px var(--sign);
+  box-shadow: inset 0 0 0 1px var(--rule-strong);
 
   &:hover:not(:disabled) {
-    background: var(--ground);
+    background: var(--pane-hover);
   }
 }
 
 .btn-grave {
   background: var(--ink);
-  color: var(--plate);
+  color: var(--pane);
 
   &:hover:not(:disabled) {
-    background: oklch(0.32 0.018 52);
+    background: var(--ink-2);
   }
 }
 
 .btn-quiet {
   background: transparent;
-  color: var(--ink);
+  color: var(--ink-2);
   min-block-size: var(--target);
   padding-inline: var(--space-3);
 
   &:hover {
     background: var(--ground-deep);
+    color: var(--ink);
   }
 }
 
@@ -332,14 +424,14 @@ dialog.sheet {
   margin: auto 0 0;
   padding: 0;
   border: 0;
-  border-radius: 1rem 1rem 0 0;
+  border-radius: 1.25rem 1.25rem 0 0;
   background: var(--ground);
   color: var(--ink);
-  box-shadow: 0 -8px 32px -8px oklch(0.2 0.02 52 / 0.35);
+  box-shadow: var(--shadow-lift);
   overscroll-behavior: contain;
 
   &::backdrop {
-    background: oklch(0.2 0.02 52 / 0.5);
+    background: var(--scrim);
   }
 
   &[open] {
@@ -349,7 +441,7 @@ dialog.sheet {
   @media (min-width: 48rem) {
     inline-size: min(34rem, calc(100% - 2 * var(--gutter)));
     margin: auto;
-    border-radius: 1rem;
+    border-radius: 1.25rem;
   }
 }
 
@@ -369,7 +461,7 @@ dialog.sheet {
   h2 {
     padding-block-start: var(--space-2);
     font-size: var(--text-xl);
-    font-weight: 850;
+    font-weight: 800;
   }
 
   p {
@@ -395,7 +487,7 @@ dialog.sheet {
   gap: var(--space-3);
   padding: var(--space-4) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom));
   border-block-start: 1px solid var(--rule);
-  background: var(--plate);
+  background: var(--pane);
 
   .btn {
     inline-size: 100%;
@@ -409,29 +501,34 @@ dialog.sheet {
   gap: var(--space-3);
   min-block-size: 4rem;
   padding: var(--space-3);
-  border-radius: var(--radius-plate);
-  background: var(--plate);
-  box-shadow: inset 0 0 0 1.5px var(--rule);
+  border-radius: var(--radius);
+  background: var(--pane);
+  box-shadow: inset 0 0 0 1px var(--rule);
   cursor: pointer;
-  transition: box-shadow var(--dur-fast) var(--ease-out);
+  transition:
+    box-shadow var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
 
   &:hover {
-    box-shadow: inset 0 0 0 2px var(--ink-3);
+    box-shadow: inset 0 0 0 1px var(--rule-strong);
+    background: var(--pane-hover);
   }
 
   &:has(input:checked) {
-    box-shadow: inset 0 0 0 3px var(--sign);
+    background: var(--pane);
+    box-shadow: inset 0 0 0 2px var(--brand);
   }
 
   &:has(input:focus-visible) {
-    outline: 3px solid var(--ink);
-    outline-offset: 2px;
+    outline: 2px solid var(--brand);
+    outline-offset: 3px;
   }
 
   &:has(input:disabled) {
-    background: var(--ground);
-    box-shadow: none;
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--rule);
     cursor: not-allowed;
+    color: var(--ink-2);
   }
 
   input {
@@ -447,14 +544,18 @@ dialog.sheet {
   inline-size: 1.5rem;
   block-size: 1.5rem;
   border-radius: 999px;
-  box-shadow: inset 0 0 0 2px var(--ink-3);
-  color: var(--sign-ink);
+  box-shadow: inset 0 0 0 1.5px var(--rule-strong);
+  color: var(--brand-ink);
   --icon-size: 1rem;
   --icon-stroke: 3;
 
   .option:has(input:checked) & {
-    background: var(--sign);
+    background: var(--brand);
     box-shadow: none;
+  }
+
+  .option:has(input:disabled) & {
+    visibility: hidden;
   }
 }
 
@@ -465,7 +566,7 @@ dialog.sheet {
 
   strong {
     font-size: var(--text-md);
-    font-weight: 800;
+    font-weight: 700;
   }
 
   span {
@@ -479,9 +580,9 @@ dialog.sheet {
   display: flex;
   gap: var(--space-2);
   padding: var(--space-3);
-  border-radius: var(--radius-panel);
-  background: var(--plate);
-  box-shadow: inset 0 0 0 2px var(--ink);
+  border-radius: var(--radius);
+  background: var(--pane);
+  box-shadow: inset 0 0 0 1.5px var(--ink);
   color: var(--ink);
   font-size: var(--text-sm);
   font-weight: 700;
@@ -492,20 +593,16 @@ dialog.sheet {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  min-block-size: 3.25rem;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-panel);
-  background: var(--ground-deep);
   color: var(--ink-2);
   font-size: var(--text-sm);
-  --icon-size: 1.25rem;
+  --icon-size: 1rem;
 }
 
 .warning-note {
   display: flex;
   gap: var(--space-2);
   padding: var(--space-3);
-  border-radius: var(--radius-panel);
+  border-radius: var(--radius);
   background: var(--ground-deep);
   color: var(--ink);
   font-size: var(--text-sm);
@@ -519,7 +616,7 @@ dialog.sheet {
   }
 }
 
-/* ---------- View transitions ---------- */
+/* ---------- View transitions: the location label is re-staked ---------- */
 
 ::view-transition-group(*) {
   animation-duration: var(--dur);
@@ -527,26 +624,26 @@ dialog.sheet {
 }
 
 ::view-transition-old(location-sign) {
-  animation: sign-out 260ms var(--ease-out) both;
+  animation: stake-out 260ms var(--ease-out) both;
 }
 
 ::view-transition-new(location-sign) {
-  animation: sign-in 320ms var(--ease-out) 90ms both;
+  animation: stake-in 340ms var(--ease-out) 90ms both;
 }
 
-@keyframes sign-out {
+@keyframes stake-out {
   to {
     transform: translateX(40%);
     opacity: 0;
-    clip-path: inset(0 0 0 60% round var(--radius-plate));
+    clip-path: inset(0 0 0 60% round var(--radius-pane));
   }
 }
 
-@keyframes sign-in {
+@keyframes stake-in {
   from {
     transform: translateX(-30%);
     opacity: 0;
-    clip-path: inset(0 70% 0 0 round var(--radius-plate));
+    clip-path: inset(0 70% 0 0 round var(--radius-pane));
   }
 }
 

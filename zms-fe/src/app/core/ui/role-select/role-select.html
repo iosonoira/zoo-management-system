@@ -1,0 +1,50 @@
+<span class="label" id="role-label">Viewing as</span>
+
+<div
+  ngCombobox
+  #combobox="ngCombobox"
+  class="trigger"
+  aria-labelledby="role-label role-value"
+  [(expanded)]="expanded"
+  [preserveContent]="true"
+>
+  <span class="value" id="role-value">{{ label() }}</span>
+  <app-icon class="chevron" name="chevron-down" />
+</div>
+
+<ng-template
+  cdkConnectedOverlay
+  [cdkConnectedOverlayOrigin]="combobox.element"
+  [cdkConnectedOverlayOpen]="expanded()"
+  [cdkConnectedOverlayPositions]="positions"
+  cdkConnectedOverlayUsePopover="inline"
+  (overlayOutsideClick)="closeFromOutside($event, combobox.element)"
+>
+  <ng-template ngComboboxPopup [combobox]="combobox">
+    <div
+      ngListbox
+      ngComboboxWidget
+      #listbox="ngListbox"
+      class="menu"
+      aria-label="Demo role"
+      focusMode="activedescendant"
+      selectionMode="explicit"
+      [tabindex]="-1"
+      [(value)]="selected"
+      [activeDescendant]="listbox.activeDescendant()"
+      (click)="commit()"
+      (keydown.enter)="commit()"
+      (keydown.space)="commit()"
+    >
+      @for (option of options; track option.value) {
+        <div ngOption class="role-option" [value]="option.value" [label]="option.label">
+          <span class="text">
+            <span class="name">{{ option.label }}</span>
+            <span class="job">{{ option.job }}</span>
+          </span>
+          <app-icon class="check" name="check" />
+        </div>
+      }
+    </div>
+  </ng-template>
+</ng-template>

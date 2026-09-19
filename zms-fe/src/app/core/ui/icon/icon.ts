@@ -4,6 +4,7 @@ export type IconName =
   | 'search'
   | 'close'
   | 'chevron-right'
+  | 'chevron-down'
   | 'arrow-left'
   | 'arrow-right'
   | 'check'
@@ -18,9 +19,11 @@ export type IconName =
   | 'transfer'
   | 'status'
   | 'user'
-  | 'alert';
+  | 'alert'
+  | 'sun'
+  | 'moon';
 
-/** Pictogram set drawn for the signage system: 24px grid, 2px stroke, round joins. */
+/** Pictogram set drawn for the glasshouse register: 24px grid, 2px stroke, round joins. */
 @Component({
   selector: 'app-icon',
   templateUrl: './icon.html',
