@@ -1,0 +1,14 @@
+.pictogram {
+  display: grid;
+  place-items: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: 0.4rem;
+  background: var(--sign);
+  color: var(--sign-ink);
+  --icon-size: 1.5rem;
+
+  .option:has(input:disabled) & {
+    background: var(--ink-3);
+  }
+}

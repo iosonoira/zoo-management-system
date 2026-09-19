@@ -1,0 +1,71 @@
+<dialog #dialog class="sheet" aria-labelledby="status-title" (click)="onBackdrop($event)" (cancel)="pending() && $event.preventDefault()">
+  <form class="sheet-form" (submit)="submit($event)">
+    <header class="sheet-head">
+      <div>
+        <h2 id="status-title">Update status</h2>
+        <p>{{ animal().name }} is {{ labels[animal().status].label.toLowerCase() }}. The change is recorded under your name.</p>
+      </div>
+      <button type="button" class="btn btn-quiet" (click)="close()" [disabled]="pending()">
+        <app-icon name="close" />
+        <span class="visually-hidden">Close</span>
+      </button>
+    </header>
+
+    <fieldset class="sheet-body">
+      <legend class="visually-hidden">New status</legend>
+      @for (s of order; track s) {
+        <label class="option">
+          <input
+            type="radio"
+            name="status"
+            [value]="s"
+            [disabled]="s === animal().status || pending()"
+            [checked]="selected() === s"
+            (change)="selected.set(s)"
+          />
+          <span class="status-panel symbol" [attr.data-status]="s">
+            <app-icon [name]="labels[s].icon" />
+          </span>
+          <span class="option-text">
+            <strong>{{ labels[s].label }}</strong>
+            <span>{{ s === animal().status ? 'Current status' : labels[s].description }}</span>
+          </span>
+          <span class="option-mark">
+            @if (selected() === s) {
+              <app-icon name="check" />
+            }
+          </span>
+        </label>
+      }
+    </fieldset>
+
+    <footer class="sheet-foot">
+      @if (grave()) {
+        <p class="warning-note">
+          <app-icon name="lock" />
+          This can’t be undone. {{ animal().name }} will keep this record but can no longer change status or be transferred.
+        </p>
+      }
+      @if (error(); as message) {
+        <p class="form-error" role="alert"><app-icon name="alert" />{{ message }}</p>
+      }
+      <button
+        type="submit"
+        class="btn"
+        [class.btn-primary]="!grave()"
+        [class.btn-grave]="grave()"
+        [disabled]="!selected() || pending()"
+      >
+        @if (pending()) {
+          Saving…
+        } @else if (grave()) {
+          Record {{ animal().name }} as deceased
+        } @else if (selected(); as s) {
+          Set to {{ labels[s].label.toLowerCase() }}
+        } @else {
+          Choose a status
+        }
+      </button>
+    </footer>
+  </form>
+</dialog>

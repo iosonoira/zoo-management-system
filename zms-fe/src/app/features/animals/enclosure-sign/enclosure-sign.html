@@ -1,0 +1,29 @@
+<div class="sign sign-plate">
+  <span class="pictogram" [title]="habitatLabel().label">
+    <app-icon [name]="habitatLabel().icon" />
+    <span class="visually-hidden">{{ habitatLabel().label }} habitat,</span>
+  </span>
+
+  @switch (headingLevel()) {
+    @case (2) {
+      <h2 class="name">{{ name() }}</h2>
+    }
+    @case (3) {
+      <h3 class="name">{{ name() }}</h3>
+    }
+    @default {
+      <span class="name">{{ name() }}</span>
+    }
+  }
+
+  <span class="end">
+    @if (count() !== undefined) {
+      <span class="count tabular">
+        {{ count() }}<span class="visually-hidden"> {{ count() === 1 ? 'animal' : 'animals' }}</span>
+      </span>
+    }
+    @if (arrow()) {
+      <app-icon class="arrow" name="arrow-right" />
+    }
+  </span>
+</div>

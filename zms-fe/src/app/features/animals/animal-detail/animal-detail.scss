@@ -1,0 +1,261 @@
+.page {
+  display: grid;
+  gap: var(--space-4);
+  max-inline-size: 72rem;
+  margin-inline: auto;
+  padding: var(--space-2) var(--gutter) 0;
+}
+
+.back {
+  justify-self: start;
+  margin-inline-start: calc(-1 * var(--space-3));
+  --icon-size: 1.25rem;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-5) var(--space-5);
+
+  @media (min-width: 48rem) {
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    padding: var(--space-5) var(--space-6) var(--space-6);
+  }
+
+  h1 {
+    font-size: var(--text-3xl);
+    font-weight: 900;
+    letter-spacing: -0.015em;
+    overflow-wrap: anywhere;
+
+    @media (min-width: 48rem) {
+      font-size: 4rem;
+      letter-spacing: -0.025em;
+    }
+  }
+
+  &[data-deceased] {
+    background: oklch(0.42 0.006 52);
+    box-shadow:
+      inset 0 0 0 var(--routed-inset) oklch(0.42 0.006 52),
+      inset 0 0 0 calc(var(--routed-inset) + 1.5px) var(--sign-ink-2);
+  }
+}
+
+.tag {
+  display: inline-flex;
+  gap: var(--space-2);
+  padding: 0.25rem 0.55rem 0.05rem;
+  border-radius: 0.35rem;
+  background: var(--sign-ink);
+  color: var(--sign);
+  font-size: var(--text-xs);
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.identity {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.species {
+  color: var(--sign-ink-2);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.danger-band {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  grid-column: 1 / -1;
+  padding: var(--space-3) var(--space-4) var(--space-2);
+  border-radius: var(--radius-panel);
+  background: var(--danger);
+  color: var(--danger-ink);
+  font-size: var(--text-sm);
+  font-weight: 800;
+  --icon-size: 1.375rem;
+  --icon-stroke: 2.4;
+}
+
+.plate-side {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+
+  @media (min-width: 48rem) {
+    flex-direction: column;
+    align-items: end;
+  }
+}
+
+.hero-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-lg);
+  font-weight: 800;
+}
+
+.hero-symbol {
+  inline-size: 3rem;
+  block-size: 3rem;
+  --icon-size: 1.75rem;
+  --icon-stroke: 2.4;
+
+  @media (min-width: 48rem) {
+    inline-size: 4rem;
+    block-size: 4rem;
+    --icon-size: 2.25rem;
+  }
+}
+
+.sections {
+  display: grid;
+  gap: var(--space-6);
+  padding-block: var(--space-3);
+
+  @media (min-width: 60rem) {
+    grid-template-columns: 1fr 1fr;
+    column-gap: var(--space-6);
+    align-items: start;
+  }
+}
+
+.section {
+  display: grid;
+  gap: var(--space-3);
+
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: 850;
+  }
+}
+
+.record {
+  @media (min-width: 60rem) {
+    grid-column: 1 / -1;
+  }
+}
+
+.lede {
+  max-inline-size: 60ch;
+  color: var(--ink-2);
+
+  strong {
+    color: var(--ink);
+  }
+}
+
+.location {
+  view-transition-name: location-sign;
+}
+
+.wide {
+  inline-size: 100%;
+}
+
+.facts-plate {
+  padding: calc(var(--routed-inset) + 1.5px);
+}
+
+.facts {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+  border-radius: calc(var(--radius-plate) - var(--routed-inset) - 1.5px);
+  background: var(--rule);
+
+  @media (min-width: 40rem) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 60rem) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  div {
+    display: grid;
+    gap: 0.15rem;
+    padding: var(--space-3) var(--space-4);
+    background: var(--plate);
+  }
+
+  dt {
+    color: var(--ink-2);
+    font-size: var(--text-xs);
+    font-weight: 700;
+  }
+
+  dd {
+    font-weight: 650;
+  }
+}
+
+.with-icon {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  --icon-size: 1.125rem;
+}
+
+.missing {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+  padding: var(--space-6) var(--space-5);
+  --icon-size: 2rem;
+
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: 850;
+  }
+
+  p {
+    color: var(--ink-2);
+  }
+}
+
+.skeleton-hero {
+  block-size: 11rem;
+}
+
+.skeleton-block {
+  block-size: 14rem;
+}
+
+.toast {
+  position: fixed;
+  inset-inline: var(--gutter);
+  inset-block-end: calc(var(--space-4) + env(safe-area-inset-bottom));
+  z-index: var(--z-toast);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-inline-size: 30rem;
+  margin-inline: auto;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-panel);
+  background: var(--ink);
+  color: var(--plate);
+  font-weight: 700;
+  box-shadow: 0 8px 24px -8px oklch(0.2 0.02 52 / 0.5);
+  opacity: 0;
+  transform: translateY(0.75rem);
+  pointer-events: none;
+  transition:
+    opacity var(--dur) var(--ease-out),
+    transform var(--dur) var(--ease-out);
+  --icon-size: 1.25rem;
+
+  &.show {
+    opacity: 1;
+    transform: none;
+  }
+}
