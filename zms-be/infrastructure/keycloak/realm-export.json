@@ -1,0 +1,56 @@
+{
+  "realm": "zoo",
+  "enabled": true,
+  "sslRequired": "none",
+  "roles": {
+    "realm": [
+      { "name": "zoo-admin" },
+      { "name": "zoo-vet" },
+      { "name": "zoo-keeper" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "animal-service",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "secret": "animal-service-dev-secret"
+    },
+    {
+      "clientId": "zms-fe",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["http://localhost:4200/*"],
+      "webOrigins": ["http://localhost:4200"]
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "admin", "temporary": false }],
+      "realmRoles": ["zoo-admin"]
+    },
+    {
+      "username": "vet",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "vet", "temporary": false }],
+      "realmRoles": ["zoo-vet"]
+    },
+    {
+      "username": "keeper",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "keeper", "temporary": false }],
+      "realmRoles": ["zoo-keeper"]
+    }
+  ]
+}
