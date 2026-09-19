@@ -9,7 +9,7 @@ public class AnimalEntityMapper {
     private AnimalEntityMapper() {}
 
     public static Animal toDomain(AnimalEntity entity) {
-        return new Animal(
+        Animal animal = new Animal(
                 entity.getId(),
                 entity.getName(),
                 entity.getSpecies(),
@@ -19,6 +19,9 @@ public class AnimalEntityMapper {
                 entity.getArrivalDate(),
                 entity.getStatus()
         );
+        animal.setCreatedBy(entity.getCreatedBy());
+        animal.setUpdatedBy(entity.getUpdatedBy());
+        return animal;
     }
 
     public static AnimalEntity toEntity(Animal animal) {
@@ -31,6 +34,8 @@ public class AnimalEntityMapper {
         entity.setEnclosureId(animal.getEnclosureId());
         entity.setArrivalDate(animal.getArrivalDate());
         entity.setStatus(animal.getStatus());
+        entity.setCreatedBy(animal.getCreatedBy());
+        entity.setUpdatedBy(animal.getUpdatedBy());
         return entity;
     }
 
