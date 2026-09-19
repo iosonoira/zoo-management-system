@@ -254,3 +254,13 @@ Da implementare in `infrastructure/persistence/`:
 - Non mettere `@Transactional` a livello di classe
 - Non usare field injection (`@Inject` su field)
 - Non creare un unico `AnimalService` con tutti i metodi CRUD — una classe per Use Case
+
+---
+
+## Wiki Knowledge Base
+Path: ~/second-brain
+
+Quando salvi sessioni o cerchi conoscenza pregressa:
+1. Leggi ~/second-brain/wiki/hot.md prima (contesto recente)
+2. Se non basta, leggi ~/second-brain/wiki/index.md
+3. Salva le note di sessione in ~/second-brain/wiki/
