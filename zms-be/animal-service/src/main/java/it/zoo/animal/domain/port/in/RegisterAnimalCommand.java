@@ -10,5 +10,6 @@ public record RegisterAnimalCommand(
     boolean dangerous,
     Habitat habitat,
     UUID enclosureId,
-    LocalDate arrivalDate
+    LocalDate arrivalDate,
+    String performedBy
 ) {}

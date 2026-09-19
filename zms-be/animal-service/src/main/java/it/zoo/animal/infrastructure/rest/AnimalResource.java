@@ -1,5 +1,6 @@
 package it.zoo.animal.infrastructure.rest;
 
+import io.quarkus.security.identity.SecurityIdentity;
 import it.zoo.animal.domain.model.Animal;
 import it.zoo.animal.domain.port.in.*;
 import it.zoo.animal.infrastructure.rest.dto.AnimalResponse;
@@ -30,19 +31,22 @@ public class AnimalResource {
     private final UpdateAnimalStatusUseCase updateAnimalStatus;
     private final TransferAnimalUseCase transferAnimal;
     private final AnimalDtoMapper mapper;
+    private final SecurityIdentity identity;
 
     public AnimalResource(RegisterAnimalUseCase registerAnimal,
                           GetAnimalUseCase getAnimal,
                           ListAnimalsUseCase listAnimals,
                           UpdateAnimalStatusUseCase updateAnimalStatus,
                           TransferAnimalUseCase transferAnimal,
-                          AnimalDtoMapper mapper) {
+                          AnimalDtoMapper mapper,
+                          SecurityIdentity identity) {
         this.registerAnimal = registerAnimal;
         this.getAnimal = getAnimal;
         this.listAnimals = listAnimals;
         this.updateAnimalStatus = updateAnimalStatus;
         this.transferAnimal = transferAnimal;
         this.mapper = mapper;
+        this.identity = identity;
     }
 
     @POST
@@ -50,7 +54,8 @@ public class AnimalResource {
     public Response register(@Valid RegisterAnimalRequest request) {
         RegisterAnimalCommand cmd = new RegisterAnimalCommand(
                 request.name(), request.species(), request.dangerous(),
-                request.habitat(), request.enclosureId(), request.arrivalDate()
+                request.habitat(), request.enclosureId(), request.arrivalDate(),
+                currentActor()
         );
         Animal animal = registerAnimal.register(cmd);
         return Response.status(Response.Status.CREATED)
@@ -76,7 +81,7 @@ public class AnimalResource {
     @RolesAllowed({ZooRoles.VET, ZooRoles.ADMIN})
     public AnimalResponse updateStatus(@PathParam("id") UUID id,
                                        @Valid UpdateAnimalStatusRequest request) {
-        return mapper.toResponse(updateAnimalStatus.updateStatus(id, request.status()));
+        return mapper.toResponse(updateAnimalStatus.updateStatus(id, request.status(), currentActor()));
     }
 
     @PUT
@@ -84,6 +89,10 @@ public class AnimalResource {
     @RolesAllowed({ZooRoles.KEEPER, ZooRoles.ADMIN})
     public AnimalResponse transfer(@PathParam("id") UUID id,
                                    @Valid TransferAnimalRequest request) {
-        return mapper.toResponse(transferAnimal.transfer(id, request.targetEnclosureId()));
+        return mapper.toResponse(transferAnimal.transfer(id, request.targetEnclosureId(), currentActor()));
+    }
+
+    private String currentActor() {
+        return identity.getPrincipal().getName();
     }
 }

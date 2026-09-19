@@ -33,64 +33,71 @@ class RegisterAnimalServiceTest {
 
     @Test
     void shouldRegisterAnimalWithHealthyStatus() {
-        Animal saved = new Animal(UUID.randomUUID(), "Leo", "Lion", true,
-                Habitat.TERRESTRIAL, enclosureId, today, AnimalStatus.HEALTHY);
-        when(repository.save(any(Animal.class))).thenReturn(saved);
+        when(repository.save(any(Animal.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         RegisterAnimalCommand cmd = new RegisterAnimalCommand(
-                "Leo", "Lion", true, Habitat.TERRESTRIAL, enclosureId, today);
+                "Leo", "Lion", true, Habitat.TERRESTRIAL, enclosureId, today, "vet");
         Animal result = service.register(cmd);
 
         assertEquals(AnimalStatus.HEALTHY, result.getStatus());
         assertEquals("Leo", result.getName());
+        assertEquals("vet", result.getCreatedBy());
+        assertEquals("vet", result.getUpdatedBy());
     }
 
     @Test
     void shouldThrowWhenNameIsBlank() {
         RegisterAnimalCommand cmd = new RegisterAnimalCommand(
-                "", "Lion", true, Habitat.TERRESTRIAL, enclosureId, today);
+                "", "Lion", true, Habitat.TERRESTRIAL, enclosureId, today, "vet");
         assertThrows(InvalidAnimalDataException.class, () -> service.register(cmd));
     }
 
     @Test
     void shouldThrowWhenNameIsNull() {
         RegisterAnimalCommand cmd = new RegisterAnimalCommand(
-                null, "Lion", true, Habitat.TERRESTRIAL, enclosureId, today);
+                null, "Lion", true, Habitat.TERRESTRIAL, enclosureId, today, "vet");
         assertThrows(InvalidAnimalDataException.class, () -> service.register(cmd));
     }
 
     @Test
     void shouldThrowWhenSpeciesIsBlank() {
         RegisterAnimalCommand cmd = new RegisterAnimalCommand(
-                "Leo", "", true, Habitat.TERRESTRIAL, enclosureId, today);
+                "Leo", "", true, Habitat.TERRESTRIAL, enclosureId, today, "vet");
         assertThrows(InvalidAnimalDataException.class, () -> service.register(cmd));
     }
 
     @Test
     void shouldThrowWhenSpeciesIsNull() {
         RegisterAnimalCommand cmd = new RegisterAnimalCommand(
-                "Leo", null, true, Habitat.TERRESTRIAL, enclosureId, today);
+                "Leo", null, true, Habitat.TERRESTRIAL, enclosureId, today, "vet");
         assertThrows(InvalidAnimalDataException.class, () -> service.register(cmd));
     }
 
     @Test
     void shouldThrowWhenHabitatIsNull() {
         RegisterAnimalCommand cmd = new RegisterAnimalCommand(
-                "Leo", "Lion", true, null, enclosureId, today);
+                "Leo", "Lion", true, null, enclosureId, today, "vet");
         assertThrows(InvalidAnimalDataException.class, () -> service.register(cmd));
     }
 
     @Test
     void shouldThrowWhenEnclosureIdIsNull() {
         RegisterAnimalCommand cmd = new RegisterAnimalCommand(
-                "Leo", "Lion", true, Habitat.TERRESTRIAL, null, today);
+                "Leo", "Lion", true, Habitat.TERRESTRIAL, null, today, "vet");
         assertThrows(InvalidAnimalDataException.class, () -> service.register(cmd));
     }
 
     @Test
     void shouldThrowWhenArrivalDateIsNull() {
         RegisterAnimalCommand cmd = new RegisterAnimalCommand(
-                "Leo", "Lion", true, Habitat.TERRESTRIAL, enclosureId, null);
+                "Leo", "Lion", true, Habitat.TERRESTRIAL, enclosureId, null, "vet");
+        assertThrows(InvalidAnimalDataException.class, () -> service.register(cmd));
+    }
+
+    @Test
+    void shouldThrowWhenPerformedByIsBlank() {
+        RegisterAnimalCommand cmd = new RegisterAnimalCommand(
+                "Leo", "Lion", true, Habitat.TERRESTRIAL, enclosureId, today, "  ");
         assertThrows(InvalidAnimalDataException.class, () -> service.register(cmd));
     }
 }

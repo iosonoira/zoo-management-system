@@ -21,7 +21,10 @@ public class TransferAnimalService implements TransferAnimalUseCase {
 
     @Override
     @Transactional
-    public Animal transfer(UUID animalId, UUID targetEnclosureId) {
+    public Animal transfer(UUID animalId, UUID targetEnclosureId, String performedBy) {
+        if (performedBy == null || performedBy.isBlank()) {
+            throw new InvalidAnimalDataException("Actor must not be blank");
+        }
         if (targetEnclosureId == null) {
             throw new InvalidAnimalDataException("Target enclosure ID must not be null");
         }
@@ -34,6 +37,7 @@ public class TransferAnimalService implements TransferAnimalUseCase {
         }
 
         animal.setEnclosureId(targetEnclosureId);
+        animal.setUpdatedBy(performedBy);
         return repository.save(animal);
     }
 }

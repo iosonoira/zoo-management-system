@@ -15,6 +15,8 @@ public class Animal {
     private UUID enclosureId;
     private LocalDate arrivalDate;
     private AnimalStatus status;
+    private String createdBy;
+    private String updatedBy;
 
     public Animal() {}
 
@@ -39,6 +41,8 @@ public class Animal {
     public UUID getEnclosureId() { return enclosureId; }
     public LocalDate getArrivalDate() { return arrivalDate; }
     public AnimalStatus getStatus() { return status; }
+    public String getCreatedBy() { return createdBy; }
+    public String getUpdatedBy() { return updatedBy; }
 
     public void setId(UUID id) { this.id = id; }
     public void setName(String name) { this.name = name; }
@@ -48,6 +52,8 @@ public class Animal {
     public void setEnclosureId(UUID enclosureId) { this.enclosureId = enclosureId; }
     public void setArrivalDate(LocalDate arrivalDate) { this.arrivalDate = arrivalDate; }
     public void setStatus(AnimalStatus status) { this.status = status; }
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
+    public void setUpdatedBy(String updatedBy) { this.updatedBy = updatedBy; }
 
     public boolean canTransitionTo(AnimalStatus target) {
         if (this.status == AnimalStatus.DECEASED) {

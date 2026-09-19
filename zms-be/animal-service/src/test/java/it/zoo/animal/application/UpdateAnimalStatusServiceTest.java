@@ -1,6 +1,7 @@
 package it.zoo.animal.application;
 
 import it.zoo.animal.domain.exception.AnimalNotFoundException;
+import it.zoo.animal.domain.exception.InvalidAnimalDataException;
 import it.zoo.animal.domain.exception.InvalidStatusTransitionException;
 import it.zoo.animal.domain.model.Animal;
 import it.zoo.animal.domain.enums.AnimalStatus;
@@ -38,14 +39,13 @@ class UpdateAnimalStatusServiceTest {
     void shouldUpdateStatus() {
         UUID id = UUID.randomUUID();
         Animal animal = healthyAnimal(id);
-        Animal updated = new Animal(id, "Leo", "Lion", true,
-                Habitat.TERRESTRIAL, animal.getEnclosureId(), LocalDate.now(), AnimalStatus.UNDER_OBSERVATION);
         when(repository.findById(id)).thenReturn(Optional.of(animal));
-        when(repository.save(any(Animal.class))).thenReturn(updated);
+        when(repository.save(any(Animal.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Animal result = service.updateStatus(id, AnimalStatus.UNDER_OBSERVATION);
+        Animal result = service.updateStatus(id, AnimalStatus.UNDER_OBSERVATION, "vet");
 
         assertEquals(AnimalStatus.UNDER_OBSERVATION, result.getStatus());
+        assertEquals("vet", result.getUpdatedBy());
     }
 
     @Test
@@ -54,7 +54,7 @@ class UpdateAnimalStatusServiceTest {
         when(repository.findById(id)).thenReturn(Optional.empty());
 
         assertThrows(AnimalNotFoundException.class,
-                () -> service.updateStatus(id, AnimalStatus.UNDER_OBSERVATION));
+                () -> service.updateStatus(id, AnimalStatus.UNDER_OBSERVATION, "vet"));
     }
 
     @Test
@@ -65,6 +65,14 @@ class UpdateAnimalStatusServiceTest {
         when(repository.findById(id)).thenReturn(Optional.of(deceased));
 
         assertThrows(InvalidStatusTransitionException.class,
-                () -> service.updateStatus(id, AnimalStatus.HEALTHY));
+                () -> service.updateStatus(id, AnimalStatus.HEALTHY, "vet"));
+    }
+
+    @Test
+    void shouldThrowWhenPerformedByIsBlank() {
+        UUID id = UUID.randomUUID();
+
+        assertThrows(InvalidAnimalDataException.class,
+                () -> service.updateStatus(id, AnimalStatus.UNDER_OBSERVATION, ""));
     }
 }
