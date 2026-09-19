@@ -19,7 +19,7 @@ Scope: `zms-be/` only. Paths below are relative to `zms-be/`. Abbreviation: `AS`
 
 **No domain events for animal lifecycle:**
 
-- Issue: `CLAUDE.md:245` plans a Kafka producer in `infrastructure/event/`, but status changes and transfers only persist (`AS/application/UpdateAnimalStatusService.java:38-40`, `AS/application/TransferAnimalService.java:36-38`). No outbound port for events exists in `AS/domain/port/out/`.
+- Issue: `CLAUDE.md:245` plans a Kafka producer in `infrastructure/event/`, but status changes and transfers only persist (`AS/application/UpdateAnimalStatusService.java:38-40`, `AS/application/TransferAnimalService.java:39-41`). No outbound port for events exists in `AS/domain/port/out/`.
 - Impact: Downstream services (health, notification) have no way to react to `DECEASED`/`SICK` transitions.
 - Fix approach: Add an `AnimalEventPublisher` port in `domain/port/out/`, call it from services, implement with transactional outbox to avoid dual-write.
 
@@ -36,7 +36,7 @@ Scope: `zms-be/` only. Paths below are relative to `zms-be/`. Abbreviation: `AS`
 
 **Anemic domain model with public setters:**
 
-- Issue: `AS/domain/model/Animal.java:39-48` exposes setters for every field, including `id`, `status`, `createdBy`. Invariants (`canTransitionTo`, `canBeTransferred`, lines 50-60) are checked by services, not enforced by the model. Input validation lives in services (`AS/application/RegisterAnimalService.java:23-40`) and duplicates Bean Validation on `RegisterAnimalRequest`.
+- Issue: `AS/domain/model/Animal.java:47-56` exposes setters for every field, including `id`, `status`, `createdBy`. Invariants (`canTransitionTo`, `canBeTransferred`, lines 58-67) are checked by services, not enforced by the model. Input validation lives in services (`AS/application/RegisterAnimalService.java:26-43`) and duplicates Bean Validation on `RegisterAnimalRequest`.
 - Impact: Any caller can call `setStatus(...)` and bypass transition rules.
 - Fix approach: Replace setters with intent methods (`changeStatus(target, actor)`, `transferTo(enclosure, actor)`) that throw domain exceptions.
 
@@ -51,29 +51,61 @@ Scope: `zms-be/` only. Paths below are relative to `zms-be/`. Abbreviation: `AS`
 
 ## Known Bugs
 
+> Entries marked *(code review 2026-09-19)* come from a follow-up `/code-review high zms-be` pass that cross-checked this map against the code. They were found by reading the code only; the ITs could not be run because Docker was unavailable.
+
+**`AnimalSecurityIT` seed violates `created_by NOT NULL`** *(code review 2026-09-19)*:
+
+- Symptoms: `seed()` persists an `AnimalEntity` without `setCreatedBy` (`animal-service/src/test/java/it/zoo/animal/infrastructure/rest/AnimalSecurityIT.java:40-52`), but `V2__add_audit_columns.sql:6` makes `created_by` NOT NULL and `AnimalEntity` maps it `nullable = false`.
+- Impact: Every `AnimalSecurityIT` test fails in `@BeforeEach`, so the role/authorization matrix is never exercised. The seed was written in `40824d0`, before the audit columns were added in `c581ae2`. Nobody noticed because surefire skips `*IT` classes; only `mvnw verify` runs them.
+- Fix approach: `entity.setCreatedBy("system")` in the seed; add `verify` to CI.
+
+**JVM Docker images cannot run the jar** *(code review 2026-09-19)*:
+
+- Symptoms: `animal-service/src/main/docker/Dockerfile.jvm:83` and `Dockerfile.legacy-jar:83` use `ubi9/openjdk-17-runtime`, while `pom.xml:23` sets `maven.compiler.release=21`.
+- Impact: The container fails at startup with `UnsupportedClassVersionError` (class file version 65 on a runtime that supports up to 61).
+- Fix approach: Switch the base image to `ubi9/openjdk-21-runtime`.
+
+**Prod profile is unusable** *(code review 2026-09-19)*:
+
+- Symptoms: `application.properties:1` disables OIDC globally, and OIDC plus the datasource URL and credentials exist only under `%dev`.
+- Impact: The packaged jar (prod profile) has no JDBC URL, so startup fails. If a datasource is supplied through env vars, every `@RolesAllowed` endpoint returns 401, because every caller is anonymous.
+- Fix approach: See "OIDC disabled outside dev profile" under Security Considerations.
+
+**Lost update can revive a DECEASED animal** *(code review 2026-09-19)*:
+
+- Symptoms: `AnimalPanacheRepository.save` (`AS/infrastructure/persistence/AnimalPanacheRepository.java:22-26`) merges a detached entity built from the full domain object, and there is no `@Version` column.
+- Trigger: A vet sets animal X to `DECEASED` while a keeper transfers X at the same time. Both load X as `HEALTHY`. The vet commits first, then the keeper's merge writes `status=HEALTHY`, bypassing `canTransitionTo` and `canBeTransferred`.
+- Fix approach: See "No optimistic locking" under Fragile Areas.
+
+**Over-length `name`/`species` returns 500** *(code review 2026-09-19)*:
+
+- Symptoms: `RegisterAnimalRequest.java:11-12` has only `@NotBlank`, with no `@Size(max = 100)`, while the columns are `VARCHAR(100)` (`V1__create_animals_table.sql:3-4`).
+- Trigger: `POST /animals` with a 101-character name. Postgres rejects the insert, and `ZooExceptionMapper` turns the `PersistenceException` into a generic 500 instead of a 400.
+- Fix approach: Add `@Size(max = 100)` to both fields, plus an IT case.
+
 **Status transition rule is effectively "anything except same/deceased":**
 
-- Symptoms: `canTransitionTo` returns true for any target that differs from current status unless current is `DECEASED` (`AS/domain/model/Animal.java:50-55`). No real state machine exists (e.g. transitions back from quarantine states are unrestricted).
+- Symptoms: `canTransitionTo` returns true for any target that differs from current status unless current is `DECEASED` (`AS/domain/model/Animal.java:58-63`). No real state machine exists (e.g. transitions back from quarantine states are unrestricted).
 - Files: `AS/domain/model/Animal.java`, `AS/domain/enums/AnimalStatus.java`
 - Trigger: `PUT /animals/{id}/status` with any different status.
 - Workaround: None; define an explicit allowed-transition map per `AnimalStatus`.
 
 **Wrong error semantics for transferring a deceased animal:**
 
-- Symptoms: Returns 400 via `InvalidAnimalDataException` (`AS/application/TransferAnimalService.java:32-34`), while an invalid status transition returns 422 (`AS/infrastructure/rest/ZooExceptionMapper.java:21-23`). Both are business-rule violations on valid input.
+- Symptoms: Returns 400 via `InvalidAnimalDataException` (`AS/application/TransferAnimalService.java:35-37`), while an invalid status transition returns 422 (`AS/infrastructure/rest/ZooExceptionMapper.java:21-23`). Both are business-rule violations on valid input.
 - Files: `AS/application/TransferAnimalService.java`, `AS/infrastructure/rest/ZooExceptionMapper.java`
-- Workaround: Test `AnimalResourceIT.java:160-177` locks in the 400; change test and code together.
+- Workaround: Test `AnimalResourceIT.java:159-179` locks in the 400; change test and code together.
 
 **Transfer to same enclosure is a silent no-op write:**
 
-- Symptoms: `TransferAnimalService.transfer` does not reject `targetEnclosureId.equals(animal.getEnclosureId())` and still updates `updatedBy` (`AS/application/TransferAnimalService.java:36-38`).
+- Symptoms: `TransferAnimalService.transfer` does not reject `targetEnclosureId.equals(animal.getEnclosureId())` and still updates `updatedBy` (`AS/application/TransferAnimalService.java:39-41`).
 - Trigger: `PUT /animals/{id}/transfer` with current enclosure.
 
 ## Security Considerations
 
 **Catch-all RuntimeException mapper hides errors and may shadow framework mappers:**
 
-- Risk: `ZooExceptionMapper implements ExceptionMapper<RuntimeException>` (`AS/infrastructure/rest/ZooExceptionMapper.java:12`) returns a generic 500 (line 25) without logging the exception. Unexpected failures leave no trace. Framework `WebApplicationException`s (malformed UUID path param, unparseable JSON/enum in body) are not covered by any test and may surface as 500 instead of 400/404.
+- Risk: `ZooExceptionMapper implements ExceptionMapper<RuntimeException>` (`AS/infrastructure/rest/ZooExceptionMapper.java:12`) returns a generic 500 (line 25) without logging the exception. Unexpected failures leave no trace. Framework `WebApplicationException`s (malformed UUID path param, unparseable JSON/enum in body) are not covered by any test and may surface as 500 instead of 400/404. The code review *(2026-09-19)* rates this as likely: `RuntimeException` is the closest registered mapper for `NotFoundException`/`BadRequestException`. A single IT (`GET /animals/not-a-uuid`) would confirm it.
 - Files: `AS/infrastructure/rest/ZooExceptionMapper.java`
 - Current mitigation: Bean Validation 400 path is verified (`AnimalResourceIT.java:142-156`).
 - Recommendations: Map only domain exceptions (introduce a common `ZooDomainException` base); log at ERROR before returning 500; add IT cases for bad UUID and invalid enum payload.
@@ -96,7 +128,7 @@ Scope: `zms-be/` only. Paths below are relative to `zms-be/`. Abbreviation: `AS`
 
 **`currentActor()` assumes non-null principal:**
 
-- Risk: `AS/infrastructure/rest/AnimalResource.java:97-99` calls `identity.getPrincipal().getName()`; safe only because every endpoint is `@RolesAllowed`. Adding a `@PermitAll` endpoint that calls it would store an empty actor, which services reject with a 400 (`RegisterAnimalService.java:23-25`).
+- Risk: `AS/infrastructure/rest/AnimalResource.java:97-99` calls `identity.getPrincipal().getName()`; safe only because every endpoint is `@RolesAllowed`. Adding a `@PermitAll` endpoint that calls it would store an empty actor, which services reject with a 400 (`RegisterAnimalService.java:26-28`).
 
 ## Performance Bottlenecks
 
@@ -171,6 +203,12 @@ Scope: `zms-be/` only. Paths below are relative to `zms-be/`. Abbreviation: `AS`
 - Problem: No logger usage in `AS/` (services, resource, mappers). Business actions are recorded only via `updated_by`.
 
 ## Test Coverage Gaps
+
+**No CI pipeline:**
+
+- What's not tested: The repository has no `.github/` directory and no other CI config. Nothing runs `mvnw verify` automatically, which is how the broken `AnimalSecurityIT` seed (see Known Bugs) went unnoticed.
+- Risk: Regressions in the `*IT` suite are only caught if someone runs it manually with Docker running.
+- Priority: High
 
 **Integration tests depend on Dev Services (Docker) implicitly:**
 
