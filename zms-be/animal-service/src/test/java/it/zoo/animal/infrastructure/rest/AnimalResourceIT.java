@@ -178,6 +178,21 @@ class AnimalResourceIT {
             .body("message", notNullValue());
     }
 
+    @Test
+    void shouldRecordActingUserWhenRegisteringAnimal() {
+        String id = postAnimal("Leo", "Lion")
+            .body("createdBy", equalTo("admin"))
+            .body("updatedBy", equalTo("admin"))
+            .extract().path("id");
+
+        given()
+        .when()
+            .get("/animals/" + id)
+        .then()
+            .statusCode(200)
+            .body("createdBy", equalTo("admin"));
+    }
+
     private ValidatableResponse postAnimal(String name, String species) {
         return given()
             .contentType(ContentType.JSON)

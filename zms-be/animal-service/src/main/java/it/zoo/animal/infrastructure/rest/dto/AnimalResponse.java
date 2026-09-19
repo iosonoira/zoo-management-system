@@ -14,5 +14,7 @@ public record AnimalResponse(
         Habitat habitat,
         UUID enclosureId,
         LocalDate arrivalDate,
-        AnimalStatus status
+        AnimalStatus status,
+        String createdBy,
+        String updatedBy
 ) {}
