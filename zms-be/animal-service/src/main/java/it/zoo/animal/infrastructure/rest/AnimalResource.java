@@ -7,6 +7,8 @@ import it.zoo.animal.infrastructure.rest.dto.RegisterAnimalRequest;
 import it.zoo.animal.infrastructure.rest.dto.TransferAnimalRequest;
 import it.zoo.animal.infrastructure.rest.dto.UpdateAnimalStatusRequest;
 import it.zoo.animal.infrastructure.rest.mapper.AnimalDtoMapper;
+import it.zoo.animal.infrastructure.security.ZooRoles;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
@@ -44,6 +46,7 @@ public class AnimalResource {
     }
 
     @POST
+    @RolesAllowed(ZooRoles.ADMIN)
     public Response register(@Valid RegisterAnimalRequest request) {
         RegisterAnimalCommand cmd = new RegisterAnimalCommand(
                 request.name(), request.species(), request.dangerous(),
@@ -56,18 +59,21 @@ public class AnimalResource {
     }
 
     @GET
+    @RolesAllowed({ZooRoles.ADMIN, ZooRoles.VET, ZooRoles.KEEPER})
     public List<AnimalResponse> listAll() {
         return mapper.toResponseList(listAnimals.listAll());
     }
 
     @GET
     @Path("/{id}")
+    @RolesAllowed({ZooRoles.ADMIN, ZooRoles.VET, ZooRoles.KEEPER})
     public AnimalResponse getById(@PathParam("id") UUID id) {
         return mapper.toResponse(getAnimal.getById(id));
     }
 
     @PUT
     @Path("/{id}/status")
+    @RolesAllowed({ZooRoles.VET, ZooRoles.ADMIN})
     public AnimalResponse updateStatus(@PathParam("id") UUID id,
                                        @Valid UpdateAnimalStatusRequest request) {
         return mapper.toResponse(updateAnimalStatus.updateStatus(id, request.status()));
@@ -75,6 +81,7 @@ public class AnimalResource {
 
     @PUT
     @Path("/{id}/transfer")
+    @RolesAllowed({ZooRoles.KEEPER, ZooRoles.ADMIN})
     public AnimalResponse transfer(@PathParam("id") UUID id,
                                    @Valid TransferAnimalRequest request) {
         return mapper.toResponse(transferAnimal.transfer(id, request.targetEnclosureId()));

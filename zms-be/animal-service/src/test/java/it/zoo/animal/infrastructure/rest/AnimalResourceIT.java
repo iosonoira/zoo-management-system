@@ -2,8 +2,10 @@ package it.zoo.animal.infrastructure.rest;
 
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
+import it.zoo.animal.infrastructure.security.ZooRoles;
 import jakarta.persistence.EntityManager;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +15,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
+@TestSecurity(user = "admin", roles = {ZooRoles.ADMIN})
 class AnimalResourceIT {
 
     @Inject
