@@ -23,6 +23,9 @@ public class RegisterAnimalService implements RegisterAnimalUseCase {
     @Override
     @Transactional
     public Animal register(RegisterAnimalCommand cmd) {
+        if (cmd.performedBy() == null || cmd.performedBy().isBlank()) {
+            throw new InvalidAnimalDataException("Actor must not be blank");
+        }
         if (cmd.name() == null || cmd.name().isBlank()) {
             throw new InvalidAnimalDataException("Animal name must not be blank");
         }
@@ -49,6 +52,8 @@ public class RegisterAnimalService implements RegisterAnimalUseCase {
                 cmd.arrivalDate(),
                 AnimalStatus.HEALTHY
         );
+        animal.setCreatedBy(cmd.performedBy());
+        animal.setUpdatedBy(cmd.performedBy());
         return repository.save(animal);
     }
 }

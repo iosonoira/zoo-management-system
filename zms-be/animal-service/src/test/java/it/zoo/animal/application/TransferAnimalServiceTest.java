@@ -35,14 +35,13 @@ class TransferAnimalServiceTest {
         UUID newEnclosureId = UUID.randomUUID();
         Animal animal = new Animal(animalId, "Leo", "Lion", true,
                 Habitat.TERRESTRIAL, UUID.randomUUID(), LocalDate.now(), AnimalStatus.HEALTHY);
-        Animal transferred = new Animal(animalId, "Leo", "Lion", true,
-                Habitat.TERRESTRIAL, newEnclosureId, LocalDate.now(), AnimalStatus.HEALTHY);
         when(repository.findById(animalId)).thenReturn(Optional.of(animal));
-        when(repository.save(any(Animal.class))).thenReturn(transferred);
+        when(repository.save(any(Animal.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Animal result = service.transfer(animalId, newEnclosureId);
+        Animal result = service.transfer(animalId, newEnclosureId, "keeper");
 
         assertEquals(newEnclosureId, result.getEnclosureId());
+        assertEquals("keeper", result.getUpdatedBy());
     }
 
     @Test
@@ -52,7 +51,7 @@ class TransferAnimalServiceTest {
         when(repository.findById(animalId)).thenReturn(Optional.empty());
 
         assertThrows(AnimalNotFoundException.class,
-                () -> service.transfer(animalId, newEnclosureId));
+                () -> service.transfer(animalId, newEnclosureId, "keeper"));
     }
 
     @Test
@@ -60,7 +59,7 @@ class TransferAnimalServiceTest {
         UUID animalId = UUID.randomUUID();
 
         assertThrows(InvalidAnimalDataException.class,
-                () -> service.transfer(animalId, null));
+                () -> service.transfer(animalId, null, "keeper"));
     }
 
     @Test
@@ -72,6 +71,15 @@ class TransferAnimalServiceTest {
         when(repository.findById(animalId)).thenReturn(Optional.of(deceased));
 
         assertThrows(InvalidAnimalDataException.class,
-                () -> service.transfer(animalId, newEnclosureId));
+                () -> service.transfer(animalId, newEnclosureId, "keeper"));
+    }
+
+    @Test
+    void shouldThrowWhenPerformedByIsBlank() {
+        UUID animalId = UUID.randomUUID();
+        UUID newEnclosureId = UUID.randomUUID();
+
+        assertThrows(InvalidAnimalDataException.class,
+                () -> service.transfer(animalId, newEnclosureId, null));
     }
 }

@@ -1,6 +1,7 @@
 package it.zoo.animal.application;
 
 import it.zoo.animal.domain.exception.AnimalNotFoundException;
+import it.zoo.animal.domain.exception.InvalidAnimalDataException;
 import it.zoo.animal.domain.exception.InvalidStatusTransitionException;
 import it.zoo.animal.domain.model.Animal;
 import it.zoo.animal.domain.enums.AnimalStatus;
@@ -22,7 +23,11 @@ public class UpdateAnimalStatusService implements UpdateAnimalStatusUseCase {
 
     @Override
     @Transactional
-    public Animal updateStatus(UUID id, AnimalStatus newStatus) {
+    public Animal updateStatus(UUID id, AnimalStatus newStatus, String performedBy) {
+        if (performedBy == null || performedBy.isBlank()) {
+            throw new InvalidAnimalDataException("Actor must not be blank");
+        }
+
         Animal animal = repository.findById(id)
                 .orElseThrow(() -> new AnimalNotFoundException(id));
 
@@ -31,6 +36,7 @@ public class UpdateAnimalStatusService implements UpdateAnimalStatusUseCase {
         }
 
         animal.setStatus(newStatus);
+        animal.setUpdatedBy(performedBy);
         return repository.save(animal);
     }
 }

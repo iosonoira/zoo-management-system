@@ -5,5 +5,5 @@ import it.zoo.animal.domain.enums.AnimalStatus;
 import java.util.UUID;
 
 public interface UpdateAnimalStatusUseCase {
-    Animal updateStatus(UUID id, AnimalStatus newStatus);
+    Animal updateStatus(UUID id, AnimalStatus newStatus, String performedBy);
 }

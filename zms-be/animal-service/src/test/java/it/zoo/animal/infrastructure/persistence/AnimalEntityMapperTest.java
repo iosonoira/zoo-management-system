@@ -30,12 +30,16 @@ class AnimalEntityMapperTest {
         assertEquals(entity.getEnclosureId(), domain.getEnclosureId());
         assertEquals(entity.getArrivalDate(), domain.getArrivalDate());
         assertEquals(entity.getStatus(), domain.getStatus());
+        assertEquals(entity.getCreatedBy(), domain.getCreatedBy());
+        assertEquals(entity.getUpdatedBy(), domain.getUpdatedBy());
     }
 
     @Test
     void shouldMapDomainToEntity() {
         Animal domain = new Animal(id, "Leo", "Lion", true,
                 Habitat.TERRESTRIAL, enclosureId, date, AnimalStatus.HEALTHY);
+        domain.setCreatedBy("admin");
+        domain.setUpdatedBy("vet");
 
         AnimalEntity entity = AnimalEntityMapper.toEntity(domain);
 
@@ -47,6 +51,8 @@ class AnimalEntityMapperTest {
         assertEquals(domain.getEnclosureId(), entity.getEnclosureId());
         assertEquals(domain.getArrivalDate(), entity.getArrivalDate());
         assertEquals(domain.getStatus(), entity.getStatus());
+        assertEquals("admin", entity.getCreatedBy());
+        assertEquals("vet", entity.getUpdatedBy());
     }
 
     private AnimalEntity buildEntity() {
@@ -59,6 +65,8 @@ class AnimalEntityMapperTest {
         entity.setEnclosureId(enclosureId);
         entity.setArrivalDate(date);
         entity.setStatus(AnimalStatus.HEALTHY);
+        entity.setCreatedBy("admin");
+        entity.setUpdatedBy("vet");
         return entity;
     }
 }
