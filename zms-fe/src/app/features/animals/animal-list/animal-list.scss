@@ -3,25 +3,31 @@
   gap: var(--space-4);
   max-inline-size: 84rem;
   margin-inline: auto;
-  padding: var(--space-4) var(--gutter) 0;
+  padding: var(--space-5) var(--gutter) 0;
 }
 
 .head {
   display: grid;
   gap: var(--space-1);
-  padding: var(--space-5) var(--space-5) var(--space-4);
 
   h1 {
     font-size: var(--text-3xl);
-    font-weight: 900;
-    letter-spacing: -0.015em;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+
+    @media (min-width: 48rem) {
+      font-size: 2.75rem;
+    }
   }
 }
 
 .summary {
-  color: var(--sign-ink-2);
+  color: var(--ink-2);
   font-size: var(--text-md);
-  font-weight: 600;
+
+  .tabular {
+    color: var(--ink);
+  }
 }
 
 .tools {
@@ -38,25 +44,29 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  min-block-size: 3.25rem;
+  min-block-size: 3rem;
   padding-inline: var(--space-4);
-  border-radius: var(--radius-panel);
-  background: var(--plate);
-  box-shadow: inset 0 0 0 2px var(--ink-3);
+  border-radius: var(--radius);
+  background: var(--pane);
+  box-shadow: inset 0 0 0 1px var(--rule-strong);
   color: var(--ink-2);
   cursor: text;
   transition: box-shadow var(--dur-fast) var(--ease-out);
+  --icon-size: 1.25rem;
+
+  &:hover {
+    box-shadow: inset 0 0 0 1px var(--ink-3);
+  }
 
   &:focus-within {
-    box-shadow: inset 0 0 0 3px var(--sign);
+    box-shadow: inset 0 0 0 2px var(--brand);
     color: var(--ink);
   }
 
   input {
     flex: 1;
     min-inline-size: 0;
-    block-size: 3rem;
-    padding-block-start: 0.2rem;
+    block-size: 2.75rem;
     border: 0;
     background: none;
     font-size: var(--text-md);
@@ -89,87 +99,85 @@
   gap: var(--space-2);
   flex: none;
   min-block-size: var(--target);
-  padding: 0.2rem var(--space-3) 0 var(--space-2);
+  padding: 0 var(--space-3);
   border: 0;
-  border-radius: 999px;
-  background: var(--plate);
-  box-shadow: inset 0 0 0 1.5px var(--rule);
+  border-radius: var(--radius);
+  background: var(--pane);
+  box-shadow: inset 0 0 0 1px var(--rule);
   font-size: var(--text-sm);
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
   transition:
     background-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
     color var(--dur-fast) var(--ease-out);
 
-  &:first-child {
-    padding-inline-start: var(--space-4);
-  }
-
   &:hover {
-    box-shadow: inset 0 0 0 1.5px var(--ink-3);
+    box-shadow: inset 0 0 0 1px var(--rule-strong);
   }
 
   &[aria-pressed='true'] {
-    background: var(--sign);
-    color: var(--sign-ink);
+    background: var(--ink);
+    color: var(--pane);
     box-shadow: none;
+    font-weight: 700;
 
     .chip-count {
-      background: oklch(1 0 0 / 0.16);
-      color: var(--sign-ink);
+      color: inherit;
+      opacity: 0.72;
     }
   }
 }
 
 .dot {
-  inline-size: 1.625rem;
-  block-size: 1.625rem;
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
   border-radius: 999px;
-  --icon-size: 1rem;
-  --icon-stroke: 2.6;
+  background: var(--status);
 }
 
 .chip-count {
-  padding: 0.1rem 0.4rem 0;
-  border-radius: 999px;
-  background: var(--ground-deep);
   color: var(--ink-2);
   font-size: var(--text-xs);
 }
 
 .groups {
   display: grid;
-  gap: var(--space-6);
+  gap: var(--space-4);
   padding-block-start: var(--space-2);
 
+  /* Beds flow down columns so short ones leave no holes */
   @media (min-width: 64rem) {
-    grid-template-columns: repeat(auto-fill, minmax(24rem, 1fr));
-    align-items: start;
+    display: block;
+    columns: 24rem;
     column-gap: var(--space-5);
   }
 }
 
+/* One bed under glass: its marker, then its labels divided by glazing rules */
 .group {
-  display: grid;
-  gap: var(--space-2);
+  overflow: clip;
+
+  @media (min-width: 64rem) {
+    break-inside: avoid;
+    margin-block-end: var(--space-5);
+  }
 }
 
 .group-sign {
   position: sticky;
   inset-block-start: 0;
   z-index: var(--z-sticky);
-  padding-block-start: var(--space-2);
-  margin-block-start: calc(-1 * var(--space-2));
-  background: linear-gradient(var(--ground) 0 70%, transparent);
+  background: var(--pane);
+  box-shadow: 0 1px 0 var(--rule);
 
   @media (min-width: 64rem) {
     position: static;
   }
 }
 
-.plates {
-  display: grid;
-  gap: var(--space-2);
+.plates > li + li {
+  box-shadow: 0 -1px 0 var(--rule);
 }
 
 .notice {
@@ -177,24 +185,17 @@
   gap: var(--space-4);
   justify-items: start;
   padding: var(--space-5);
-  --icon-size: 2rem;
+  color: var(--ink-2);
+  --icon-size: 1.75rem;
 
   h2 {
     margin-block-end: var(--space-1);
+    color: var(--ink);
     font-size: var(--text-xl);
     font-weight: 800;
   }
 
   p {
     max-inline-size: 60ch;
-    color: var(--ink-2);
   }
-}
-
-.skeleton-sign {
-  block-size: 3.5rem;
-}
-
-.skeleton-plate {
-  block-size: 4.75rem;
 }

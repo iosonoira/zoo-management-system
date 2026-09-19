@@ -5,7 +5,7 @@
   </a>
 
   @if (animal(); as a) {
-    <header class="hero sign-plate" [attr.data-deceased]="deceased() || null">
+    <header class="hero pane" [attr.data-deceased]="deceased() || null">
       @if (a.dangerous) {
         <p class="danger-band">
           <app-icon name="danger" />
@@ -17,15 +17,15 @@
         <p class="species">{{ a.species }}</p>
       </div>
       <div class="plate-side">
-        <p class="hero-status">
-          <span class="status-panel hero-symbol" [attr.data-status]="a.status">
+        <p class="hero-status" [attr.data-status]="a.status">
+          <span class="status-tile hero-symbol">
             <app-icon [name]="status()!.icon" />
           </span>
           {{ status()!.label }}
         </p>
         <p class="tag">
           <span>Tag</span>
-          <span class="tabular">{{ code() }}</span>
+          <span class="mono">{{ code() }}</span>
         </p>
       </div>
     </header>
@@ -75,7 +75,7 @@
 
       <section class="section record" aria-labelledby="record-heading">
         <h2 id="record-heading">Record</h2>
-        <div class="facts-plate white-plate">
+        <div class="facts-plate pane">
         <dl class="facts">
           <div>
             <dt>Species</dt>
@@ -109,14 +109,14 @@
     <app-transfer-sheet [animal]="a" (moved)="onMoved($event)" />
     <app-status-sheet [animal]="a" (changed)="onStatusChanged($event)" />
   } @else if (store.state() === 'ready') {
-    <div class="missing white-plate">
+    <div class="missing pane">
       <app-icon name="alert" />
       <h1>No animal with this tag</h1>
       <p>It may have been removed, or the link is wrong. Search the roster instead.</p>
       <a class="btn btn-primary" routerLink="/animals">Back to all animals</a>
     </div>
   } @else if (store.state() === 'error') {
-    <div class="missing white-plate" role="alert">
+    <div class="missing pane" role="alert">
       <app-icon name="alert" />
       <h1>This record didn’t load</h1>
       <p>Check your connection, then try again.</p>

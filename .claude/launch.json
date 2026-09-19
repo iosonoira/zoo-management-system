@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "zms-fe",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--dir", "zms-fe", "start", "--port", "4200"],
+      "port": 4200
+    },
+    {
+      "name": "zms-fe-4300",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--dir", "zms-fe", "start", "--port", "4300"],
+      "port": 4300
+    }
+  ]
+}

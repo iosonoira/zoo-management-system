@@ -1,9 +1,10 @@
 <a
-  class="plate white-plate"
+  class="plate"
   [routerLink]="['/animals', animal().id]"
   [attr.data-deceased]="deceased() || null"
+  [attr.data-status]="animal().status"
 >
-  <span class="status-panel symbol" [attr.data-status]="animal().status">
+  <span class="status-tile symbol">
     <app-icon [name]="status().icon" />
   </span>
 
@@ -11,21 +12,21 @@
     <span class="title-row">
       <span class="name" [style.view-transition-name]="'name-' + code()">{{ animal().name }}</span>
       @if (animal().dangerous) {
-        <span class="danger-panel">
+        <span class="danger-tab">
           <app-icon name="danger" />
           Danger
         </span>
       }
     </span>
     <span class="meta">
-      <strong class="status-word">{{ status().label }}</strong>
+      <strong class="status-word">{{ status().short }}</strong>
       <span class="species">{{ animal().species }}</span>
     </span>
   </span>
 
   <span class="tag">
     <span class="visually-hidden">Tag</span>
-    <span class="code tabular">{{ code() }}</span>
-    <app-icon name="chevron-right" />
+    <span class="code mono">{{ code() }}</span>
+    <app-icon class="chevron" name="chevron-right" />
   </span>
 </a>

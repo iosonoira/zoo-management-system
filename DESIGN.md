@@ -1,79 +1,92 @@
 ---
 name: Zoo Management System
-description: The zoo's own sign system, rendered as routed enamel plates for keepers, vets and admins.
+description: The zoo kept as a glasshouse register, with each enclosure a bed under glass and each animal a staked label in it.
 colors:
-  ground: "oklch(0.955 0 0)"
-  ground-deep: "oklch(0.915 0.003 60)"
-  plate: "oklch(0.995 0 0)"
-  sign: "oklch(0.31 0.048 52)"
-  sign-raised: "oklch(0.38 0.052 52)"
-  sign-ink: "oklch(0.99 0.004 80)"
-  sign-ink-2: "oklch(0.86 0.02 70)"
-  ink: "oklch(0.22 0.018 52)"
-  ink-2: "oklch(0.43 0.016 52)"
-  ink-3: "oklch(0.62 0.01 52)"
-  rule: "oklch(0.84 0.006 52)"
-  healthy: "oklch(0.5 0.12 152)"
-  healthy-ink: "oklch(0.99 0 0)"
-  observation: "oklch(0.86 0.165 92)"
-  observation-ink: "oklch(0.24 0.03 80)"
-  treatment: "oklch(0.7 0.17 52)"
-  treatment-ink: "oklch(0.2 0.03 45)"
-  deceased: "oklch(0.52 0.004 52)"
-  deceased-ink: "oklch(0.99 0 0)"
-  danger: "oklch(0.52 0.2 27)"
-  danger-ink: "oklch(0.99 0 0)"
+  ground: "oklch(0.972 0.005 165)"
+  ground-deep: "oklch(0.945 0.007 165)"
+  pane: "oklch(1 0 0)"
+  pane-hover: "oklch(0.985 0.006 165)"
+  rule: "oklch(0.26 0.03 170 / 0.12)"
+  rule-strong: "oklch(0.26 0.03 170 / 0.24)"
+  ink: "oklch(0.24 0.028 170)"
+  ink-2: "oklch(0.45 0.02 170)"
+  ink-3: "oklch(0.62 0.014 170)"
+  brand: "oklch(0.4 0.07 172)"
+  brand-hover: "oklch(0.34 0.065 172)"
+  brand-ink: "oklch(0.99 0.004 165)"
+  brand-tint: "oklch(0.94 0.03 170)"
+  terrestrial: "oklch(0.56 0.12 125)"
+  aquatic: "oklch(0.54 0.1 235)"
+  amphibious: "oklch(0.54 0.09 180)"
+  stake-ink: "oklch(0.995 0 0)"
+  healthy: "oklch(0.48 0.09 160)"
+  healthy-tint: "oklch(0.95 0.03 160)"
+  observation: "oklch(0.47 0.1 75)"
+  observation-tint: "oklch(0.955 0.06 90)"
+  treatment: "oklch(0.5 0.14 40)"
+  treatment-tint: "oklch(0.945 0.035 45)"
+  deceased: "oklch(0.47 0.01 170)"
+  deceased-tint: "oklch(0.935 0.004 170)"
+  danger: "oklch(0.53 0.19 29)"
+  danger-tint: "oklch(0.955 0.025 25)"
+  scrim: "oklch(0.2 0.03 170 / 0.45)"
 typography:
   display:
-    fontFamily: "'Overpass Variable', 'Overpass', system-ui, sans-serif"
-    fontSize: "2.625rem"
-    fontWeight: 900
+    fontFamily: "'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible Next', system-ui, sans-serif"
+    fontSize: "2.75rem"
+    fontWeight: 800
+    lineHeight: 1
+    letterSpacing: "-0.035em"
+  headline:
+    fontFamily: "'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible Next', system-ui, sans-serif"
+    fontSize: "2.25rem"
+    fontWeight: 800
+    lineHeight: 1.1
+    letterSpacing: "-0.025em"
+  title:
+    fontFamily: "'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible Next', system-ui, sans-serif"
+    fontSize: "1.375rem"
+    fontWeight: 800
     lineHeight: 1.1
     letterSpacing: "-0.015em"
-  headline:
-    fontFamily: "'Overpass Variable', 'Overpass', system-ui, sans-serif"
-    fontSize: "1.5rem"
-    fontWeight: 850
-    lineHeight: 1.1
+  name:
+    fontFamily: "'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible Next', system-ui, sans-serif"
+    fontSize: "1.1875rem"
+    fontWeight: 700
+    lineHeight: 1.2
     letterSpacing: "-0.01em"
-  title:
-    fontFamily: "'Overpass Variable', 'Overpass', system-ui, sans-serif"
-    fontSize: "1.25rem"
-    fontWeight: 800
-    lineHeight: 1.15
   body:
-    fontFamily: "'Overpass Variable', 'Overpass', system-ui, sans-serif"
+    fontFamily: "'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible Next', system-ui, sans-serif"
     fontSize: "1.0625rem"
     fontWeight: 400
     lineHeight: 1.45
   body-sm:
-    fontFamily: "'Overpass Variable', 'Overpass', system-ui, sans-serif"
+    fontFamily: "'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible Next', system-ui, sans-serif"
     fontSize: "0.9375rem"
     fontWeight: 400
     lineHeight: 1.3
   label:
-    fontFamily: "'Overpass Variable', 'Overpass', system-ui, sans-serif"
+    fontFamily: "'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible Next', system-ui, sans-serif"
     fontSize: "0.8125rem"
+    fontWeight: 400
+    lineHeight: 1.1
+  hazard:
+    fontFamily: "'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible Next', system-ui, sans-serif"
+    fontSize: "0.6875rem"
     fontWeight: 700
-    lineHeight: 1.1
-  label-caps:
-    fontFamily: "'Overpass Variable', 'Overpass', system-ui, sans-serif"
+    lineHeight: 1.5
+    letterSpacing: "0.07em"
+  tag-code:
+    fontFamily: "'Atkinson Hyperlegible Mono', ui-monospace, monospace"
     fontSize: "0.8125rem"
-    fontWeight: 800
-    lineHeight: 1.1
-    letterSpacing: "0.06em"
-  code:
-    fontFamily: "'Overpass Variable', 'Overpass', system-ui, sans-serif"
-    fontSize: "0.8125rem"
-    fontWeight: 800
-    letterSpacing: "0.02em"
-    fontFeature: "'tnum' 1"
+    fontWeight: 500
+    fontFeature: "tnum"
 rounded:
-  tab: "0.3rem"
-  panel: "0.5rem"
-  plate: "0.75rem"
-  sheet: "1rem"
-  pill: "999px"
+  sm: "0.375rem"
+  md: "0.625rem"
+  pane: "1rem"
+  sheet: "1.25rem"
+  full: "999px"
 spacing:
   "1": "0.25rem"
   "2": "0.5rem"
@@ -87,323 +100,279 @@ spacing:
   target: "2.75rem"
 components:
   button-primary:
-    backgroundColor: "{colors.sign}"
-    textColor: "{colors.sign-ink}"
-    rounded: "{rounded.panel}"
-    padding: "0.25rem 1.5rem 0"
-    height: "3.25rem"
+    backgroundColor: "{colors.brand}"
+    textColor: "{colors.brand-ink}"
     typography: "{typography.body}"
+    rounded: "{rounded.md}"
+    padding: "0 1.5rem"
+    height: "3.25rem"
   button-primary-hover:
-    backgroundColor: "{colors.sign-raised}"
-    textColor: "{colors.sign-ink}"
+    backgroundColor: "{colors.brand-hover}"
+    textColor: "{colors.brand-ink}"
   button-primary-disabled:
     backgroundColor: "{colors.ground-deep}"
     textColor: "{colors.ink-3}"
   button-secondary:
-    backgroundColor: "{colors.plate}"
+    backgroundColor: "{colors.pane}"
     textColor: "{colors.ink}"
-    rounded: "{rounded.panel}"
-    padding: "0.25rem 1.5rem 0"
+    rounded: "{rounded.md}"
+    padding: "0 1.5rem"
     height: "3.25rem"
   button-secondary-hover:
-    backgroundColor: "{colors.ground}"
+    backgroundColor: "{colors.pane-hover}"
   button-grave:
     backgroundColor: "{colors.ink}"
-    textColor: "{colors.plate}"
-    rounded: "{rounded.panel}"
-    padding: "0.25rem 1.5rem 0"
+    textColor: "{colors.pane}"
+    rounded: "{rounded.md}"
+    padding: "0 1.5rem"
     height: "3.25rem"
   button-quiet:
-    backgroundColor: "transparent"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.panel}"
-    padding: "0.25rem 0.75rem 0"
+    textColor: "{colors.ink-2}"
+    rounded: "{rounded.md}"
+    padding: "0 0.75rem"
     height: "{spacing.target}"
   button-quiet-hover:
     backgroundColor: "{colors.ground-deep}"
-  chip-filter:
-    backgroundColor: "{colors.plate}"
     textColor: "{colors.ink}"
-    rounded: "{rounded.pill}"
-    padding: "0.2rem 0.75rem 0 0.5rem"
-    height: "{spacing.target}"
-    typography: "{typography.body-sm}"
-  chip-filter-pressed:
-    backgroundColor: "{colors.sign}"
-    textColor: "{colors.sign-ink}"
   search-field:
-    backgroundColor: "{colors.plate}"
+    backgroundColor: "{colors.pane}"
     textColor: "{colors.ink}"
-    rounded: "{rounded.panel}"
+    typography: "{typography.body}"
+    rounded: "{rounded.md}"
     padding: "0 1rem"
-    height: "3.25rem"
-  sign-plate:
-    backgroundColor: "{colors.sign}"
-    textColor: "{colors.sign-ink}"
-    rounded: "{rounded.plate}"
-  white-plate:
-    backgroundColor: "{colors.plate}"
+    height: "3rem"
+  filter-chip:
+    backgroundColor: "{colors.pane}"
     textColor: "{colors.ink}"
-    rounded: "{rounded.plate}"
+    typography: "{typography.body-sm}"
+    rounded: "{rounded.md}"
+    padding: "0 0.75rem"
+    height: "{spacing.target}"
+  filter-chip-selected:
+    backgroundColor: "{colors.ink}"
+    textColor: "{colors.pane}"
+  pane:
+    backgroundColor: "{colors.pane}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.pane}"
   enclosure-sign:
-    backgroundColor: "{colors.sign}"
-    textColor: "{colors.sign-ink}"
-    rounded: "{rounded.plate}"
-    padding: "0.5rem 1rem 0.5rem 0.5rem"
-    height: "3.5rem"
-    typography: "{typography.title}"
-  animal-plate:
-    backgroundColor: "{colors.plate}"
+    backgroundColor: "{colors.pane}"
     textColor: "{colors.ink}"
-    rounded: "{rounded.plate}"
-    padding: "0.75rem 1rem 0.75rem 0.75rem"
-    height: "4.75rem"
-  animal-plate-deceased:
+    padding: "0.75rem 1rem"
+    height: "3.5rem"
+  animal-plate:
+    backgroundColor: "{colors.pane}"
+    textColor: "{colors.ink}"
+    padding: "0.75rem 0.75rem 0.75rem 1rem"
+    height: "4.25rem"
+  animal-plate-hover:
+    backgroundColor: "{colors.pane-hover}"
+  habitat-stake:
+    textColor: "{colors.stake-ink}"
+    rounded: "{rounded.sm}"
+    size: "2rem"
+  status-tile:
+    rounded: "{rounded.md}"
+    size: "2.25rem"
+  danger-tab:
+    textColor: "{colors.danger}"
+    typography: "{typography.hazard}"
+    rounded: "{rounded.sm}"
+    padding: "0.1em 0.45em"
+  tag-code:
     backgroundColor: "{colors.ground}"
     textColor: "{colors.ink-2}"
-  status-panel-healthy:
-    backgroundColor: "{colors.healthy}"
-    textColor: "{colors.healthy-ink}"
-    rounded: "{rounded.panel}"
-    size: "3.25rem"
-  status-panel-observation:
-    backgroundColor: "{colors.observation}"
-    textColor: "{colors.observation-ink}"
-    rounded: "{rounded.panel}"
-    size: "3.25rem"
-  status-panel-treatment:
-    backgroundColor: "{colors.treatment}"
-    textColor: "{colors.treatment-ink}"
-    rounded: "{rounded.panel}"
-    size: "3.25rem"
-  status-panel-deceased:
-    backgroundColor: "{colors.deceased}"
-    textColor: "{colors.deceased-ink}"
-    rounded: "{rounded.panel}"
-    size: "3.25rem"
-  danger-panel:
-    backgroundColor: "{colors.danger}"
-    textColor: "{colors.danger-ink}"
-    rounded: "{rounded.tab}"
-    padding: "0.2em 0.5em 0.1em"
-    typography: "{typography.label-caps}"
-  tag-code:
-    backgroundColor: "{colors.ground-deep}"
+    typography: "{typography.tag-code}"
+    rounded: "{rounded.sm}"
+    padding: "0.125rem 0.375rem"
+  sheet-option:
+    backgroundColor: "{colors.pane}"
     textColor: "{colors.ink}"
-    rounded: "{rounded.tab}"
-    padding: "0.2rem 0.4rem 0.05rem"
-    typography: "{typography.code}"
-  option:
-    backgroundColor: "{colors.plate}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.plate}"
+    rounded: "{rounded.md}"
     padding: "0.75rem"
     height: "4rem"
-  sheet:
-    backgroundColor: "{colors.ground}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.sheet}"
-  note:
-    backgroundColor: "{colors.ground-deep}"
-    textColor: "{colors.ink-2}"
-    rounded: "{rounded.panel}"
-    padding: "0.5rem 0.75rem"
-    height: "3.25rem"
-  form-error:
-    backgroundColor: "{colors.plate}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.panel}"
-    padding: "0.75rem"
   toast:
     backgroundColor: "{colors.ink}"
-    textColor: "{colors.plate}"
-    rounded: "{rounded.panel}"
+    textColor: "{colors.pane}"
+    rounded: "{rounded.md}"
     padding: "0.75rem 1rem"
-  top-bar:
-    backgroundColor: "{colors.ink}"
-    textColor: "{colors.sign-ink}"
-    height: "3.5rem"
 ---
 
 # Design System: Zoo Management System
 
 ## Overview
 
-**Creative North Star: "Enclosure Signage"**
+**Creative North Star: "The Glasshouse Register"**
 
-The interface is the zoo's own wayfinding system. Every surface is a routed enamel plate: deep sign brown carrying white Overpass lettering (the Highway Gothic lineage of park and road signs), or a white plate framed by a thin brown routed rule set in from its edge. Animals hang under the enclosure sign where they live, each one its own plate: status symbol panel left, name, status word and species, short tag code right. A keeper reads it the way they read the signs on the path, in under a second, in daylight.
+The zoo is kept as a conservatory ledger. Each enclosure is a bed under glass: one clear white pane on a cool, faintly green ground, framed by a single 1px glazing rule. Each animal is a staked label planted in that bed, a row inside the pane divided from its neighbours by the same hairline. The register is calm, cool and exact in daylight, built for a keeper reading a phone outdoors while walking from bed to bed.
 
-Status speaks the safety-sign colour law, not a dashboard palette. Green is healthy, yellow is observation, orange is treatment, neutral grey is deceased, and signal red exists for one thing only: the DANGER panel. Colour never stands alone; every status panel carries an authored pictogram and every status is also written out in words. The ground is a true neutral grey at chroma 0, so the brown plates and the status colours are the only warmth on screen.
+Colour is scarce and therefore loud. One deep conservatory green carries action, selection and focus. Each habitat owns one full-strength hue that appears only as a solid stake tile. On the roster, a healthy animal carries no colour at all, so the animals that need attention are the only ones that do. Red means danger and nothing else. Hierarchy comes from scale contrast in a single hyperlegible family at three working weights, with a mono face reserved for tag codes.
 
-Density is controlled and tactile: 44px minimum targets, 52px primary controls, plates at least 76px tall. Depth is physical and shallow: plates sit on the ground with a short soft shadow, sheets rise from the bottom edge. Motion is short and ease-out, and has one signature: on transfer the location sign is taken down and re-hung, sliding out along its arrow and the new one sliding in.
+At night the glasshouse goes dark rather than inverting: a neutral graphite ground (chroma near 0, cool hue 250), panes one step lighter, and green kept strictly as an accent (primary button, selection, focus, the selected-role check). Stakes and status hues brighten; white stake ink swaps for graphite ink. The world refuses the brown enamel signage it replaced (heavy brown, double routed rules, Overpass, saturated filled status panels) and the neutral-grey-plus-indigo SaaS admin.
 
 **Key Characteristics:**
-- Two plate materials only: sign brown with white lettering, white plate with a brown routed rule.
-- One variable face, Overpass, from 400 to 900; heavy weights carry hierarchy.
-- Status as safety signage: colour plus pictogram plus word, always.
-- Red is reserved for danger; errors and warnings are ink, not red.
-- Chroma-0 neutral ground; warmth lives in the brown plates, never in a cream background.
-- Authored one-stroke pictograms on a 24px grid.
-- Mobile-first stack; desktop flows enclosure groups into columns and turns the detail into a two-column sign.
+- Cool glass-white ground, white panes, 1px glazing rules drawn as box-shadow rings.
+- One conservatory green for every action, selection and focus ring.
+- One full-strength hue per habitat, shown only as a solid stake tile.
+- Every status carries its own tint everywhere it appears (roster tile, detail pill, status track, status sheet): healthy green, observation amber, treatment clay, deceased stone.
+- Red only for danger: an outlined DANGER tab on rows, a tinted band on the record.
+- Atkinson Hyperlegible Next at 400/700/800; Atkinson Hyperlegible Mono only for tag codes.
+- A 4px spacing rhythm, 44px minimum targets, tabular numerals for counts and dates.
+- Motion is brief ease-out; the signature is the transfer that re-stakes the location label.
 
 ## Colors
 
-A chroma-0 grey ground, a single deep sign brown with its white lettering, and a strict five-colour safety law for status and danger.
+A near-colourless glasshouse where hue is rationed to action (green), place (habitat stakes), clinical status (tints) and hazard (red).
 
 ### Primary
-- **Sign Brown** (sign): the enamel of every direction sign, the list and detail header plates, the primary button, the pressed filter chip, the selected option ring and mark, and the text caret. It is the brand; nothing else on screen is brown at this depth.
-- **Raised Sign Brown** (sign-raised): hover state of the primary button only.
-- **Sign White** (sign-ink): lettering and pictograms on brown, the pictogram tile on enclosure signs, the detail tag chip.
-- **Routed Rule Cream** (sign-ink-2): the routed inset line on brown plates and secondary text on brown (species, counts, "Viewing as").
+- **Conservatory Green** (brand): Primary buttons, the selected sheet option (2px inset ring and filled check mark), search focus ring, global focus outline, text selection, input caret, skip link, and the wordmark's glasshouse window. Hover deepens to **Potting-Shed Green** (brand-hover). **Glass Wash** (brand-tint) fills the wordmark's panes. **Pane Ink** (brand-ink) sets text on green.
 
-### Status law (safety-sign colours)
-- **Healthy Green** (healthy on healthy-ink): check pictogram, white glyph.
-- **Observation Yellow** (observation on observation-ink): eye pictogram, dark glyph. Also the text-selection colour and the skip link, where it acts as the highlighter.
-- **Treatment Orange** (treatment on treatment-ink): cross pictogram, dark glyph.
-- **Retired Grey** (deceased on deceased-ink): ribbon pictogram, white glyph. Grey, not black and not red: death is stated plainly and quietly.
-- **Signal Red** (danger on danger-ink): the DANGER panel on animal plates and the danger band on the detail hero. Nothing else.
+### Secondary: habitat stakes
+- **Moss** (terrestrial), **Glass Blue** (aquatic), **Verdigris** (amphibious): Full-strength fills for the habitat stake tile on enclosure headers, the large location sign, and destination options in the transfer sheet. Icon ink on top is **Stake White** (stake-ink) in light mode and graphite in dark mode.
+
+### Tertiary: status and hazard
+- **Leaf** (healthy, healthy-tint): Healthy text and tint. On roster rows, healthy uses neither; it gets an empty ringed tile in ink-3 and a regular-weight grey word. Where status is the subject (detail hero chip, status track lit cell, status sheet option), healthy shows its faint tint like every other status.
+- **Amber** (observation, observation-tint), **Clay** (treatment, treatment-tint), **Stone** (deceased, deceased-tint): Status ink and soft tint pairs. Ink colours the icon and the bold status word; tint fills the status tile, the hero status chip and the lit track cell.
+- **Signal Red** (danger, danger-tint): The outlined DANGER tab on plates and the tinted band across the top of the detail hero. Nothing else.
 
 ### Neutral
-- **Neutral Ground** (ground): page background, sheet background, deceased plate fill, secondary-button hover. Chroma 0.
-- **Deep Ground** (ground-deep): notes, tag-code chips, filter count badges, quiet-button hover, skeleton base, disabled primary buttons.
-- **White Plate** (plate): animal plates, record plate, search field, options, sheet footer, secondary button.
-- **Sign Ink** (ink): body text, the top bar, toasts, the grave button, the focus ring, the form-error ring.
-- **Secondary Ink** (ink-2): meta text, species, labels, lede copy, footer.
-- **Tertiary Ink** (ink-3): hover rings, unselected radio marks, disabled pictogram tiles, scrollbar thumb. Not for body text.
-- **Rule Grey** (rule): hairline outlines of white plates, chips, options and unlit status cells; the gap colour between record cells.
+- **Glass Ground** (ground): Page background and the sheet body; also the fill of tag-code chips so they read as recessed.
+- **Deep Ground** (ground-deep): Pressed rows, quiet-button hover, disabled primary buttons, the warning note, the deceased hero, and skeleton loaders.
+- **Clear Pane** (pane) and **Pane Hover** (pane-hover): Every container surface, the top bar, the sheet footer; hover on rows, options and secondary buttons.
+- **Glazing Rule** (rule) and **Strong Glazing** (rule-strong): Translucent green-black hairlines. Rule rings panes, divides rows and fact cells, and underlines the top bar; strong outlines inputs, secondary buttons and hovered chips.
+- **Greenhouse Ink** (ink), **Ink 2** (ink-2), **Ink 3** (ink-3): Primary text; secondary text (species, meta, labels, dt); tertiary marks (chevrons, arrows, idle track icons, healthy tile icon). Ink doubles as the fill of the selected filter chip, the grave button and the toast.
+- **Scrim** (scrim): Backdrop behind sheets.
 
 ### Named Rules
-**The Red Is Danger Rule.** Signal red appears only on the DANGER panel and the dangerous-animal band. Form errors are an ink-ringed white panel with an alert pictogram; warnings are deep-ground notes with a lock. If red shows up anywhere else, it is a bug.
+**The Status Colour Rule.** Every status shows its own tint on its tile, pill and track cell, healthy included, so colour always tells the animal's state. On roster rows the healthy status word stays grey regular weight, so exception words (700, in their status ink) still stand out.
 
-**The Colour Law Rule.** Each status owns exactly one colour, one pictogram and one word: healthy/green/check, observation/yellow/eye, treatment/orange/cross, deceased/grey/ribbon. Colour is never the only carrier; a status panel is always paired with its label on the same plate or in the same row.
+**The Red Means Danger Rule.** Danger red appears only for dangerous animals. Errors are ink-outlined, not red; the irreversible deceased action is ink (grave), not red.
 
-**The Chroma-Zero Ground Rule.** The page ground is true neutral grey. Warmth comes from the brown plates, never from tinting the background toward cream or beige.
+**The One Stake Rule.** A habitat hue appears only as a solid stake tile carrying its habitat icon. It never tints a pane, colours text, or becomes a border.
+
+**The One Green Rule.** Conservatory green means "act here" or "this is selected". It is never decoration on content.
 
 ## Typography
 
-**Display Font:** Overpass Variable (with Overpass, system-ui, sans-serif)
-**Body Font:** Overpass Variable, same family
-**Label/Mono Font:** Overpass with tabular numerals for tag codes, counts and dates
+**Display Font:** Atkinson Hyperlegible Next Variable (with Atkinson Hyperlegible Next, system-ui)
+**Body Font:** Atkinson Hyperlegible Next Variable
+**Label/Mono Font:** Atkinson Hyperlegible Mono 500/700 (with ui-monospace)
 
-**Character:** One signage face used the way park signs use it: very heavy for names you read from a distance, plain and open for everything you read up close. There is no second family; hierarchy comes from weight (400 to 900) and a fixed rem scale at a ~1.2 ratio.
+**Character:** A single legibility-first family does all the talking, and hierarchy comes from size jumps rather than a zoo of weights. The mono appears only where a keeper matches a physical tag.
 
 ### Hierarchy
-- **Display** (900, 2.625rem, line-height 1.1, -0.015em): page titles on brown header plates ("Animals") and the animal name on the detail hero, which grows to 4rem at -0.025em from 48rem up.
-- **Headline** (850, 1.5rem, 1.1): section headings (Status, Location, Record) and sheet titles; 2rem at 850 for full-page not-found and error plates.
-- **Title** (800, 1.25rem, 1.15): animal name on its plate (single line, ellipsis), enclosure name on its sign (1.5rem on the large location sign), hero status word.
-- **Body** (400, 1.0625rem, 1.45): running copy, buttons (at 750), inputs, header summary (at 600). Ledes cap at 60ch, the footer at 70ch.
-- **Body small** (400 to 700, 0.9375rem, 1.3): plate meta (status word at 700 in ink, species in ink-2), chips, notes, option descriptions, sheet subtitles.
-- **Label** (700, 0.8125rem): record field labels, status-track cell labels, "Viewing as", footer.
-- **Label caps** (800, 0.8125rem, 0.06em, uppercase): the DANGER panel and the detail TAG chip only, the two places the physical signage world uses capitals.
+- **Display** (800, 2.75rem mobile / 4rem from 48rem, line-height 1, -0.035em): The animal's name on the detail hero. Wraps anywhere rather than overflowing.
+- **Headline** (800, 2.25rem mobile / 2.75rem from 48rem, 1.1, -0.025em): The page title ("Animals") above its count summary.
+- **Title** (800, 1.375rem, 1.1, -0.015em): Section headings (Status, Location, Record), sheet titles, empty and error notices, the large location sign.
+- **Name** (700, 1.1875rem, 1.2, -0.01em): Animal names on roster plates, single line with ellipsis. Enclosure names in pane headers step down to 700 at 1.0625rem.
+- **Body** (400, 1.0625rem, 1.45): Default text, buttons (at 700), search input, ledes capped at 60ch.
+- **Body small** (400, 0.9375rem, 1.3): Plate meta (status word and species), filter chips, sheet descriptions, notes.
+- **Label** (400, 0.8125rem): Fact-cell terms, chip counts, the role label, track labels, the footer.
+- **Hazard** (700, 0.6875rem, 0.07em, uppercase): The DANGER tab only.
+- **Tag code** (Mono 500, 0.8125rem, tabular): Tag codes in their recessed chip; on the detail hero the code sits at 700 beside an uppercase "TAG" field label.
 
 ### Named Rules
-**The Optical Baseline Rule.** Overpass sits high in its box, so every filled control nudges its label down: buttons pad 0.25rem top and 0 bottom, chips 0.2rem top, small tabs 0.2rem top and 0.05rem bottom, the search input 0.2rem top. New controls with text in a filled shape must carry the same correction.
+**The Mono Is For Tags Rule.** Atkinson Hyperlegible Mono sets tag codes (and inline `code`) only. Counts and dates stay in the body face with tabular numerals.
 
-**The Tabular Code Rule.** Tag codes, counts and dates use tabular numerals with 0.02em tracking, so columns of codes line up down the plate stack.
+**The Tabular Count Rule.** Every count, date and code uses tabular figures so columns of numbers line up.
+
+**The Scale Over Weight Rule.** Working weights are 400, 700 and 800 (500 only for chips and tag codes). Build hierarchy with size first.
 
 ## Layout
 
-Mobile-first single column inside a page gutter of 1rem, widening to 2rem from 48rem. The list page caps at 84rem, the detail page at 72rem, both centred. Vertical rhythm is a 4px-based scale (0.25, 0.5, 0.75, 1, 1.5, 2, 3rem); plates in a stack sit 0.5rem apart, enclosure groups 2rem apart, page blocks 1rem apart.
+A single-column register on mobile that becomes a flowing bed-by-bed wall on desktop. Spacing runs on a 4px rhythm (0.25, 0.5, 0.75, 1, 1.5, 2, 3rem). The page gutter is 1rem, widening to 2rem from 48rem. Every interactive control is at least 44px (target); primary and sheet buttons are 52px tall; plates are 68px; sheet options 64px.
 
-- **Touch targets:** 2.75rem minimum for every tappable thing; primary buttons, the search field and notes are 3.25rem.
-- **List:** header plate, then tools (search and a horizontally scrolling filter row that bleeds to the screen edge on mobile). Each enclosure sign is sticky at the top while its plates scroll beneath it, with a ground-coloured fade behind it. From 64rem the tools sit on one row (search 20 to 28rem wide) and enclosure groups flow into auto-fill columns of at least 24rem; signs stop being sticky.
-- **Detail:** hero plate full width; from 48rem the hero splits into identity left and status/tag right, aligned to the bottom. From 60rem Status and Location sit side by side and the Record plate spans both. Record facts go 1, 2 then 3 columns at 40rem and 60rem.
-- **Sheets:** full-width bottom sheets on mobile (max 88dvh or 44rem), centred 34rem dialogs from 48rem, footer padded for the safe area.
-- **Breakpoints:** 40rem, 48rem, 60rem, 64rem.
-- **Layers:** sticky signs 10, header 20, toast and skip link 40.
+- **Roster:** max 84rem. Headline and summary, then search (full width, max 28rem beside the filters from 64rem) and status filter chips that scroll horizontally on mobile, bleeding into the gutter, and wrap from 64rem. Enclosure panes stack with 1rem gaps; from 64rem they flow down CSS columns (24rem columns, 1.5rem gap, never split across columns) so short beds leave no holes. On mobile the enclosure header sticks to the top while its animals scroll under it.
+- **Detail:** max 72rem. Quiet back link, hero pane (name and species on the left; status chip and tag on the right from 48rem, bottom-aligned), then Status and Location side by side from 60rem, with Record spanning both. Record facts are a hairline grid: 1 column, 2 from 40rem, 3 from 60rem.
+- **Sheets:** bottom sheet on mobile (max 88dvh or 44rem, safe-area padding); centred dialog up to 34rem from 48rem. Head, scrolling body, pinned footer with full-width actions.
+- **Toast:** fixed above the bottom edge, max 30rem, centred.
+
+### Named Rules
+**The Bed Rule.** An enclosure is one pane. Its animals are rows inside it, divided by glazing rules, never separate cards.
 
 ## Elevation & Depth
 
-Hybrid and physical. Plates are objects mounted on the ground: they carry a short, soft, brown-tinted shadow, never a hard offset. Most depth comes from material contrast (brown against grey, white against grey) and from the routed inset line, which is drawn with inset box-shadows so it follows the plate's corners exactly. Only sheets and toasts get a lifted shadow, because only they float above the page.
+Almost flat. Depth comes from a white pane on a tinted ground plus a 1px ring, with a nearly invisible contact shadow. Real lift is reserved for things that float over the page: sheets and the toast. Lines are drawn with box-shadow rings (outer for panes, inset for controls) rather than borders, so they never shift layout.
 
 ### Shadow Vocabulary
-- **Brown plate mount** (`0 1px 2px oklch(0.2 0.02 52 / 0.18), 0 4px 12px -4px oklch(0.2 0.02 52 / 0.2)`): every sign plate.
-- **White plate mount** (`0 0 0 1px var(--rule), 0 1px 2px oklch(0.2 0.02 52 / 0.1)`): hairline edge plus contact shadow for white plates.
-- **Sheet lift** (`0 -8px 32px -8px oklch(0.2 0.02 52 / 0.35)`, backdrop `oklch(0.2 0.02 52 / 0.5)`): dialogs rising from the bottom.
-- **Toast lift** (`0 8px 24px -8px oklch(0.2 0.02 52 / 0.5)`): the confirmation toast.
+- **Glazing ring** (`box-shadow: 0 0 0 1px var(--rule), var(--shadow-pane)`; shadow-pane is `0 1px 2px oklch(0.26 0.03 170 / 0.05)`): Every pane, the status track, the large location sign.
+- **Control ring** (`box-shadow: inset 0 0 0 1px var(--rule-strong)`): Search, secondary buttons, sheet options on hover; 2px brand inset on focus or selection.
+- **Hairline divider** (`box-shadow: 0 -1px 0 var(--rule)` between rows; `0 1px 0 var(--rule)` under the top bar and sticky headers).
+- **Lift** (`box-shadow: 0 12px 32px -12px oklch(0.2 0.03 170 / 0.35)`): Sheets and toast only.
 
 ### Named Rules
-**The Routed Plate Rule.** A plate's rule is routed, not drawn on: a fill-coloured inset band of 0.3125rem, then a 1.5px line inside it. Brown plates route in Routed Rule Cream; white plates route in Sign Brown (grey ink-3 when deceased). Anything nested inside a routed white plate insets by 0.3125rem + 1.5px and reduces its radius by the same amount.
-
-**The Brown-Tinted Shadow Rule.** Every shadow and scrim is tinted at hue 52 (the sign brown), never neutral black.
+**The Glass Not Paper Rule.** Panes do not float. If something casts a real shadow, it is a sheet or a toast.
 
 ## Shapes
 
-Softly rounded rectangles, like cut enamel plates. Plates, options and skeletons use 0.75rem; buttons, fields, status panels, notes and the danger band use 0.5rem; small tabs on plates (tag codes, DANGER panel, the ZMS wordmark) use 0.3rem; sheets use 1rem (top corners only on mobile). Pills (999px) are reserved for filter chips, their count badges, filter status dots, radio marks and the count ring on enclosure signs. Outlines are inset box-shadows rather than borders (1.5px rule at rest, 2px ink-3 on hover, 3px sign brown when selected or focused within) so they never shift layout. Unlit status-track cells carry a fine -45deg hatch, like an unlit panel on a physical sign.
+Softly rounded glass. Three radii: 6px (sm) for small inline marks (tag chips, DANGER tab, list stakes, focus outline corners); 10px (md) for controls (buttons, inputs, chips, status tiles, sheet options, toast, large stakes); 16px (pane) for panes, the status track and skeletons. Sheets use 20px, top corners only on mobile. Round shapes are limited to the status dot, filter-chip dots and the option check mark. The wordmark is a glasshouse window drawn in CSS: arched top, two mullions, one transom, in brand green.
 
 ## Components
 
 ### Buttons
-Heavy, square-shouldered sign buttons.
-- **Shape:** gently rounded (0.5rem), 3.25rem tall, label at 750 weight with a 1.25rem pictogram and 0.5rem gap.
-- **Primary:** Sign Brown with Sign White lettering; hover lifts to Raised Sign Brown; press drops 1px; disabled goes Deep Ground with ink-3 text and a not-allowed cursor.
-- **Secondary:** White plate with a 2px inset Sign Brown rule; hover fills Neutral Ground. Used for recovery actions such as "Clear search and filters".
-- **Grave:** Sign Ink fill with white lettering, for irreversible acts (recording a death). Not red: death is not danger.
-- **Quiet:** transparent, 2.75rem tall, Deep Ground on hover; back links and sheet close buttons.
-- **Focus:** 3px ink outline, 3px offset, on every focusable element.
-- **Labels:** verb plus object with the consequence named ("Move to Big Cat Ridge", "Record Bruno as deceased").
+Solid and quiet, never outlined in colour.
+- **Shape:** gently rounded (md), 52px tall, 1.5rem horizontal padding, 700 weight, 20px icon with 0.5rem gap.
+- **Primary:** conservatory green with pane ink; hover deepens; disabled drops to deep ground with ink-3. Full width inside sections and sheet footers.
+- **Secondary:** clear pane with a strong glazing ring; hover to pane-hover.
+- **Grave:** ink fill with pane text, used only to confirm an irreversible record (deceased).
+- **Quiet:** transparent, ink-2, 44px; hover fills deep ground. Back link, close, theme toggle.
+- **Press:** every button nudges down 1px on active. Transitions are 140ms ease-out.
 
 ### Chips
-- **Style:** white pill, 1.5px rule inset, 0.9375rem at 700, a status dot (1.625rem pill status panel) and a tabular count badge on Deep Ground.
-- **State:** hover rings in ink-3; pressed (aria-pressed) fills Sign Brown with white text and a translucent white count badge.
+- **Style:** pane with glazing ring, 44px, body-small at 500, optional status dot and a count in label size.
+- **State:** hover strengthens the ring; selected (`aria-pressed`) inverts to ink fill with pane text at 700, ring removed, count at 72% opacity.
 
 ### Cards / Containers
-- **Corner Style:** 0.75rem plates.
-- **Background:** Sign Brown for signs and header plates; White Plate for content; Neutral Ground for deceased.
-- **Shadow Strategy:** see the plate mounts in Elevation & Depth.
-- **Border:** routed inset rule, never a CSS border.
-- **Internal Padding:** 1.5rem on header plates (2rem on the desktop hero); 0.75 to 1rem on list plates.
+- **Corner Style:** pane radius (16px).
+- **Background:** clear pane; deep ground for the deceased hero.
+- **Shadow Strategy:** glazing ring (see Elevation & Depth).
+- **Internal Padding:** 1.5rem on mobile hero, 2rem from 48rem; 0.75rem/1rem for rows and fact cells.
 
 ### Inputs / Fields
-- **Style:** the search field is a 3.25rem white panel (0.5rem radius) with a 2px ink-3 inset ring, search pictogram, ink-2 placeholder.
-- **Focus:** the ring thickens to 3px Sign Brown and the text goes to full ink; the caret is Sign Brown.
-- **Options (radio rows in sheets):** 4rem white plates with a 1.5px rule; hover 2px ink-3; checked 3px Sign Brown ring and a filled brown round mark with a white check; keyboard focus draws the 3px ink outline around the row; disabled (the current value) drops to Neutral Ground with no ring.
-- **Error:** a white panel with a 2px ink ring, alert pictogram and 700-weight message, announced with role alert. Never red.
+- **Style:** search field is a pane with strong inset ring, 48px, leading search icon in ink-2.
+- **Focus:** ring becomes 2px conservatory green; icon darkens to ink. Global focus is a 2px green outline at 3px offset.
+- **Error:** form errors are an ink-outlined (1.5px) pane with an alert icon, not red.
 
 ### Navigation
-- **Top bar:** 3.5rem, Sign Ink (near-black brown), white lettering. Left: the ZMS wordmark tab (white 0.3rem tab, 900 weight, 0.08em tracking) with the full name from 40rem. Right: "Viewing as" label and the demo role select on a darker brown panel with an authored chevron.
-- **Back link:** quiet button with arrow-left pictogram.
-- **Skip link:** Observation Yellow tab that drops in on focus.
+- **Role select:** built on Angular Aria (Combobox + Listbox, CDK connected overlay, inline popover). Borderless trigger (700 label, chevron that turns on open, deep-ground hover and open state). The menu is a lifted pane (radius pane, 1px rule, shadow-lift) anchored to the trigger's right edge, 17rem min width; each option is 52px with the role name (700) and what the role does (xs, ink-2); active option gets deep-ground fill plus a strong-rule ring, the selected one a brand check. Keyboard: arrows, Enter/Space commit, Escape closes; outside click closes. Never a native `<select>`.
+- **Top bar:** clear pane with a hairline beneath, 56px. Left: glasshouse-window wordmark, "ZMS" under 40rem and the full name above. Right: "Viewing as" label with the role select (see Role select) and a quiet sun/moon theme toggle. A skip link in brand green appears on focus.
 
-### Enclosure Sign (signature)
-The brown direction sign that heads each group: habitat pictogram on a white 2.5rem tile (0.4rem radius), enclosure name at title weight, a tabular count in a cream-ringed pill, and a right arrow. A large variant (5rem tall, 3.25rem tile, 1.5rem name) is the "you are here" location sign on the detail page.
+### Enclosure pane with plates (signature)
+The bed. A header row (habitat stake, enclosure name, tabular count, arrow) sits on the pane above a list of plates. Each plate is a four-part row: a 36px status tile (tinted for exceptions, empty ringed for healthy on the roster), the name with an optional DANGER tab, a meta line with the short status word (bold in status ink for exceptions, grey regular for healthy) and species, then the mono tag code in a recessed chip and a chevron that slides 2px on hover. Deceased rows grey the name and word.
 
-### Animal Plate (signature)
-A routed white plate linking to the animal: 3.25rem status panel left, name (title) with an optional DANGER panel, then status word in ink and species in ink-2, and on the right the tag code on a Deep Ground tab and a chevron. Hover tints the plate very slightly warm; press scales to 0.99. Deceased plates drop to Neutral Ground with a grey routed rule and ink-2 name.
+### Location sign (large)
+The same header in its own pane at 72px, with a 44px stake and a title-size name. It carries the view-transition name for the transfer: on move, the old sign slides out along its arrow (stake-out, 260ms) and the new one slides in (stake-in, 340ms, 90ms delay), each clipped to the pane radius.
 
-### Status Track
-Four equal cells in clinical order, each with pictogram and short label. The current cell is lit in its status colour with heavier stroke and label weight; the others are hatched and ringed in rule grey.
+### Status track
+Four equal cells in clinical order inside one pane, divided by rules. The current cell is lit with its status tint, icon and bold label in status ink, and a single 7px dot in the corner. Idle cells are ink-3.
 
-### Sheets, Notes, Toast
-- **Sheet:** native dialog with a head (headline and ink-2 subtitle, quiet close), scrolling body of options, and a white footer with a full-width action. Enters by rising 1.5rem and fading over 220ms.
-- **Note:** Deep Ground panel with a lock pictogram explaining why an action is absent for this role or state. Warning notes use full ink text.
-- **Toast:** ink panel at the bottom, check pictogram, rises 0.75rem and fades in over 220ms; announced politely.
-- **Skeleton:** plate-radius blocks shaped like the real sign and plates, with a slow 1.4s linear shimmer on Deep Ground.
+### Danger tab and danger band
+The tab is a small uppercase hazard label outlined 1.5px in danger red with a warning icon, placed after the animal's name. On the detail hero, danger becomes a full-bleed tinted band across the top of the pane with a hairline in 30% danger.
 
-### Pictograms
-Authored set on a 24px grid, 2px round stroke by default (2.2 to 3 when small or on a filled panel), sized through a 1.5rem default. Every icon is decorative (aria-hidden) with a text label beside it.
-
-### Motion
-Ease-out cubic-bezier(0.22, 1, 0.36, 1), 150ms for state changes, 220ms for entrances. Signature: on transfer the location sign is re-hung through a view transition: the old sign slides 40% right and clips away along its arrow over 260ms, the new one slides in from the left over 320ms after 90ms. The animal name morphs between plate and hero. Under reduced motion all animations collapse to 1ms and view transitions become a 150ms crossfade.
+### Sheet options
+Radio rows styled as 64px panes: tile or stake, label and description, and a round check mark. Hover strengthens the ring; checked gets a 2px green ring and a filled green mark; the current value is disabled, transparent and loses its mark.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** build every surface from the two plate materials: Sign Brown with Sign White lettering, or White Plate with a routed brown rule (0.3125rem inset, 1.5px line).
-- **Do** pair every status colour with its pictogram and its word: green/check/Healthy, yellow/eye/Under observation, orange/cross/In treatment, grey/ribbon/Deceased.
-- **Do** keep every tappable target at least 2.75rem and primary controls at 3.25rem.
-- **Do** draw outlines as inset box-shadows (1.5px rest, 2px hover, 3px selected) and focus as a 3px ink outline with 3px offset.
-- **Do** explain an absent action with a Deep Ground note and a lock pictogram instead of hiding it silently or letting it fail.
-- **Do** tint shadows and scrims with the sign brown hue (52).
-- **Do** use tabular numerals for tag codes, counts and dates.
-- **Do** carry the Overpass optical-baseline nudge (extra top padding) on any filled control with text.
+- **Do** draw every edge with a 1px glazing rule (box-shadow ring) on a white pane over the glass ground.
+- **Do** give every status tile its tint, healthy green included; keep the healthy word grey on roster rows so exception words still lead.
+- **Do** show habitat only as a solid full-strength stake tile with its icon.
+- **Do** use conservatory green for the one primary action in a section, for selection and for focus.
+- **Do** set tag codes in Atkinson Hyperlegible Mono in a recessed ground chip, and counts and dates with tabular numerals.
+- **Do** keep controls at least 44px and primary actions at 52px, full width on mobile.
+- **Do** pair every status colour with its icon and its word.
+- **Do** keep motion to 140 to 220ms ease-out and replace view-transition movement with a 150ms crossfade under reduced motion.
 
 ### Don't:
-- **Don't** use signal red for anything but the DANGER panel and the dangerous-animal band; errors are ink-ringed, the irreversible action is ink.
-- **Don't** tint the ground toward cream or beige; it stays chroma 0.
-- **Don't** convey status or danger by colour alone.
-- **Don't** introduce a second typeface or a light display weight; hierarchy is Overpass weight.
-- **Don't** use hard offset shadows or neutral black shadows.
-- **Don't** fall back to an admin table with status pills and a dark sidebar; animals are plates under their enclosure sign.
-- **Don't** use stock icon sets; draw new pictograms on the same 24px, 2px round-stroke grid.
-- **Don't** use purple gradients, glassmorphism, gradient text or cartoon mascots.
+- **Don't** use red for anything but a dangerous animal; errors are ink-outlined, the deceased confirmation is ink.
+- **Don't** tint panes, text or borders with habitat hues.
+- **Don't** split an enclosure into separate animal cards; rows live inside one pane.
+- **Don't** cast real shadows from panes; lift is for sheets and the toast.
+- **Don't** set counts, dates or prose in the mono face.
+- **Don't** bring back heavy brown, double routed rules, Overpass, or saturated filled status panels.
+- **Don't** drift into grey-plus-indigo admin styling; the neutrals carry a faint green and the only accent is conservatory green.
+
+### Named Rule: Graphite Night
+
+Dark mode grounds, panes, rules and inks are neutral graphite (chroma at most 0.008, hue 250). Green never tints a surface in dark mode; it appears only where it acts.

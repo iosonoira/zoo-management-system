@@ -23,7 +23,7 @@
             [checked]="selected() === row.enclosure.id"
             (change)="selected.set(row.enclosure.id)"
           />
-          <span class="pictogram">
+          <span class="stake pictogram" [attr.data-habitat]="row.enclosure.habitat">
             <app-icon [name]="habitats[row.enclosure.habitat].icon" />
           </span>
           <span class="option-text">

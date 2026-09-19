@@ -23,7 +23,7 @@
             [checked]="selected() === s"
             (change)="selected.set(s)"
           />
-          <span class="status-panel symbol" [attr.data-status]="s">
+          <span class="status-tile symbol" [attr.data-status]="s">
             <app-icon [name]="labels[s].icon" />
           </span>
           <span class="option-text">

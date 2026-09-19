@@ -1,0 +1,83 @@
+zoo-management-system\
++---.claude\
+|   \---settings.local.json
++---.gitignore
++---docs\
+|   \---superpowers\
+|       +---plans\
+|       |   \---2026-06-26-application-layer.md
+|       \---specs\
+|           \---2026-06-26-application-layer-design.md
+\---zms-be\
+    +---animal-service\
+    |   +---.dockerignore
+    |   +---.gitignore
+    |   +---mvnw
+    |   +---mvnw.cmd
+    |   +---pom.xml
+    |   +---README.md
+    |   \---src\
+    |       +---main\
+    |       |   +---docker\
+    |       |   |   +---Dockerfile.jvm
+    |       |   |   +---Dockerfile.legacy-jar
+    |       |   |   +---Dockerfile.native
+    |       |   |   \---Dockerfile.native-micro
+    |       |   +---java\
+    |       |   |   \---it\
+    |       |   |       \---zoo\
+    |       |   |           \---animal\
+    |       |   |               +---application\
+    |       |   |               |   +---GetAnimalService.java
+    |       |   |               |   +---ListAnimalsService.java
+    |       |   |               |   +---RegisterAnimalService.java
+    |       |   |               |   +---TransferAnimalService.java
+    |       |   |               |   \---UpdateAnimalStatusService.java
+    |       |   |               +---domain\
+    |       |   |               |   +---enums\
+    |       |   |               |   |   +---AnimalStatus.java
+    |       |   |               |   |   \---Habitat.java
+    |       |   |               |   +---exception\
+    |       |   |               |   |   +---AnimalNotFoundException.java
+    |       |   |               |   |   +---InvalidAnimalDataException.java
+    |       |   |               |   |   \---InvalidStatusTransitionException.java
+    |       |   |               |   +---model\
+    |       |   |               |   |   \---Animal.java
+    |       |   |               |   \---port\
+    |       |   |               |       +---in\
+    |       |   |               |       |   +---GetAnimalUseCase.java
+    |       |   |               |       |   +---ListAnimalsUseCase.java
+    |       |   |               |       |   +---RegisterAnimalCommand.java
+    |       |   |               |       |   +---RegisterAnimalUseCase.java
+    |       |   |               |       |   +---TransferAnimalUseCase.java
+    |       |   |               |       |   \---UpdateAnimalStatusUseCase.java
+    |       |   |               |       \---out\
+    |       |   |               |           \---AnimalRepository.java
+    |       |   |               \---infrastructure\
+    |       |   |                   +---event\
+    |       |   |                   +---persistence\
+    |       |   |                   \---rest\
+    |       |   \---resources\
+    |       |       \---application.properties
+    |       \---test\
+    |           \---java\
+    |               \---it\
+    |                   \---zoo\
+    |                       \---animal\
+    |                           +---application\
+    |                           |   +---GetAnimalServiceTest.java
+    |                           |   +---ListAnimalsServiceTest.java
+    |                           |   +---RegisterAnimalServiceTest.java
+    |                           |   +---TransferAnimalServiceTest.java
+    |                           |   \---UpdateAnimalStatusServiceTest.java
+    |                           \---domain\
+    |                               \---AnimalStatusTransitionTest.java
+    +---docs\
+    |   \---zoo-roadmap.html
+    +---feeding-service\
+    +---health-service\
+    +---infrastructure\
+    |   +---docker-compose.yml
+    |   \---keycloak\
+    +---notification-service\
+    \---pom.xml
