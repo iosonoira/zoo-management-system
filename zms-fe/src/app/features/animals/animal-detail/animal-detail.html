@@ -1,0 +1,140 @@
+<div class="page">
+  <a class="back btn btn-quiet" routerLink="/animals">
+    <app-icon name="arrow-left" />
+    All animals
+  </a>
+
+  @if (animal(); as a) {
+    <header class="hero sign-plate" [attr.data-deceased]="deceased() || null">
+      @if (a.dangerous) {
+        <p class="danger-band">
+          <app-icon name="danger" />
+          Dangerous animal. Follow the handling protocol.
+        </p>
+      }
+      <div class="identity">
+        <h1 [style.view-transition-name]="'name-' + code()">{{ a.name }}</h1>
+        <p class="species">{{ a.species }}</p>
+      </div>
+      <div class="plate-side">
+        <p class="hero-status">
+          <span class="status-panel hero-symbol" [attr.data-status]="a.status">
+            <app-icon [name]="status()!.icon" />
+          </span>
+          {{ status()!.label }}
+        </p>
+        <p class="tag">
+          <span>Tag</span>
+          <span class="tabular">{{ code() }}</span>
+        </p>
+      </div>
+    </header>
+
+    <div class="sections">
+      <section class="section" aria-labelledby="status-heading">
+        <h2 id="status-heading">Status</h2>
+        <app-status-track [status]="a.status" />
+        <p class="lede">
+          <strong>{{ status()!.label }}.</strong>
+          {{ status()!.description }}
+        </p>
+
+        @if (canUpdateStatus()) {
+          <button type="button" class="btn btn-primary wide" (click)="openStatus()">
+            <app-icon name="status" />
+            Update status
+          </button>
+        } @else if (deceased()) {
+          <p class="note"><app-icon name="lock" />Deceased is final. This record can no longer change.</p>
+        } @else {
+          <p class="note"><app-icon name="lock" />Only vets and admins can change status.</p>
+        }
+      </section>
+
+      <section class="section" aria-labelledby="location-heading">
+        <h2 id="location-heading">Location</h2>
+        <app-enclosure-sign
+          class="location"
+          size="lg"
+          [arrow]="true"
+          [name]="store.enclosureName(a.enclosureId)"
+          [habitat]="enclosure()?.habitat ?? a.habitat"
+        />
+
+        @if (canTransfer()) {
+          <button type="button" class="btn btn-primary wide" (click)="openTransfer()">
+            <app-icon name="transfer" />
+            Transfer to another enclosure
+          </button>
+        } @else if (deceased()) {
+          <p class="note"><app-icon name="lock" />Deceased animals stay on record and can’t be transferred.</p>
+        } @else {
+          <p class="note"><app-icon name="lock" />Only keepers and admins can transfer animals.</p>
+        }
+      </section>
+
+      <section class="section record" aria-labelledby="record-heading">
+        <h2 id="record-heading">Record</h2>
+        <div class="facts-plate white-plate">
+        <dl class="facts">
+          <div>
+            <dt>Species</dt>
+            <dd>{{ a.species }}</dd>
+          </div>
+          <div>
+            <dt>Habitat</dt>
+            <dd class="with-icon"><app-icon [name]="habitat()!.icon" />{{ habitat()!.label }}</dd>
+          </div>
+          <div>
+            <dt>Arrived</dt>
+            <dd class="tabular">{{ a.arrivalDate | date: 'd MMM y' }}</dd>
+          </div>
+          <div>
+            <dt>Dangerous</dt>
+            <dd>{{ a.dangerous ? 'Yes, follow the handling protocol' : 'No' }}</dd>
+          </div>
+          <div>
+            <dt>Registered by</dt>
+            <dd class="with-icon"><app-icon name="user" />{{ a.createdBy ?? 'Unknown' }}</dd>
+          </div>
+          <div>
+            <dt>Last updated by</dt>
+            <dd class="with-icon"><app-icon name="user" />{{ a.updatedBy ?? 'Unknown' }}</dd>
+          </div>
+        </dl>
+        </div>
+      </section>
+    </div>
+
+    <app-transfer-sheet [animal]="a" (moved)="onMoved($event)" />
+    <app-status-sheet [animal]="a" (changed)="onStatusChanged($event)" />
+  } @else if (store.state() === 'ready') {
+    <div class="missing white-plate">
+      <app-icon name="alert" />
+      <h1>No animal with this tag</h1>
+      <p>It may have been removed, or the link is wrong. Search the roster instead.</p>
+      <a class="btn btn-primary" routerLink="/animals">Back to all animals</a>
+    </div>
+  } @else if (store.state() === 'error') {
+    <div class="missing white-plate" role="alert">
+      <app-icon name="alert" />
+      <h1>This record didn’t load</h1>
+      <p>Check your connection, then try again.</p>
+      <button type="button" class="btn btn-primary" (click)="store.retry()">Try again</button>
+    </div>
+  } @else {
+    <div aria-busy="true" aria-label="Loading animal">
+      <div class="skeleton skeleton-hero"></div>
+      <div class="sections">
+        <div class="skeleton skeleton-block"></div>
+        <div class="skeleton skeleton-block"></div>
+      </div>
+    </div>
+  }
+
+  <p class="toast" role="status" [class.show]="announcement()">
+    @if (announcement()) {
+      <app-icon name="check" />{{ announcement() }}
+    }
+  </p>
+</div>

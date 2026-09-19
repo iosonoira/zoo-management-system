@@ -1,0 +1,114 @@
+<div class="page">
+  <header class="head sign-plate">
+    <h1>Animals</h1>
+    <p class="summary">
+      @if (store.state() === 'ready') {
+        <span class="tabular">{{ store.animals().length }}</span> animals in
+        <span class="tabular">{{ occupiedEnclosures() }}</span> enclosures
+      } @else {
+        Roster and enclosure locations
+      }
+    </p>
+  </header>
+
+  <div class="tools">
+    <label class="search">
+      <span class="visually-hidden">Search animals</span>
+      <app-icon name="search" />
+      <input
+        type="search"
+        placeholder="Search name, species or tag"
+        autocomplete="off"
+        enterkeyhint="search"
+        [value]="query()"
+        (input)="onSearch($event)"
+      />
+    </label>
+
+    <div class="filters" role="group" aria-label="Filter by status">
+      @for (f of filters(); track f.value) {
+        <button
+          type="button"
+          class="chip"
+          [attr.aria-pressed]="filter() === f.value"
+          (click)="filter.set(f.value)"
+        >
+          @if (f.value !== 'ALL') {
+            <span class="status-panel dot" [attr.data-status]="f.value">
+              <app-icon [name]="statusLabels[f.value].icon" />
+            </span>
+          }
+          {{ f.label }}
+          @if (store.state() === 'ready') {
+            <span class="chip-count tabular">{{ f.count }}</span>
+          }
+        </button>
+      }
+    </div>
+  </div>
+
+  <p class="visually-hidden" aria-live="polite">
+    @if (store.state() === 'ready' && filtered()) {
+      {{ visible().length }} of {{ store.animals().length }} animals shown
+    }
+  </p>
+
+  @switch (store.state()) {
+    @case ('error') {
+      <div class="notice white-plate" role="alert">
+        <app-icon name="alert" />
+        <div>
+          <h2>The roster didn’t load</h2>
+          <p>Check your connection, then try again. Nothing you saved is lost.</p>
+        </div>
+        <button type="button" class="btn btn-primary" (click)="store.retry()">Try again</button>
+      </div>
+    }
+    @case ('ready') {
+      @if (groups().length === 0) {
+        <div class="notice white-plate">
+          <app-icon name="search" />
+          <div>
+            <h2>No animals match</h2>
+            <p>{{ emptyMessage() }}</p>
+          </div>
+          <button type="button" class="btn btn-secondary" (click)="clear()">Clear search and filters</button>
+        </div>
+      } @else {
+        <div class="groups">
+          @for (group of groups(); track group.enclosure.id) {
+            <section class="group">
+              <app-enclosure-sign
+                class="group-sign"
+                [name]="group.enclosure.name"
+                [habitat]="group.enclosure.habitat"
+                [count]="group.animals.length"
+                [arrow]="true"
+                [headingLevel]="2"
+              />
+              <ul class="plates">
+                @for (animal of group.animals; track animal.id) {
+                  <li><app-animal-plate [animal]="animal" /></li>
+                }
+              </ul>
+            </section>
+          }
+        </div>
+      }
+    }
+    @default {
+      <div class="groups" aria-busy="true" aria-label="Loading animals">
+        @for (g of skeleton; track $index) {
+          <div class="group">
+            <div class="skeleton skeleton-sign"></div>
+            <div class="plates">
+              @for (p of g; track $index) {
+                <div class="skeleton skeleton-plate"></div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

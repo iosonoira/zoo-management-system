@@ -1,0 +1,57 @@
+:host {
+  display: block;
+}
+
+.track {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-1);
+}
+
+.cell {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: var(--space-1);
+  min-block-size: 4.5rem;
+  padding: var(--space-2) var(--space-1) var(--space-1);
+  border-radius: var(--radius-panel);
+  box-shadow: inset 0 0 0 1.5px var(--rule);
+  background-image: repeating-linear-gradient(-45deg, transparent 0 6px, oklch(0.9 0.003 60 / 0.6) 6px 7px);
+  color: var(--ink-2);
+  --icon-size: 1.5rem;
+
+  &.lit {
+    background-image: none;
+    box-shadow: none;
+    --icon-stroke: 2.6;
+  }
+
+  &[data-status='HEALTHY'] {
+    background-color: var(--healthy);
+    color: var(--healthy-ink);
+  }
+  &[data-status='UNDER_OBSERVATION'] {
+    background-color: var(--observation);
+    color: var(--observation-ink);
+  }
+  &[data-status='IN_TREATMENT'] {
+    background-color: var(--treatment);
+    color: var(--treatment-ink);
+  }
+  &[data-status='DECEASED'] {
+    background-color: var(--deceased);
+    color: var(--deceased-ink);
+  }
+}
+
+.label {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+
+  .lit & {
+    font-weight: 850;
+  }
+}

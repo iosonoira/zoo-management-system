@@ -1,1 +1,28 @@
-<router-outlet />
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <a class="wordmark" routerLink="/animals" aria-label="Zoo Management System, animals">
+    <span class="wordmark-plate">ZMS</span>
+    <span class="wordmark-name">Zoo Management System</span>
+  </a>
+
+  <div class="role">
+    <label class="role-label" for="demo-role">Viewing as</label>
+    <select id="demo-role" class="role-select" [value]="session.role()" (change)="onRoleChange($event)">
+      @for (role of roles; track role[0]) {
+        <option [value]="role[0]">{{ role[1] }}</option>
+      }
+    </select>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+  <router-outlet />
+</main>
+
+<footer class="footer">
+  <p>
+    Demo data. Every animal, enclosure and staff name here is fictional. The role switch stands in
+    for Keycloak sign-in; the same rules as <code>animal-service</code> apply.
+  </p>
+</footer>

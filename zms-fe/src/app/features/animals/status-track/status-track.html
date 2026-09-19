@@ -1,0 +1,16 @@
+<ol class="track" aria-label="Clinical status">
+  @for (s of order; track s) {
+    <li
+      class="cell"
+      [class.lit]="s === status()"
+      [attr.data-status]="s === status() ? s : null"
+      [attr.aria-current]="s === status() ? 'step' : null"
+    >
+      <app-icon [name]="labels[s].icon" />
+      <span class="label">{{ labels[s].short }}</span>
+      @if (s === status()) {
+        <span class="visually-hidden">(current)</span>
+      }
+    </li>
+  }
+</ol>

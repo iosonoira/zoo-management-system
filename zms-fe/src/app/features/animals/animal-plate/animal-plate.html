@@ -1,0 +1,31 @@
+<a
+  class="plate white-plate"
+  [routerLink]="['/animals', animal().id]"
+  [attr.data-deceased]="deceased() || null"
+>
+  <span class="status-panel symbol" [attr.data-status]="animal().status">
+    <app-icon [name]="status().icon" />
+  </span>
+
+  <span class="body">
+    <span class="title-row">
+      <span class="name" [style.view-transition-name]="'name-' + code()">{{ animal().name }}</span>
+      @if (animal().dangerous) {
+        <span class="danger-panel">
+          <app-icon name="danger" />
+          Danger
+        </span>
+      }
+    </span>
+    <span class="meta">
+      <strong class="status-word">{{ status().label }}</strong>
+      <span class="species">{{ animal().species }}</span>
+    </span>
+  </span>
+
+  <span class="tag">
+    <span class="visually-hidden">Tag</span>
+    <span class="code tabular">{{ code() }}</span>
+    <app-icon name="chevron-right" />
+  </span>
+</a>

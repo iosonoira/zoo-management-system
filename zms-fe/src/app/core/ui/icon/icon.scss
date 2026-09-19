@@ -1,0 +1,16 @@
+:host {
+  display: inline-flex;
+  inline-size: var(--icon-size, 1.5rem);
+  block-size: var(--icon-size, 1.5rem);
+  flex: none;
+}
+
+svg {
+  inline-size: 100%;
+  block-size: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--icon-stroke, 2);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

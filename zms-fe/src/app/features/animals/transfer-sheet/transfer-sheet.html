@@ -1,0 +1,58 @@
+<dialog #dialog class="sheet" aria-labelledby="transfer-title" (click)="onBackdrop($event)" (cancel)="pending() && $event.preventDefault()">
+  <form class="sheet-form" (submit)="submit($event)">
+    <header class="sheet-head">
+      <div>
+        <h2 id="transfer-title">Transfer {{ animal().name }}</h2>
+        <p>Now in {{ currentName() }}. Choose where {{ animal().name }} goes.</p>
+      </div>
+      <button type="button" class="btn btn-quiet" (click)="close()" [disabled]="pending()">
+        <app-icon name="close" />
+        <span class="visually-hidden">Close</span>
+      </button>
+    </header>
+
+    <fieldset class="sheet-body">
+      <legend class="visually-hidden">Destination enclosure</legend>
+      @for (row of enclosures(); track row.enclosure.id) {
+        <label class="option">
+          <input
+            type="radio"
+            name="enclosure"
+            [value]="row.enclosure.id"
+            [disabled]="row.current || pending()"
+            [checked]="selected() === row.enclosure.id"
+            (change)="selected.set(row.enclosure.id)"
+          />
+          <span class="pictogram">
+            <app-icon [name]="habitats[row.enclosure.habitat].icon" />
+          </span>
+          <span class="option-text">
+            <strong>{{ row.enclosure.name }}</strong>
+            <span>{{ row.detail }}</span>
+          </span>
+          <span class="option-mark">
+            @if (selected() === row.enclosure.id) {
+              <app-icon name="check" />
+            }
+          </span>
+        </label>
+      }
+    </fieldset>
+
+    <footer class="sheet-foot">
+      @if (error(); as message) {
+        <p class="form-error" role="alert"><app-icon name="alert" />{{ message }}</p>
+      }
+      <button type="submit" class="btn btn-primary" [disabled]="!selected() || pending()">
+        <app-icon name="transfer" />
+        @if (pending()) {
+          Moving…
+        } @else if (target(); as name) {
+          Move to {{ name }}
+        } @else {
+          Choose an enclosure
+        }
+      </button>
+    </footer>
+  </form>
+</dialog>

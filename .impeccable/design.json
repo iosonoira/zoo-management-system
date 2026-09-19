@@ -1,0 +1,616 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-19T15:02:52.992Z",
+  "title": "Design System: Zoo Management System",
+  "extensions": {
+    "colorMeta": {
+      "ground": {
+        "role": "neutral",
+        "displayName": "Neutral Ground",
+        "canonical": "oklch(0.955 0 0)",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.26 0 0)",
+          "oklch(0.37 0 0)",
+          "oklch(0.48 0 0)",
+          "oklch(0.59 0 0)",
+          "oklch(0.7 0 0)",
+          "oklch(0.82 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "ground-deep": {
+        "role": "neutral",
+        "displayName": "Deep Ground",
+        "canonical": "oklch(0.915 0.003 60)",
+        "tonalRamp": [
+          "oklch(0.15 0.002 60)",
+          "oklch(0.26 0.002 60)",
+          "oklch(0.37 0.003 60)",
+          "oklch(0.48 0.003 60)",
+          "oklch(0.59 0.003 60)",
+          "oklch(0.7 0.003 60)",
+          "oklch(0.82 0.003 60)",
+          "oklch(0.95 0.002 60)"
+        ]
+      },
+      "plate": {
+        "role": "neutral",
+        "displayName": "White Plate",
+        "canonical": "oklch(0.995 0 0)",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.26 0 0)",
+          "oklch(0.37 0 0)",
+          "oklch(0.48 0 0)",
+          "oklch(0.59 0 0)",
+          "oklch(0.7 0 0)",
+          "oklch(0.82 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "sign": {
+        "role": "primary",
+        "displayName": "Sign Brown",
+        "canonical": "oklch(0.31 0.048 52)",
+        "tonalRamp": [
+          "oklch(0.15 0.029 52)",
+          "oklch(0.26 0.029 52)",
+          "oklch(0.37 0.048 52)",
+          "oklch(0.48 0.048 52)",
+          "oklch(0.59 0.048 52)",
+          "oklch(0.7 0.048 52)",
+          "oklch(0.82 0.048 52)",
+          "oklch(0.95 0.029 52)"
+        ]
+      },
+      "sign-raised": {
+        "role": "primary",
+        "displayName": "Raised Sign Brown",
+        "canonical": "oklch(0.38 0.052 52)",
+        "tonalRamp": [
+          "oklch(0.15 0.031 52)",
+          "oklch(0.26 0.031 52)",
+          "oklch(0.37 0.052 52)",
+          "oklch(0.48 0.052 52)",
+          "oklch(0.59 0.052 52)",
+          "oklch(0.7 0.052 52)",
+          "oklch(0.82 0.052 52)",
+          "oklch(0.95 0.031 52)"
+        ]
+      },
+      "sign-ink": {
+        "role": "primary",
+        "displayName": "Sign White",
+        "canonical": "oklch(0.99 0.004 80)",
+        "tonalRamp": [
+          "oklch(0.15 0.002 80)",
+          "oklch(0.26 0.002 80)",
+          "oklch(0.37 0.004 80)",
+          "oklch(0.48 0.004 80)",
+          "oklch(0.59 0.004 80)",
+          "oklch(0.7 0.004 80)",
+          "oklch(0.82 0.004 80)",
+          "oklch(0.95 0.002 80)"
+        ]
+      },
+      "sign-ink-2": {
+        "role": "primary",
+        "displayName": "Routed Rule Cream",
+        "canonical": "oklch(0.86 0.02 70)",
+        "tonalRamp": [
+          "oklch(0.15 0.012 70)",
+          "oklch(0.26 0.012 70)",
+          "oklch(0.37 0.02 70)",
+          "oklch(0.48 0.02 70)",
+          "oklch(0.59 0.02 70)",
+          "oklch(0.7 0.02 70)",
+          "oklch(0.82 0.02 70)",
+          "oklch(0.95 0.012 70)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Sign Ink",
+        "canonical": "oklch(0.22 0.018 52)",
+        "tonalRamp": [
+          "oklch(0.15 0.011 52)",
+          "oklch(0.26 0.011 52)",
+          "oklch(0.37 0.018 52)",
+          "oklch(0.48 0.018 52)",
+          "oklch(0.59 0.018 52)",
+          "oklch(0.7 0.018 52)",
+          "oklch(0.82 0.018 52)",
+          "oklch(0.95 0.011 52)"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Secondary Ink",
+        "canonical": "oklch(0.43 0.016 52)",
+        "tonalRamp": [
+          "oklch(0.15 0.01 52)",
+          "oklch(0.26 0.01 52)",
+          "oklch(0.37 0.016 52)",
+          "oklch(0.48 0.016 52)",
+          "oklch(0.59 0.016 52)",
+          "oklch(0.7 0.016 52)",
+          "oklch(0.82 0.016 52)",
+          "oklch(0.95 0.01 52)"
+        ]
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Tertiary Ink",
+        "canonical": "oklch(0.62 0.01 52)",
+        "tonalRamp": [
+          "oklch(0.15 0.006 52)",
+          "oklch(0.26 0.006 52)",
+          "oklch(0.37 0.01 52)",
+          "oklch(0.48 0.01 52)",
+          "oklch(0.59 0.01 52)",
+          "oklch(0.7 0.01 52)",
+          "oklch(0.82 0.01 52)",
+          "oklch(0.95 0.006 52)"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Rule Grey",
+        "canonical": "oklch(0.84 0.006 52)",
+        "tonalRamp": [
+          "oklch(0.15 0.004 52)",
+          "oklch(0.26 0.004 52)",
+          "oklch(0.37 0.006 52)",
+          "oklch(0.48 0.006 52)",
+          "oklch(0.59 0.006 52)",
+          "oklch(0.7 0.006 52)",
+          "oklch(0.82 0.006 52)",
+          "oklch(0.95 0.004 52)"
+        ]
+      },
+      "healthy": {
+        "role": "status",
+        "displayName": "Healthy Green",
+        "canonical": "oklch(0.5 0.12 152)",
+        "tonalRamp": [
+          "oklch(0.15 0.072 152)",
+          "oklch(0.26 0.072 152)",
+          "oklch(0.37 0.12 152)",
+          "oklch(0.48 0.12 152)",
+          "oklch(0.59 0.12 152)",
+          "oklch(0.7 0.12 152)",
+          "oklch(0.82 0.12 152)",
+          "oklch(0.95 0.072 152)"
+        ]
+      },
+      "healthy-ink": {
+        "role": "status",
+        "displayName": "Healthy Glyph",
+        "canonical": "oklch(0.99 0 0)",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.26 0 0)",
+          "oklch(0.37 0 0)",
+          "oklch(0.48 0 0)",
+          "oklch(0.59 0 0)",
+          "oklch(0.7 0 0)",
+          "oklch(0.82 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "observation": {
+        "role": "status",
+        "displayName": "Observation Yellow",
+        "canonical": "oklch(0.86 0.165 92)",
+        "tonalRamp": [
+          "oklch(0.15 0.099 92)",
+          "oklch(0.26 0.099 92)",
+          "oklch(0.37 0.165 92)",
+          "oklch(0.48 0.165 92)",
+          "oklch(0.59 0.165 92)",
+          "oklch(0.7 0.165 92)",
+          "oklch(0.82 0.165 92)",
+          "oklch(0.95 0.099 92)"
+        ]
+      },
+      "observation-ink": {
+        "role": "status",
+        "displayName": "Observation Glyph",
+        "canonical": "oklch(0.24 0.03 80)",
+        "tonalRamp": [
+          "oklch(0.15 0.018 80)",
+          "oklch(0.26 0.018 80)",
+          "oklch(0.37 0.03 80)",
+          "oklch(0.48 0.03 80)",
+          "oklch(0.59 0.03 80)",
+          "oklch(0.7 0.03 80)",
+          "oklch(0.82 0.03 80)",
+          "oklch(0.95 0.018 80)"
+        ]
+      },
+      "treatment": {
+        "role": "status",
+        "displayName": "Treatment Orange",
+        "canonical": "oklch(0.7 0.17 52)",
+        "tonalRamp": [
+          "oklch(0.15 0.102 52)",
+          "oklch(0.26 0.102 52)",
+          "oklch(0.37 0.17 52)",
+          "oklch(0.48 0.17 52)",
+          "oklch(0.59 0.17 52)",
+          "oklch(0.7 0.17 52)",
+          "oklch(0.82 0.17 52)",
+          "oklch(0.95 0.102 52)"
+        ]
+      },
+      "treatment-ink": {
+        "role": "status",
+        "displayName": "Treatment Glyph",
+        "canonical": "oklch(0.2 0.03 45)",
+        "tonalRamp": [
+          "oklch(0.15 0.018 45)",
+          "oklch(0.26 0.018 45)",
+          "oklch(0.37 0.03 45)",
+          "oklch(0.48 0.03 45)",
+          "oklch(0.59 0.03 45)",
+          "oklch(0.7 0.03 45)",
+          "oklch(0.82 0.03 45)",
+          "oklch(0.95 0.018 45)"
+        ]
+      },
+      "deceased": {
+        "role": "status",
+        "displayName": "Retired Grey",
+        "canonical": "oklch(0.52 0.004 52)",
+        "tonalRamp": [
+          "oklch(0.15 0.002 52)",
+          "oklch(0.26 0.002 52)",
+          "oklch(0.37 0.004 52)",
+          "oklch(0.48 0.004 52)",
+          "oklch(0.59 0.004 52)",
+          "oklch(0.7 0.004 52)",
+          "oklch(0.82 0.004 52)",
+          "oklch(0.95 0.002 52)"
+        ]
+      },
+      "deceased-ink": {
+        "role": "status",
+        "displayName": "Deceased Glyph",
+        "canonical": "oklch(0.99 0 0)",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.26 0 0)",
+          "oklch(0.37 0 0)",
+          "oklch(0.48 0 0)",
+          "oklch(0.59 0 0)",
+          "oklch(0.7 0 0)",
+          "oklch(0.82 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "danger": {
+        "role": "danger",
+        "displayName": "Signal Red",
+        "canonical": "oklch(0.52 0.2 27)",
+        "tonalRamp": [
+          "oklch(0.15 0.12 27)",
+          "oklch(0.26 0.12 27)",
+          "oklch(0.37 0.2 27)",
+          "oklch(0.48 0.2 27)",
+          "oklch(0.59 0.2 27)",
+          "oklch(0.7 0.2 27)",
+          "oklch(0.82 0.2 27)",
+          "oklch(0.95 0.12 27)"
+        ]
+      },
+      "danger-ink": {
+        "role": "danger",
+        "displayName": "Danger Glyph",
+        "canonical": "oklch(0.99 0 0)",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.26 0 0)",
+          "oklch(0.37 0 0)",
+          "oklch(0.48 0 0)",
+          "oklch(0.59 0 0)",
+          "oklch(0.7 0 0)",
+          "oklch(0.82 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page titles on brown header plates and the detail hero name (4rem, -0.025em from 48rem)."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section headings and sheet titles; 2rem on full-page error plates."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Animal name on its plate, enclosure name on its sign, hero status word."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running copy, inputs, and buttons at weight 750."
+      },
+      "body-sm": {
+        "displayName": "Body small",
+        "purpose": "Plate meta, chips, notes, option descriptions, sheet subtitles."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Record field labels, status-track labels, footer."
+      },
+      "label-caps": {
+        "displayName": "Label caps",
+        "purpose": "The DANGER panel and the detail TAG chip only."
+      },
+      "code": {
+        "displayName": "Tag code",
+        "purpose": "Tabular tag codes, counts and dates."
+      }
+    },
+    "shadows": [
+      {
+        "name": "routed-sign-plate",
+        "value": "inset 0 0 0 0.3125rem var(--sign), inset 0 0 0 calc(0.3125rem + 1.5px) var(--sign-ink-2), 0 1px 2px oklch(0.2 0.02 52 / 0.18), 0 4px 12px -4px oklch(0.2 0.02 52 / 0.2)",
+        "purpose": "Brown sign plate: routed cream rule plus mount shadow."
+      },
+      {
+        "name": "routed-white-plate",
+        "value": "inset 0 0 0 0.3125rem var(--plate), inset 0 0 0 calc(0.3125rem + 1.5px) var(--sign), 0 0 0 1px var(--rule), 0 1px 2px oklch(0.2 0.02 52 / 0.1)",
+        "purpose": "White plate: routed brown rule (ink-3 when deceased), hairline edge, contact shadow."
+      },
+      {
+        "name": "sheet-lift",
+        "value": "0 -8px 32px -8px oklch(0.2 0.02 52 / 0.35)",
+        "purpose": "Bottom sheets and dialogs; backdrop oklch(0.2 0.02 52 / 0.5)."
+      },
+      {
+        "name": "toast-lift",
+        "value": "0 8px 24px -8px oklch(0.2 0.02 52 / 0.5)",
+        "purpose": "Confirmation toast."
+      },
+      {
+        "name": "ring-rest",
+        "value": "inset 0 0 0 1.5px var(--rule)",
+        "purpose": "Chips, options, unlit status cells at rest."
+      },
+      {
+        "name": "ring-hover",
+        "value": "inset 0 0 0 2px var(--ink-3)",
+        "purpose": "Options on hover; also the search field at rest."
+      },
+      {
+        "name": "ring-selected",
+        "value": "inset 0 0 0 3px var(--sign)",
+        "purpose": "Checked option, focused search field."
+      },
+      {
+        "name": "focus-ring",
+        "value": "outline: 3px solid var(--ink); outline-offset: 3px",
+        "purpose": "Every focusable element."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "All transitions and entrances."
+      },
+      {
+        "name": "dur-fast",
+        "value": "150ms",
+        "purpose": "Hover, press and ring changes."
+      },
+      {
+        "name": "dur",
+        "value": "220ms",
+        "purpose": "Sheet entrance, toast, view-transition groups."
+      },
+      {
+        "name": "sign-rehang",
+        "value": "old: 260ms translateX(40%) + clip-path to the right; new: 320ms from translateX(-30%), 90ms delay",
+        "purpose": "Transfer view transition on the location sign."
+      },
+      {
+        "name": "shimmer",
+        "value": "1.4s linear infinite",
+        "purpose": "Skeleton loading."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "animations and transitions 1ms; view transitions become a 150ms linear crossfade",
+        "purpose": "prefers-reduced-motion: reduce."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "40rem"
+      },
+      {
+        "name": "md",
+        "value": "48rem"
+      },
+      {
+        "name": "lg",
+        "value": "60rem"
+      },
+      {
+        "name": "xl",
+        "value": "64rem"
+      }
+    ],
+    "layers": [
+      {
+        "name": "sticky",
+        "value": 10
+      },
+      {
+        "name": "header",
+        "value": 20
+      },
+      {
+        "name": "toast",
+        "value": 40
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main action on a surface: Sign Brown with white lettering.",
+      "html": "<button class=\"ds-btn ds-btn-primary\"><svg viewBox=\"0 0 24 24\"><path d=\"M3 8h15m-4-4 4 4-4 4M21 16H6m4-4-4 4 4 4\"/></svg>Transfer to another enclosure</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;min-height:3.25rem;padding:0.25rem 1.5rem 0;border:0;border-radius:var(--radius-panel);font-family:var(--font);font-size:var(--text-md);font-weight:750;cursor:pointer;transition:background-color 150ms cubic-bezier(0.22,1,0.36,1),transform 150ms cubic-bezier(0.22,1,0.36,1)} .ds-btn svg{width:1.25rem;height:1.25rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round} .ds-btn:active{transform:translateY(1px)} .ds-btn:focus-visible{outline:3px solid var(--ink);outline-offset:3px} .ds-btn-primary{background:var(--sign);color:var(--sign-ink)} .ds-btn-primary:hover{background:var(--sign-raised)}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Recovery actions: white with a 2px brown inset rule.",
+      "html": "<button class=\"ds-btn2\">Clear search and filters</button>",
+      "css": ".ds-btn2{display:inline-flex;align-items:center;min-height:3.25rem;padding:0.25rem 1.5rem 0;border:0;border-radius:var(--radius-panel);background:var(--plate);color:var(--ink);box-shadow:inset 0 0 0 2px var(--sign);font-family:var(--font);font-size:var(--text-md);font-weight:750;cursor:pointer;transition:background-color 150ms cubic-bezier(0.22,1,0.36,1)} .ds-btn2:hover{background:var(--ground)} .ds-btn2:focus-visible{outline:3px solid var(--ink);outline-offset:3px}"
+    },
+    {
+      "name": "Grave Button",
+      "kind": "button",
+      "refersTo": "button-grave",
+      "description": "Irreversible acts such as recording a death: ink, never red.",
+      "html": "<button class=\"ds-btn3\">Record Bruno as deceased</button>",
+      "css": ".ds-btn3{min-height:3.25rem;padding:0.25rem 1.5rem 0;border:0;border-radius:var(--radius-panel);background:var(--ink);color:var(--plate);font-family:var(--font);font-size:var(--text-md);font-weight:750;cursor:pointer;transition:background-color 150ms cubic-bezier(0.22,1,0.36,1)} .ds-btn3:hover{background:oklch(0.32 0.018 52)} .ds-btn3:focus-visible{outline:3px solid var(--ink);outline-offset:3px}"
+    },
+    {
+      "name": "Search Field",
+      "kind": "input",
+      "refersTo": "search-field",
+      "description": "52px search panel; the ring thickens to brown on focus.",
+      "html": "<label class=\"ds-search\"><svg viewBox=\"0 0 24 24\"><circle cx=\"10.5\" cy=\"10.5\" r=\"6.5\"/><path d=\"M15.5 15.5 21 21\"/></svg><input type=\"search\" placeholder=\"Search name, species or tag\"></label>",
+      "css": ".ds-search{display:flex;align-items:center;gap:0.5rem;min-height:3.25rem;padding:0 1rem;border-radius:var(--radius-panel);background:var(--plate);box-shadow:inset 0 0 0 2px var(--ink-3);color:var(--ink-2);transition:box-shadow 150ms cubic-bezier(0.22,1,0.36,1)} .ds-search:focus-within{box-shadow:inset 0 0 0 3px var(--sign);color:var(--ink)} .ds-search svg{width:1.5rem;height:1.5rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round} .ds-search input{flex:1;min-width:0;height:3rem;padding-top:0.2rem;border:0;background:none;font-family:var(--font);font-size:var(--text-md);color:inherit;outline:none;caret-color:var(--sign)} .ds-search input::placeholder{color:var(--ink-2)}"
+    },
+    {
+      "name": "Filter Chip",
+      "kind": "chip",
+      "refersTo": "chip-filter",
+      "description": "Status filter with status dot, label and count; pressed fills Sign Brown.",
+      "html": "<button class=\"ds-chip\" aria-pressed=\"true\">All<span class=\"ds-count\">19</span></button> <button class=\"ds-chip\" aria-pressed=\"false\"><span class=\"ds-dot\"><svg viewBox=\"0 0 24 24\"><path d=\"m4.5 12.5 5 5 10-11\"/></svg></span>Healthy<span class=\"ds-count\">13</span></button>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;gap:0.5rem;min-height:2.75rem;padding:0.2rem 0.75rem 0 0.5rem;border:0;border-radius:999px;background:var(--plate);box-shadow:inset 0 0 0 1.5px var(--rule);color:var(--ink);font-family:var(--font);font-size:var(--text-sm);font-weight:700;cursor:pointer;transition:background-color 150ms cubic-bezier(0.22,1,0.36,1),color 150ms cubic-bezier(0.22,1,0.36,1)} .ds-chip:hover{box-shadow:inset 0 0 0 1.5px var(--ink-3)} .ds-chip:focus-visible{outline:3px solid var(--ink);outline-offset:3px} .ds-chip[aria-pressed=\"true\"]{background:var(--sign);color:var(--sign-ink);box-shadow:none;padding-left:1rem} .ds-dot{display:grid;place-items:center;width:1.625rem;height:1.625rem;border-radius:999px;background:var(--healthy);color:var(--healthy-ink)} .ds-dot svg{width:1rem;height:1rem;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round} .ds-count{padding:0.1rem 0.4rem 0;border-radius:999px;background:var(--ground-deep);color:var(--ink-2);font-size:var(--text-xs);font-variant-numeric:tabular-nums} .ds-chip[aria-pressed=\"true\"] .ds-count{background:oklch(1 0 0 / 0.16);color:var(--sign-ink)}"
+    },
+    {
+      "name": "Top Bar",
+      "kind": "nav",
+      "refersTo": "top-bar",
+      "description": "Ink bar with the ZMS wordmark tab and the demo role select.",
+      "html": "<header class=\"ds-top\"><span class=\"ds-wm\">ZMS</span><span class=\"ds-role\">Viewing as <b>Keeper</b></span></header>",
+      "css": ".ds-top{display:flex;align-items:center;justify-content:space-between;gap:0.75rem;min-height:3.5rem;padding:0.5rem 1rem;background:var(--ink);color:var(--sign-ink);font-family:var(--font)} .ds-wm{padding:0.3rem 0.45rem 0.1rem;border-radius:0.3rem;background:var(--sign-ink);color:var(--ink);font-weight:900;font-size:var(--text-sm);letter-spacing:0.08em} .ds-role{font-size:var(--text-xs);color:var(--sign-ink-2)} .ds-role b{display:inline-block;margin-left:0.5rem;padding:0.7rem 2rem 0.5rem 0.75rem;border-radius:var(--radius-panel);background:oklch(0.32 0.018 52);color:var(--sign-ink);font-size:var(--text-md);font-weight:700}"
+    },
+    {
+      "name": "Enclosure Sign",
+      "kind": "custom",
+      "refersTo": "enclosure-sign",
+      "description": "Brown routed direction sign heading each enclosure group: pictogram tile, name, count, arrow.",
+      "html": "<div class=\"ds-sign\"><span class=\"ds-picto\"><svg viewBox=\"0 0 24 24\"><path d=\"m2 19 6.5-11 4 6.5 2.5-4 7 8.5Z\"/></svg></span><span class=\"ds-sname\">Savanna Paddock</span><span class=\"ds-end\"><span class=\"ds-n\">5</span><svg viewBox=\"0 0 24 24\"><path d=\"M4 12h16m-6-7 7 7-7 7\"/></svg></span></div>",
+      "css": ".ds-sign{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:0.75rem;min-height:3.5rem;padding:0.5rem 1rem 0.5rem 0.5rem;border-radius:var(--radius-plate);background:var(--sign);color:var(--sign-ink);font-family:var(--font);box-shadow:inset 0 0 0 var(--routed-inset) var(--sign),inset 0 0 0 calc(var(--routed-inset) + 1.5px) var(--sign-ink-2),0 1px 2px oklch(0.2 0.02 52 / 0.18),0 4px 12px -4px oklch(0.2 0.02 52 / 0.2)} .ds-picto{display:grid;place-items:center;width:2.5rem;height:2.5rem;border-radius:0.4rem;background:var(--sign-ink);color:var(--sign)} .ds-picto svg{width:1.5rem;height:1.5rem;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round} .ds-end svg{width:1.5rem;height:1.5rem;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round} .ds-sname{padding-top:0.2rem;font-size:var(--text-lg);font-weight:800;line-height:1.1} .ds-end{display:inline-flex;align-items:center;gap:0.75rem} .ds-n{min-width:1.75rem;padding:0.2rem 0.45rem 0.05rem;border-radius:999px;box-shadow:inset 0 0 0 1.5px var(--sign-ink-2);font-size:var(--text-sm);font-weight:800;text-align:center}"
+    },
+    {
+      "name": "Animal Plate",
+      "kind": "card",
+      "refersTo": "animal-plate",
+      "description": "Routed white plate: status panel, name, DANGER panel, status word, species, tag code.",
+      "html": "<a class=\"ds-plate\" href=\"#\"><span class=\"ds-sp\"><svg viewBox=\"0 0 24 24\"><path d=\"M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/></svg></span><span class=\"ds-pb\"><span class=\"ds-pn\">Zuri <span class=\"ds-danger\"><svg viewBox=\"0 0 24 24\"><path d=\"M12 3.5 22 20.5H2Z\"/><path d=\"M12 10v4.5m0 2.8v.2\"/></svg>Danger</span></span><span class=\"ds-meta\"><b>Under observation</b> African lion</span></span><span class=\"ds-code\">3B5F</span></a>",
+      "css": ".ds-plate{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:0.75rem;min-height:4.75rem;padding:0.75rem 1rem 0.75rem 0.75rem;border-radius:var(--radius-plate);background:var(--plate);color:var(--ink);text-decoration:none;font-family:var(--font);box-shadow:inset 0 0 0 var(--routed-inset) var(--plate),inset 0 0 0 calc(var(--routed-inset) + 1.5px) var(--sign),0 0 0 1px var(--rule),0 1px 2px oklch(0.2 0.02 52 / 0.1);transition:transform 150ms cubic-bezier(0.22,1,0.36,1)} .ds-plate:active{transform:scale(0.99)} .ds-plate:focus-visible{outline:3px solid var(--ink);outline-offset:3px} .ds-sp{display:grid;place-items:center;width:3.25rem;height:3.25rem;border-radius:var(--radius-panel);background:var(--observation);color:var(--observation-ink)} .ds-sp svg{width:1.75rem;height:1.75rem;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round} .ds-pb{display:grid;gap:0.15rem} .ds-pn{display:flex;align-items:center;gap:0.5rem;font-size:var(--text-lg);font-weight:800;line-height:1.15} .ds-danger{display:inline-flex;align-items:center;gap:0.3em;padding:0.2em 0.5em 0.1em;border-radius:0.3rem;background:var(--danger);color:var(--danger-ink);font-size:var(--text-xs);font-weight:800;letter-spacing:0.06em;text-transform:uppercase} .ds-danger svg{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round} .ds-meta{font-size:var(--text-sm);line-height:1.3;color:var(--ink-2)} .ds-meta b{color:var(--ink);font-weight:700} .ds-code{padding:0.2rem 0.4rem 0.05rem;border-radius:0.3rem;background:var(--ground-deep);font-size:var(--text-xs);font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:0.02em}"
+    },
+    {
+      "name": "Sheet Option",
+      "kind": "custom",
+      "refersTo": "option",
+      "description": "Radio row in the transfer and status sheets; checked gets a 3px brown ring and a filled mark.",
+      "html": "<label class=\"ds-opt\"><input type=\"radio\" name=\"ds-opt\" checked><span class=\"ds-ot\"><strong>Big Cat Ridge</strong><span>Terrestrial, 2 animals</span></span><span class=\"ds-mark\"></span></label>",
+      "css": ".ds-opt{position:relative;display:grid;grid-template-columns:1fr auto;align-items:center;gap:0.75rem;min-height:4rem;padding:0.75rem;border-radius:var(--radius-plate);background:var(--plate);box-shadow:inset 0 0 0 1.5px var(--rule);font-family:var(--font);cursor:pointer;transition:box-shadow 150ms cubic-bezier(0.22,1,0.36,1)} .ds-opt:hover{box-shadow:inset 0 0 0 2px var(--ink-3)} .ds-opt:has(input:checked){box-shadow:inset 0 0 0 3px var(--sign)} .ds-opt:has(input:focus-visible){outline:3px solid var(--ink);outline-offset:2px} .ds-opt input{position:absolute;opacity:0;pointer-events:none} .ds-ot{display:grid;gap:0.1rem} .ds-ot strong{font-weight:800} .ds-ot span{color:var(--ink-2);font-size:var(--text-sm)} .ds-mark{width:1.5rem;height:1.5rem;border-radius:999px;box-shadow:inset 0 0 0 2px var(--ink-3)} .ds-opt:has(input:checked) .ds-mark{background:var(--sign);box-shadow:none}"
+    },
+    {
+      "name": "Permission Note",
+      "kind": "custom",
+      "refersTo": "note",
+      "description": "Explains why an action is absent for this role or state.",
+      "html": "<p class=\"ds-note\"><svg viewBox=\"0 0 24 24\"><rect x=\"4.5\" y=\"10.5\" width=\"15\" height=\"10\" rx=\"1.5\"/><path d=\"M8 10.5V8a4 4 0 0 1 8 0v2.5\"/></svg>Only vets and admins can change status.</p>",
+      "css": ".ds-note{display:flex;align-items:center;gap:0.5rem;min-height:3.25rem;margin:0;padding:0.5rem 0.75rem;border-radius:var(--radius-panel);background:var(--ground-deep);color:var(--ink-2);font-family:var(--font);font-size:var(--text-sm)} .ds-note svg{width:1.25rem;height:1.25rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Enclosure Signage",
+    "overview": "The interface is the zoo's own wayfinding system. Every surface is a routed enamel plate: deep sign brown carrying white Overpass lettering (the Highway Gothic lineage of park and road signs), or a white plate framed by a thin brown routed rule set in from its edge. Animals hang under the enclosure sign where they live, each one its own plate: status symbol panel left, name, status word and species, short tag code right. A keeper reads it the way they read the signs on the path, in under a second, in daylight.\n\nStatus speaks the safety-sign colour law, not a dashboard palette. Green is healthy, yellow is observation, orange is treatment, neutral grey is deceased, and signal red exists for one thing only: the DANGER panel. Colour never stands alone; every status panel carries an authored pictogram and every status is also written out in words. The ground is a true neutral grey at chroma 0, so the brown plates and the status colours are the only warmth on screen.\n\nDensity is controlled and tactile: 44px minimum targets, 52px primary controls, plates at least 76px tall. Depth is physical and shallow: plates sit on the ground with a short soft shadow, sheets rise from the bottom edge. Motion is short and ease-out, and has one signature: on transfer the location sign is taken down and re-hung, sliding out along its arrow and the new one sliding in.",
+    "keyCharacteristics": [
+      "Two plate materials only: sign brown with white lettering, white plate with a brown routed rule.",
+      "One variable face, Overpass, from 400 to 900; heavy weights carry hierarchy.",
+      "Status as safety signage: colour plus pictogram plus word, always.",
+      "Red is reserved for danger; errors and warnings are ink, not red.",
+      "Chroma-0 neutral ground; warmth lives in the brown plates, never in a cream background.",
+      "Authored one-stroke pictograms on a 24px grid.",
+      "Mobile-first stack; desktop flows enclosure groups into columns and turns the detail into a two-column sign."
+    ],
+    "rules": [
+      {
+        "name": "The Red Is Danger Rule",
+        "body": "Signal red appears only on the DANGER panel and the dangerous-animal band. Form errors are an ink-ringed white panel with an alert pictogram; warnings are deep-ground notes with a lock. If red shows up anywhere else, it is a bug.",
+        "section": "colors"
+      },
+      {
+        "name": "The Colour Law Rule",
+        "body": "Each status owns exactly one colour, one pictogram and one word: healthy/green/check, observation/yellow/eye, treatment/orange/cross, deceased/grey/ribbon. Colour is never the only carrier; a status panel is always paired with its label on the same plate or in the same row.",
+        "section": "colors"
+      },
+      {
+        "name": "The Chroma-Zero Ground Rule",
+        "body": "The page ground is true neutral grey. Warmth comes from the brown plates, never from tinting the background toward cream or beige.",
+        "section": "colors"
+      },
+      {
+        "name": "The Optical Baseline Rule",
+        "body": "Overpass sits high in its box, so every filled control nudges its label down: buttons pad 0.25rem top and 0 bottom, chips 0.2rem top, small tabs 0.2rem top and 0.05rem bottom, the search input 0.2rem top. New controls with text in a filled shape must carry the same correction.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Code Rule",
+        "body": "Tag codes, counts and dates use tabular numerals with 0.02em tracking, so columns of codes line up down the plate stack.",
+        "section": "typography"
+      },
+      {
+        "name": "The Routed Plate Rule",
+        "body": "A plate's rule is routed, not drawn on: a fill-coloured inset band of 0.3125rem, then a 1.5px line inside it. Brown plates route in Routed Rule Cream; white plates route in Sign Brown (grey ink-3 when deceased). Anything nested inside a routed white plate insets by 0.3125rem + 1.5px and reduces its radius by the same amount.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Brown-Tinted Shadow Rule",
+        "body": "Every shadow and scrim is tinted at hue 52 (the sign brown), never neutral black.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** build every surface from the two plate materials: Sign Brown with Sign White lettering, or White Plate with a routed brown rule (0.3125rem inset, 1.5px line).",
+      "**Do** pair every status colour with its pictogram and its word: green/check/Healthy, yellow/eye/Under observation, orange/cross/In treatment, grey/ribbon/Deceased.",
+      "**Do** keep every tappable target at least 2.75rem and primary controls at 3.25rem.",
+      "**Do** draw outlines as inset box-shadows (1.5px rest, 2px hover, 3px selected) and focus as a 3px ink outline with 3px offset.",
+      "**Do** explain an absent action with a Deep Ground note and a lock pictogram instead of hiding it silently or letting it fail.",
+      "**Do** tint shadows and scrims with the sign brown hue (52).",
+      "**Do** use tabular numerals for tag codes, counts and dates.",
+      "**Do** carry the Overpass optical-baseline nudge (extra top padding) on any filled control with text."
+    ],
+    "donts": [
+      "**Don't** use signal red for anything but the DANGER panel and the dangerous-animal band; errors are ink-ringed, the irreversible action is ink.",
+      "**Don't** tint the ground toward cream or beige; it stays chroma 0.",
+      "**Don't** convey status or danger by colour alone.",
+      "**Don't** introduce a second typeface or a light display weight; hierarchy is Overpass weight.",
+      "**Don't** use hard offset shadows or neutral black shadows.",
+      "**Don't** fall back to an admin table with status pills and a dark sidebar; animals are plates under their enclosure sign.",
+      "**Don't** use stock icon sets; draw new pictograms on the same 24px, 2px round-stroke grid.",
+      "**Don't** use purple gradients, glassmorphism, gradient text or cartoon mascots."
+    ]
+  }
+}
