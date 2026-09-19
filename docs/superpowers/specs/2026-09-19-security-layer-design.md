@@ -284,26 +284,20 @@ POM; the parent BOM manages it.
 
 **Domain** — no new tests. Auditing adds fields, not behaviour.
 
-**Application** — the 5 existing test classes need mechanical signature updates (one extra
-constructor field in `RegisterAnimalCommand`, one extra argument on the two other write
-use cases). Three new tests, one per writing service:
+**Application** — three of the five existing test classes need mechanical signature updates
+(one extra component in `RegisterAnimalCommand`, one extra argument on the two other write
+use cases). `GetAnimalServiceTest` and `ListAnimalsServiceTest` are untouched: reads are
+not audited and the `Animal` constructor keeps its current 8-argument signature, with the
+audit fields set through setters. Three new tests, one per writing service:
 `shouldThrowWhenPerformedByIsBlank`. Still JUnit 5 + Mockito, no `@QuarkusTest`.
 
-**Infrastructure** — the 9 tests in `AnimalResourceIT` are annotated with the least
-privileged role that the exercised endpoint accepts, so the tests double as documentation
-of who may do what:
-
-| Test target | Annotation |
-|---|---|
-| `POST /animals` (and any test that seeds data through it) | `@TestSecurity(user = "admin", roles = {ZooRoles.ADMIN})` |
-| `GET /animals`, `GET /animals/{id}` | `@TestSecurity(user = "keeper", roles = {ZooRoles.KEEPER})` |
-| `PUT /{id}/status` | `@TestSecurity(user = "vet", roles = {ZooRoles.VET})` |
-| `PUT /{id}/transfer` | `@TestSecurity(user = "keeper", roles = {ZooRoles.KEEPER})` |
-
-Several existing tests seed data with a helper that posts an animal and then exercise a
-different endpoint. Those need the union of the roles involved (e.g.
-`roles = {ZooRoles.ADMIN, ZooRoles.VET}`), since `@TestSecurity` applies one identity to
-the whole test method.
+**Infrastructure** — `AnimalResourceIT` gets one class-level
+`@TestSecurity(user = "admin", roles = {ZooRoles.ADMIN})`. Because `zoo-admin` is accepted
+by all five endpoints, one identity covers all 9 existing tests without editing a single
+test body, and several of them seed data through `POST /animals` before exercising another
+endpoint — a per-test least-privilege identity would have to be the union of the roles
+involved anyway, since `@TestSecurity` binds one identity per test method. The per-role
+matrix is asserted separately in `AnimalSecurityIT`, which is where it belongs.
 
 New `AnimalSecurityIT` covers the negative matrix:
 
@@ -328,23 +322,32 @@ against a real Keycloak-issued JWT and that a request without a token returns 40
 
 ## Implementation order
 
-1. **Auditing, inner layers** — TDD: domain → ports in → application (+ updated and new
-   tests) → persistence + `V2` migration. No REST change yet, so the build stays green
-   on its own and this step is independent of Keycloak.
-2. **REST slice, atomic** — `ZooRoles`, `@RolesAllowed` on `AnimalResource`,
-   `SecurityIdentity` wiring, `AnimalResponse` fields, `SecurityExceptionMapper`, and
-   `@TestSecurity` on the 9 existing tests, all in one commit. These cannot be split:
-   reading the principal without `@RolesAllowed` would hit a `null` principal on
-   anonymous requests, annotating without `@TestSecurity` would fail every existing test
-   with 401, and annotating without the mapper would report denials as 500.
-3. **`AnimalSecurityIT`** — the negative matrix above.
-4. **Dev infrastructure** — realm export, `docker-compose` Keycloak service, `%dev` OIDC
-   and CORS configuration, OpenAPI security scheme.
-5. **Manual dev-profile verification** against real Keycloak-issued tokens.
+Authorization lands first, auditing second. The reason is a compile-order constraint:
+`AnimalResource` builds a 6-component `RegisterAnimalCommand` and calls
+`updateStatus(id, status)` / `transfer(id, target)`, so adding `performedBy` to those
+signatures breaks the main sources until the resource is updated — and the resource can
+only read `identity.getPrincipal().getName()` safely once `@RolesAllowed` rejects anonymous
+callers, because an anonymous `SecurityIdentity` has a `null` principal.
 
-Steps 1-3 keep `mvnw verify` green at every commit boundary. Step 4 changes only the
-`%dev` profile and cannot affect the test suite; step 5 is the only check that exercises
-real JWT verification and role-claim mapping, which no automated test in this phase covers.
+1. **Authorization slice, atomic** — `quarkus-test-security` dependency, `ZooRoles`,
+   `@RolesAllowed` per endpoint, `SecurityExceptionMapper`, class-level `@TestSecurity` on
+   the 9 existing tests. Indivisible: annotating without `@TestSecurity` fails every
+   existing test with 401, and annotating without the mapper reports denials as 500.
+2. **`AnimalSecurityIT`** — the authorization matrix above.
+3. **Auditing through domain, application and REST** — `Animal` fields, `performedBy` in
+   the three write signatures, actor validation and assignment in the three services,
+   updated application tests, `SecurityIdentity` wiring in the resource.
+4. **Persistence** — `V2` migration, `AnimalEntity` columns, `AnimalEntityMapper` + test.
+5. **`AnimalResponse`** exposes the audit fields, with an end-to-end integration assertion
+   that `createdBy` equals the caller.
+6. **Dev infrastructure** — realm export, `docker-compose` Keycloak service, `%dev` OIDC
+   and CORS configuration, OpenAPI security scheme.
+7. **Manual dev-profile verification** against real Keycloak-issued tokens.
+
+Steps 1-5 keep `mvnw verify` green at every commit boundary. Step 6 changes only the `%dev`
+profile and OpenAPI metadata, so it cannot affect the test suite; step 7 is the only check
+that exercises real JWT verification and role-claim mapping, which no automated test in
+this phase covers.
 
 ---
 
