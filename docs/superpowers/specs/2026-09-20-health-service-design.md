@@ -75,6 +75,7 @@ zms-be/
         │   │   ├── model/
         │   │   │   ├── MedicalRecord.java
         │   │   │   ├── Treatment.java          ← canTransitionTo()
+        │   │   │   ├── MedicalRecordDetail.java
         │   │   │   └── MedicalRecordPage.java
         │   │   ├── enums/TreatmentStatus.java
         │   │   ├── port/in/
@@ -92,7 +93,9 @@ zms-be/
         │   │       ├── MedicalRecordNotFoundException.java
         │   │       ├── TreatmentNotFoundException.java
         │   │       ├── InvalidMedicalDataException.java
-        │   │       └── InvalidTreatmentStatusTransitionException.java
+        │   │       ├── InvalidTreatmentStatusTransitionException.java
+        │   │       ├── ConcurrentMedicalRecordUpdateException.java
+        │   │       └── ConcurrentTreatmentUpdateException.java
         │   ├── application/
         │   │   ├── CreateMedicalRecordService.java
         │   │   ├── GetMedicalRecordService.java
@@ -111,7 +114,13 @@ zms-be/
         │       └── rest/
         │           ├── MedicalRecordResource.java
         │           ├── TreatmentResource.java
-        │           ├── HealthExceptionMapper.java
+        │           ├── MedicalRecordNotFoundExceptionMapper.java
+        │           ├── TreatmentNotFoundExceptionMapper.java
+        │           ├── InvalidMedicalDataExceptionMapper.java
+        │           ├── InvalidTreatmentStatusTransitionExceptionMapper.java
+        │           ├── ConcurrentMedicalRecordUpdateExceptionMapper.java
+        │           ├── ConcurrentTreatmentUpdateExceptionMapper.java
+        │           ├── UnexpectedExceptionMapper.java
         │           ├── SecurityExceptionMapper.java
         │           ├── OpenApiConfig.java
         │           ├── dto/
@@ -173,10 +182,16 @@ A transition to the same status is rejected. A rejected transition raises
 `ACTIVE` sets `startedOn` to today if unset; `COMPLETED` and `CANCELLED` set `endedOn` to
 today. The dates are never accepted from the client.
 
-### MedicalRecordPage
+### MedicalRecordPage and MedicalRecordDetail
 
-Record `MedicalRecordPage(List<MedicalRecord> items, int page, int size, long total)`,
-matching `AnimalPage`.
+`MedicalRecordPage(List<MedicalRecord> items, int page, int size, long total)` matches
+`AnimalPage`.
+
+`MedicalRecordDetail(MedicalRecord record, List<Treatment> treatments)` is what
+`GET /medical-records/{id}` returns. Without it, treatments would be write-only: nothing
+in the API would ever read one back, since there is no `GET /treatments` endpoint. The
+list endpoint deliberately returns bare records with no treatments, to avoid an N+1
+query on every page.
 
 ---
 
@@ -188,7 +203,7 @@ One interface in `domain/port/in/`, one `@ApplicationScoped` implementation in
 | Use case | Signature | Transactional |
 |---|---|---|
 | `CreateMedicalRecordUseCase` | `MedicalRecord create(CreateMedicalRecordCommand cmd)` | yes |
-| `GetMedicalRecordUseCase` | `MedicalRecord getById(UUID id)` | no |
+| `GetMedicalRecordUseCase` | `MedicalRecordDetail getById(UUID id)` | no |
 | `ListMedicalRecordsUseCase` | `MedicalRecordPage list(UUID animalId, int page, int size)` | no |
 | `PrescribeTreatmentUseCase` | `Treatment prescribe(PrescribeTreatmentCommand cmd)` | yes |
 | `UpdateTreatmentStatusUseCase` | `Treatment updateStatus(UUID id, TreatmentStatus target, String performedBy)` | yes |
@@ -222,10 +237,19 @@ lives on `TreatmentResource` because the treatment is addressed directly.
 the same shape as `AnimalPageResponse`. `page` defaults to 0, `size` to 20, and a `size`
 above `MAX_PAGE_SIZE` or a negative `page` is a 400.
 
-Error handling copies `animal-service`: `HealthExceptionMapper` maps each domain
-exception by `instanceof` (404 / 400 / 422), `OptimisticLockException` to 409, anything
-else to 500 "Internal server error"; `SecurityExceptionMapper` returns 401 and 403 with
-the same `{"message": "..."}` body so that security failures do not surface as 500.
+Error handling copies the shape `animal-service` arrived at: **one `@Provider`
+`ExceptionMapper` class per exception type**, not a single mapper branching on
+`instanceof`. Each returns `ErrorResponse(String message)` as
+`application/json`. `UnexpectedExceptionMapper implements ExceptionMapper<Exception>`
+is the last resort — it maps `Exception` rather than `RuntimeException` on purpose, so
+the framework still answers 400/404 for a malformed path parameter or an unparseable
+body instead of 500. `SecurityExceptionMapper` returns 401 and 403 with the same body
+so that security failures do not surface as 500.
+
+Optimistic lock conflicts follow the same route as on `animal-service`: the repository
+adapter catches `OptimisticLockException` and rethrows the domain exception
+(`ConcurrentMedicalRecordUpdateException` / `ConcurrentTreatmentUpdateException`), which
+its own mapper turns into 409. The JPA exception never reaches the REST layer.
 The actor is read from `SecurityIdentity` inside the resource and passed down as a
 `String` — the token never leaves `infrastructure`.
 
@@ -297,7 +321,8 @@ animal pair does today.
 `health-service/src/main/resources/application.properties` mirrors `animal-service`
 with the health values, and adds the port:
 
-- `quarkus.http.port=8082`
+- `%dev.quarkus.http.port=8082` — scoped to `%dev` on purpose: a global
+  `quarkus.http.port` would also move the test harness off its default port
 - `quarkus.oidc.enabled=false` globally; `true` under `%dev` and `%prod`
 - `%dev` OIDC against `http://localhost:8081/realms/zoo`, client `health-service`,
   secret `${OIDC_CLIENT_SECRET}`, `application-type=service`,
@@ -352,7 +377,9 @@ Done means `mvnw verify` passes from `zms-be/` for both modules.
 - Vaccinations, due dates, reminders
 - Verifying that `animalId` refers to a real animal, in any form
 - `feeding-service` and `notification-service`
-- Deployment, CI wiring for the new module beyond what the existing workflow picks up
+- Deployment and container image publishing. The one CI change in scope is turning the
+  existing workflow's hardcoded `working-directory: zms-be/animal-service` into a matrix
+  over both modules — without it the workflow would stay blind to `health-service`
 
 ---
 
