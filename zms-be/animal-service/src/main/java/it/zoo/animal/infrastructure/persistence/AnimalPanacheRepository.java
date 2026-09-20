@@ -1,9 +1,11 @@
 package it.zoo.animal.infrastructure.persistence;
 
+import it.zoo.animal.domain.exception.ConcurrentAnimalUpdateException;
 import it.zoo.animal.domain.model.Animal;
 import it.zoo.animal.domain.port.out.AnimalRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.OptimisticLockException;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +23,12 @@ public class AnimalPanacheRepository implements AnimalRepository {
     @Override
     public Animal save(Animal animal) {
         AnimalEntity entity = AnimalEntityMapper.toEntity(animal);
-        entity = em.merge(entity);
+        try {
+            entity = em.merge(entity);
+            em.flush();
+        } catch (OptimisticLockException e) {
+            throw new ConcurrentAnimalUpdateException(animal.getId());
+        }
         return AnimalEntityMapper.toDomain(entity);
     }
 

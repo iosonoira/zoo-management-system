@@ -21,6 +21,7 @@ public class AnimalEntityMapper {
         );
         animal.setCreatedBy(entity.getCreatedBy());
         animal.setUpdatedBy(entity.getUpdatedBy());
+        animal.setVersion(entity.getVersion());
         return animal;
     }
 
@@ -36,6 +37,7 @@ public class AnimalEntityMapper {
         entity.setStatus(animal.getStatus());
         entity.setCreatedBy(animal.getCreatedBy());
         entity.setUpdatedBy(animal.getUpdatedBy());
+        entity.setVersion(animal.getVersion());
         return entity;
     }
 

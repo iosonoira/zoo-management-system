@@ -1,6 +1,7 @@
 package it.zoo.animal.infrastructure.rest;
 
 import it.zoo.animal.domain.exception.AnimalNotFoundException;
+import it.zoo.animal.domain.exception.ConcurrentAnimalUpdateException;
 import it.zoo.animal.domain.exception.InvalidAnimalDataException;
 import it.zoo.animal.domain.exception.InvalidStatusTransitionException;
 import jakarta.ws.rs.core.MediaType;
@@ -21,6 +22,9 @@ public class ZooExceptionMapper implements ExceptionMapper<RuntimeException> {
         }
         if (exception instanceof InvalidStatusTransitionException) {
             return errorResponse(422, exception.getMessage());
+        }
+        if (exception instanceof ConcurrentAnimalUpdateException) {
+            return errorResponse(409, exception.getMessage());
         }
         return errorResponse(500, "Internal server error");
     }

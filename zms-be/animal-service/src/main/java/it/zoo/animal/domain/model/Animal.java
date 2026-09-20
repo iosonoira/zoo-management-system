@@ -17,6 +17,7 @@ public class Animal {
     private AnimalStatus status;
     private String createdBy;
     private String updatedBy;
+    private Long version;
 
     public Animal() {}
 
@@ -43,6 +44,7 @@ public class Animal {
     public AnimalStatus getStatus() { return status; }
     public String getCreatedBy() { return createdBy; }
     public String getUpdatedBy() { return updatedBy; }
+    public Long getVersion() { return version; }
 
     public void setId(UUID id) { this.id = id; }
     public void setName(String name) { this.name = name; }
@@ -54,6 +56,7 @@ public class Animal {
     public void setStatus(AnimalStatus status) { this.status = status; }
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
     public void setUpdatedBy(String updatedBy) { this.updatedBy = updatedBy; }
+    public void setVersion(Long version) { this.version = version; }
 
     public boolean canTransitionTo(AnimalStatus target) {
         if (this.status == AnimalStatus.DECEASED) {

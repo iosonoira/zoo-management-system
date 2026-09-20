@@ -32,6 +32,7 @@ class AnimalEntityMapperTest {
         assertEquals(entity.getStatus(), domain.getStatus());
         assertEquals(entity.getCreatedBy(), domain.getCreatedBy());
         assertEquals(entity.getUpdatedBy(), domain.getUpdatedBy());
+        assertEquals(entity.getVersion(), domain.getVersion());
     }
 
     @Test
@@ -40,6 +41,7 @@ class AnimalEntityMapperTest {
                 Habitat.TERRESTRIAL, enclosureId, date, AnimalStatus.HEALTHY);
         domain.setCreatedBy("admin");
         domain.setUpdatedBy("vet");
+        domain.setVersion(3L);
 
         AnimalEntity entity = AnimalEntityMapper.toEntity(domain);
 
@@ -53,6 +55,7 @@ class AnimalEntityMapperTest {
         assertEquals(domain.getStatus(), entity.getStatus());
         assertEquals("admin", entity.getCreatedBy());
         assertEquals("vet", entity.getUpdatedBy());
+        assertEquals(3L, entity.getVersion());
     }
 
     private AnimalEntity buildEntity() {
@@ -67,6 +70,7 @@ class AnimalEntityMapperTest {
         entity.setStatus(AnimalStatus.HEALTHY);
         entity.setCreatedBy("admin");
         entity.setUpdatedBy("vet");
+        entity.setVersion(2L);
         return entity;
     }
 }
