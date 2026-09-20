@@ -39,10 +39,18 @@ public class AnimalPanacheRepository implements AnimalRepository {
     }
 
     @Override
-    public List<Animal> findAll() {
-        List<AnimalEntity> entities = em.createQuery("SELECT a FROM AnimalEntity a", AnimalEntity.class)
+    public List<Animal> findPage(int page, int size) {
+        List<AnimalEntity> entities = em
+                .createQuery("SELECT a FROM AnimalEntity a ORDER BY a.name, a.id", AnimalEntity.class)
+                .setFirstResult(page * size)
+                .setMaxResults(size)
                 .getResultList();
         return AnimalEntityMapper.toDomainList(entities);
+    }
+
+    @Override
+    public long count() {
+        return em.createQuery("SELECT COUNT(a) FROM AnimalEntity a", Long.class).getSingleResult();
     }
 
     @Override

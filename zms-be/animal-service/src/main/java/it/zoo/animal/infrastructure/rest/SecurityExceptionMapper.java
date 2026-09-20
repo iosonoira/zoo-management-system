@@ -3,6 +3,7 @@ package it.zoo.animal.infrastructure.rest;
 import io.quarkus.security.AuthenticationFailedException;
 import io.quarkus.security.ForbiddenException;
 import io.quarkus.security.UnauthorizedException;
+import it.zoo.animal.infrastructure.rest.dto.ErrorResponse;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
@@ -25,7 +26,7 @@ public class SecurityExceptionMapper implements ExceptionMapper<SecurityExceptio
 
     private Response errorResponse(int status, String message) {
         return Response.status(status)
-                .entity(new ZooExceptionMapper.ErrorResponse(message))
+                .entity(new ErrorResponse(message))
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }

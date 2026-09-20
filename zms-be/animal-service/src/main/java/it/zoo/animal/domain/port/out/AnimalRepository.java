@@ -8,6 +8,7 @@ import java.util.UUID;
 public interface AnimalRepository {
     Animal save(Animal animal);
     Optional<Animal> findById(UUID id);
-    List<Animal> findAll();
+    List<Animal> findPage(int page, int size);
+    long count();
     boolean existsById(UUID id);
 }

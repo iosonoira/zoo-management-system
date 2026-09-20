@@ -4,7 +4,7 @@ last_mapped_at: 2026-09-19
 ---
 # Codebase Concerns
 
-**Analysis Date:** 2026-09-19
+**Analysis Date:** 2026-09-19 (resolutions recorded 2026-09-20)
 
 Scope: `zms-be/` only. Paths below are relative to `zms-be/`. Abbreviation: `AS` = `animal-service/src/main/java/it/zoo/animal`.
 
@@ -55,11 +55,15 @@ Scope: `zms-be/` only. Paths below are relative to `zms-be/`. Abbreviation: `AS`
 
 **`AnimalSecurityIT` seed violates `created_by NOT NULL`** *(code review 2026-09-19)*:
 
+- **RESOLVED 2026-09-20** — 17b11df — seed sets createdBy; the class now runs and passes
+
 - Symptoms: `seed()` persists an `AnimalEntity` without `setCreatedBy` (`animal-service/src/test/java/it/zoo/animal/infrastructure/rest/AnimalSecurityIT.java:40-52`), but `V2__add_audit_columns.sql:6` makes `created_by` NOT NULL and `AnimalEntity` maps it `nullable = false`.
 - Impact: Every `AnimalSecurityIT` test fails in `@BeforeEach`, so the role/authorization matrix is never exercised. The seed was written in `40824d0`, before the audit columns were added in `c581ae2`. Nobody noticed because surefire skips `*IT` classes; only `mvnw verify` runs them.
 - Fix approach: `entity.setCreatedBy("system")` in the seed; add `verify` to CI.
 
 **JVM Docker images cannot run the jar** *(code review 2026-09-19)*:
+
+- **RESOLVED 2026-09-20** — 2a0b76d — both Dockerfiles use ubi9/openjdk-21-runtime
 
 - Symptoms: `animal-service/src/main/docker/Dockerfile.jvm:83` and `Dockerfile.legacy-jar:83` use `ubi9/openjdk-17-runtime`, while `pom.xml:23` sets `maven.compiler.release=21`.
 - Impact: The container fails at startup with `UnsupportedClassVersionError` (class file version 65 on a runtime that supports up to 61).
@@ -67,17 +71,23 @@ Scope: `zms-be/` only. Paths below are relative to `zms-be/`. Abbreviation: `AS`
 
 **Prod profile is unusable** *(code review 2026-09-19)*:
 
+- **RESOLVED 2026-09-20** — 6410406 — %prod block reads OIDC and datasource from env vars
+
 - Symptoms: `application.properties:1` disables OIDC globally, and OIDC plus the datasource URL and credentials exist only under `%dev`.
 - Impact: The packaged jar (prod profile) has no JDBC URL, so startup fails. If a datasource is supplied through env vars, every `@RolesAllowed` endpoint returns 401, because every caller is anonymous.
 - Fix approach: See "OIDC disabled outside dev profile" under Security Considerations.
 
 **Lost update can revive a DECEASED animal** *(code review 2026-09-19)*:
 
+- **RESOLVED 2026-09-20** — 12ef6c8 — V3 adds a version column, @Version on the entity, 409 on conflict
+
 - Symptoms: `AnimalPanacheRepository.save` (`AS/infrastructure/persistence/AnimalPanacheRepository.java:22-26`) merges a detached entity built from the full domain object, and there is no `@Version` column.
 - Trigger: A vet sets animal X to `DECEASED` while a keeper transfers X at the same time. Both load X as `HEALTHY`. The vet commits first, then the keeper's merge writes `status=HEALTHY`, bypassing `canTransitionTo` and `canBeTransferred`.
 - Fix approach: See "No optimistic locking" under Fragile Areas.
 
 **Over-length `name`/`species` returns 500** *(code review 2026-09-19)*:
+
+- **RESOLVED 2026-09-20** — 1980569 — @Size(max = 100) on both fields, covered by an IT
 
 - Symptoms: `RegisterAnimalRequest.java:11-12` has only `@NotBlank`, with no `@Size(max = 100)`, while the columns are `VARCHAR(100)` (`V1__create_animals_table.sql:3-4`).
 - Trigger: `POST /animals` with a 101-character name. Postgres rejects the insert, and `ZooExceptionMapper` turns the `PersistenceException` into a generic 500 instead of a 400.
@@ -105,6 +115,8 @@ Scope: `zms-be/` only. Paths below are relative to `zms-be/`. Abbreviation: `AS`
 
 **Catch-all RuntimeException mapper hides errors and may shadow framework mappers:**
 
+- **RESOLVED 2026-09-20** — c85635b — one mapper per domain exception; framework errors keep their status; the catch-all logs at ERROR. Confirmed: malformed UUID answered 500, now 404
+
 - Risk: `ZooExceptionMapper implements ExceptionMapper<RuntimeException>` (`AS/infrastructure/rest/ZooExceptionMapper.java:12`) returns a generic 500 (line 25) without logging the exception. Unexpected failures leave no trace. Framework `WebApplicationException`s (malformed UUID path param, unparseable JSON/enum in body) are not covered by any test and may surface as 500 instead of 400/404. The code review *(2026-09-19)* rates this as likely: `RuntimeException` is the closest registered mapper for `NotFoundException`/`BadRequestException`. A single IT (`GET /animals/not-a-uuid`) would confirm it.
 - Files: `AS/infrastructure/rest/ZooExceptionMapper.java`
 - Current mitigation: Bean Validation 400 path is verified (`AnimalResourceIT.java:142-156`).
@@ -112,11 +124,15 @@ Scope: `zms-be/` only. Paths below are relative to `zms-be/`. Abbreviation: `AS`
 
 **OIDC disabled outside dev profile:**
 
+- **RESOLVED 2026-09-20** — 6410406 — see the prod profile entry above
+
 - Risk: `application.properties:1` sets `quarkus.oidc.enabled=false`; only `%dev` enables it (line 2). There is no `%prod` config, so a prod build has no token verification configured and no datasource config.
 - Files: `animal-service/src/main/resources/application.properties`
 - Recommendations: Add `%prod` block driven by env vars (`QUARKUS_OIDC_AUTH_SERVER_URL`, `QUARKUS_DATASOURCE_*`) with OIDC enabled.
 
 **Hard-coded dev secrets committed:**
+
+- **RESOLVED 2026-09-20** — 7d7d44f — compose, application.properties and the realm read from untracked .env files; direct access grants off on zms-fe. Old values stay in git history by decision
 
 - Risk: Client secret in `application.properties:5` and `infrastructure/keycloak/realm-export.json:21`; DB password in `application.properties:11` and `infrastructure/docker-compose.yml:7`; Keycloak admin `admin/admin` (`docker-compose.yml:16-17`); seeded users with password equal to username (`realm-export.json:35-52`). Frontend client has `directAccessGrantsEnabled: true` (`realm-export.json:28`), enabling password grant.
 - Current mitigation: Values are dev-only and profile-scoped.
@@ -133,6 +149,8 @@ Scope: `zms-be/` only. Paths below are relative to `zms-be/`. Abbreviation: `AS`
 ## Performance Bottlenecks
 
 **Unbounded list endpoint:**
+
+- **RESOLVED 2026-09-20** — ca04823 — page/size params (defaults 0/20, max 100), envelope response, SQL paging with a stable ORDER BY
 
 - Problem: `GET /animals` loads all rows (`AS/infrastructure/persistence/AnimalPanacheRepository.java:35-38`, `AS/application/ListAnimalsService.java:19-21`). No pagination, filtering, or sorting.
 - Cause: `findAll()` with no `setMaxResults`.
@@ -200,17 +218,23 @@ Scope: `zms-be/` only. Paths below are relative to `zms-be/`. Abbreviation: `AS`
 
 **No logging in application code:**
 
+- **RESOLVED 2026-09-20** — c85635b — partially: unexpected failures are logged at ERROR. Business actions still are not
+
 - Problem: No logger usage in `AS/` (services, resource, mappers). Business actions are recorded only via `updated_by`.
 
 ## Test Coverage Gaps
 
 **No CI pipeline:**
 
+- **RESOLVED 2026-09-20** — a6cd8cb — .github/workflows/backend-ci.yml runs verify on push and PR
+
 - What's not tested: The repository has no `.github/` directory and no other CI config. Nothing runs `mvnw verify` automatically, which is how the broken `AnimalSecurityIT` seed (see Known Bugs) went unnoticed.
 - Risk: Regressions in the `*IT` suite are only caught if someone runs it manually with Docker running.
 - Priority: High
 
 **Integration tests depend on Dev Services (Docker) implicitly:**
+
+- **RESOLVED 2026-09-20** — 9f1a7e7 — Testcontainers 1.21.4 reaches Docker 29; mvnw verify runs unaided
 
 - What's not tested: `%test` profile sets only `db-kind` (`application.properties:17-19`); ITs require a running Docker daemon for Testcontainers-backed Dev Services. No `src/test/resources` override exists.
 - Files: `animal-service/src/test/java/it/zoo/animal/infrastructure/rest/AnimalResourceIT.java`, `AnimalSecurityIT.java`

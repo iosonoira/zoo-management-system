@@ -204,6 +204,7 @@ Esempi: `shouldRegisterAnimalWithHealthyStatus`, `shouldThrowWhenNameIsBlank`
 - `mvnw` / `mvnw.cmd` per i comandi Maven (wrapper incluso per ciascun servizio)
 - Non aggiungere dipendenze senza consultare il parent POM prima
 - Comando dev: `cd zms-be/animal-service && mvnw quarkus:dev`
+- **Credenziali locali**: nessun segreto è tracciato. Prima di avviare, copiare `zms-be/infrastructure/env.example` in `zms-be/infrastructure/.env` e `zms-be/animal-service/env.example` in `zms-be/animal-service/.env`, poi scegliere i valori (`OIDC_CLIENT_SECRET` deve coincidere nei due file). Compose interrompe l'avvio se una variabile manca; Quarkus legge `.env` da solo. Il realm Keycloak sostituisce `${ANIMAL_SERVICE_CLIENT_SECRET}` e `${ZOO_TEST_USER_PASSWORD}` all'import
 - I test non usano Keycloak Dev Services — `quarkus.devservices.enabled=false` in `application.properties`
 
 ---

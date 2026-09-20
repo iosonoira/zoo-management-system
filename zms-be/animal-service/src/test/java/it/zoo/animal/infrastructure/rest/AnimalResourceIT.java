@@ -61,7 +61,50 @@ class AnimalResourceIT {
             .get("/animals")
         .then()
             .statusCode(200)
-            .body("size()", equalTo(2));
+            .body("items.size()", equalTo(2))
+            .body("page", equalTo(0))
+            .body("size", equalTo(20))
+            .body("total", equalTo(2));
+    }
+
+    @Test
+    void shouldReturnRequestedPage() {
+        postAnimal("Ape", "Primate");
+        postAnimal("Bear", "Ursid");
+        postAnimal("Cobra", "Snake");
+
+        given()
+            .queryParam("page", 1)
+            .queryParam("size", 2)
+        .when()
+            .get("/animals")
+        .then()
+            .statusCode(200)
+            .body("items.size()", equalTo(1))
+            .body("items[0].name", equalTo("Cobra"))
+            .body("page", equalTo(1))
+            .body("total", equalTo(3));
+    }
+
+    @Test
+    void shouldReturn400WhenSizeExceedsMaximum() {
+        given()
+            .queryParam("size", 101)
+        .when()
+            .get("/animals")
+        .then()
+            .statusCode(400)
+            .body("message", notNullValue());
+    }
+
+    @Test
+    void shouldReturn400WhenPageIsNegative() {
+        given()
+            .queryParam("page", -1)
+        .when()
+            .get("/animals")
+        .then()
+            .statusCode(400);
     }
 
     @Test
@@ -150,6 +193,39 @@ class AnimalResourceIT {
                 "  \"enclosureId\": \"550e8400-e29b-41d4-a716-446655440000\"," +
                 "  \"arrivalDate\": \"2024-01-15\"" +
                 "}")
+        .when()
+            .post("/animals")
+        .then()
+            .statusCode(400);
+    }
+
+    @Test
+    void shouldReturn404WhenIdIsNotAUuid() {
+        given()
+        .when()
+            .get("/animals/not-a-uuid")
+        .then()
+            .statusCode(404);
+    }
+
+    @Test
+    void shouldReturn400WhenStatusIsNotAKnownEnumValue() {
+        String id = postAnimal("Leo", "Lion").extract().path("id");
+
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"status\": \"ON_HOLIDAY\"}")
+        .when()
+            .put("/animals/" + id + "/status")
+        .then()
+            .statusCode(400);
+    }
+
+    @Test
+    void shouldReturn400WhenBodyIsNotValidJson() {
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"name\": ")
         .when()
             .post("/animals")
         .then()

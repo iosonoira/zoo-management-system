@@ -2,7 +2,9 @@ package it.zoo.animal.infrastructure.rest;
 
 import io.quarkus.security.identity.SecurityIdentity;
 import it.zoo.animal.domain.model.Animal;
+import it.zoo.animal.domain.model.AnimalPage;
 import it.zoo.animal.domain.port.in.*;
+import it.zoo.animal.infrastructure.rest.dto.AnimalPageResponse;
 import it.zoo.animal.infrastructure.rest.dto.AnimalResponse;
 import it.zoo.animal.infrastructure.rest.dto.RegisterAnimalRequest;
 import it.zoo.animal.infrastructure.rest.dto.TransferAnimalRequest;
@@ -67,8 +69,15 @@ public class AnimalResource {
 
     @GET
     @RolesAllowed({ZooRoles.ADMIN, ZooRoles.VET, ZooRoles.KEEPER})
-    public List<AnimalResponse> listAll() {
-        return mapper.toResponseList(listAnimals.listAll());
+    public AnimalPageResponse list(@QueryParam("page") @DefaultValue("0") int page,
+                                   @QueryParam("size") @DefaultValue("20") int size) {
+        AnimalPage result = listAnimals.list(page, size);
+        return new AnimalPageResponse(
+                mapper.toResponseList(result.items()),
+                result.page(),
+                result.size(),
+                result.total()
+        );
     }
 
     @GET
