@@ -157,6 +157,24 @@ class AnimalResourceIT {
     }
 
     @Test
+    void shouldReturn400WhenNameExceedsColumnLength() {
+        given()
+            .contentType(ContentType.JSON)
+            .body("{" +
+                "  \"name\": \"" + "L".repeat(101) + "\"," +
+                "  \"species\": \"Lion\"," +
+                "  \"dangerous\": false," +
+                "  \"habitat\": \"TERRESTRIAL\"," +
+                "  \"enclosureId\": \"550e8400-e29b-41d4-a716-446655440000\"," +
+                "  \"arrivalDate\": \"2024-01-15\"" +
+                "}")
+        .when()
+            .post("/animals")
+        .then()
+            .statusCode(400);
+    }
+
+    @Test
     void shouldReturn400WhenTransferringDeceasedAnimal() {
         String id = postAnimal("Leo", "Lion").extract().path("id");
 

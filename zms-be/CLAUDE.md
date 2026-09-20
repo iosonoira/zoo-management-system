@@ -238,7 +238,7 @@ Esempi: `shouldRegisterAnimalWithHealthyStatus`, `shouldThrowWhenNameIsBlank`
 - `@RolesAllowed` per **metodo** su `AnimalResource` (matrice: POST=admin, GET=tutti, status=vet+admin, transfer=keeper+admin)
 - `SecurityExceptionMapper` — 401/403 con lo stesso body `{"message": ...}` degli altri errori (senza, `ZooExceptionMapper` li riporterebbe come 500)
 - Audit dell'attore: `performedBy` nelle firme dei use case di scrittura, `createdBy`/`updatedBy` su `Animal`, colonne `created_by`/`updated_by` (migration `V2`); l'attore è estratto da `SecurityIdentity` in `AnimalResource` e passato come `String` — il token non esce da `infrastructure`
-- OIDC attivo solo in `%dev` contro Keycloak (`zms-be/infrastructure/keycloak/realm-export.json`, porta 8081); `quarkus.oidc.enabled=false` resta il default per `%test`
+- OIDC attivo in `%dev` contro Keycloak (`zms-be/infrastructure/keycloak/realm-export.json`, porta 8081) e in `%prod` via variabili d'ambiente (`OIDC_AUTH_SERVER_URL`, `OIDC_CLIENT_SECRET`, `DB_JDBC_URL`, `DB_USERNAME`, `DB_PASSWORD`); `quarkus.oidc.enabled=false` resta il default per `%test`
 - Test: `@TestSecurity` su `AnimalResourceIT`, matrice di autorizzazione in `AnimalSecurityIT`
 
 ### Prossime fasi

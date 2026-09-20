@@ -42,6 +42,10 @@ public class AnimalEntity {
     @Column(name = "updated_by", length = 100)
     private String updatedBy;
 
+    @Version
+    @Column(nullable = false)
+    private Long version;
+
     public AnimalEntity() {}
 
     public UUID getId() { return id; }
@@ -54,6 +58,7 @@ public class AnimalEntity {
     public AnimalStatus getStatus() { return status; }
     public String getCreatedBy() { return createdBy; }
     public String getUpdatedBy() { return updatedBy; }
+    public Long getVersion() { return version; }
 
     public void setId(UUID id) { this.id = id; }
     public void setName(String name) { this.name = name; }
@@ -65,4 +70,5 @@ public class AnimalEntity {
     public void setStatus(AnimalStatus status) { this.status = status; }
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
     public void setUpdatedBy(String updatedBy) { this.updatedBy = updatedBy; }
+    public void setVersion(Long version) { this.version = version; }
 }
