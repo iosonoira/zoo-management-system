@@ -157,6 +157,39 @@ class AnimalResourceIT {
     }
 
     @Test
+    void shouldReturn404WhenIdIsNotAUuid() {
+        given()
+        .when()
+            .get("/animals/not-a-uuid")
+        .then()
+            .statusCode(404);
+    }
+
+    @Test
+    void shouldReturn400WhenStatusIsNotAKnownEnumValue() {
+        String id = postAnimal("Leo", "Lion").extract().path("id");
+
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"status\": \"ON_HOLIDAY\"}")
+        .when()
+            .put("/animals/" + id + "/status")
+        .then()
+            .statusCode(400);
+    }
+
+    @Test
+    void shouldReturn400WhenBodyIsNotValidJson() {
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"name\": ")
+        .when()
+            .post("/animals")
+        .then()
+            .statusCode(400);
+    }
+
+    @Test
     void shouldReturn400WhenNameExceedsColumnLength() {
         given()
             .contentType(ContentType.JSON)

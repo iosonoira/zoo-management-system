@@ -1,6 +1,7 @@
 package it.zoo.animal.infrastructure.rest;
 
 import io.quarkus.security.UnauthorizedException;
+import it.zoo.animal.infrastructure.rest.dto.ErrorResponse;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
@@ -15,7 +16,7 @@ public class UnauthorizedExceptionMapper implements ExceptionMapper<Unauthorized
     @Override
     public Response toResponse(UnauthorizedException exception) {
         return Response.status(401)
-                .entity(new ZooExceptionMapper.ErrorResponse("Authentication required"))
+                .entity(new ErrorResponse("Authentication required"))
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
