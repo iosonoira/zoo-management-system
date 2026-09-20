@@ -49,6 +49,7 @@ class AnimalSecurityIT {
             entity.setEnclosureId(ENCLOSURE_ID);
             entity.setArrivalDate(LocalDate.of(2024, 1, 15));
             entity.setStatus(AnimalStatus.HEALTHY);
+            entity.setCreatedBy("system");
             em.persist(entity);
         });
     }
