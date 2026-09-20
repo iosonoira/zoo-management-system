@@ -1,8 +1,10 @@
 package it.zoo.animal.domain.port.in;
 
-import it.zoo.animal.domain.model.Animal;
-import java.util.List;
+import it.zoo.animal.domain.model.AnimalPage;
 
 public interface ListAnimalsUseCase {
-    List<Animal> listAll();
+
+    int MAX_PAGE_SIZE = 100;
+
+    AnimalPage list(int page, int size);
 }

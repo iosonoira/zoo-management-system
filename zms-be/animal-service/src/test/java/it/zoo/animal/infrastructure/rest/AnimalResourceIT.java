@@ -61,7 +61,50 @@ class AnimalResourceIT {
             .get("/animals")
         .then()
             .statusCode(200)
-            .body("size()", equalTo(2));
+            .body("items.size()", equalTo(2))
+            .body("page", equalTo(0))
+            .body("size", equalTo(20))
+            .body("total", equalTo(2));
+    }
+
+    @Test
+    void shouldReturnRequestedPage() {
+        postAnimal("Ape", "Primate");
+        postAnimal("Bear", "Ursid");
+        postAnimal("Cobra", "Snake");
+
+        given()
+            .queryParam("page", 1)
+            .queryParam("size", 2)
+        .when()
+            .get("/animals")
+        .then()
+            .statusCode(200)
+            .body("items.size()", equalTo(1))
+            .body("items[0].name", equalTo("Cobra"))
+            .body("page", equalTo(1))
+            .body("total", equalTo(3));
+    }
+
+    @Test
+    void shouldReturn400WhenSizeExceedsMaximum() {
+        given()
+            .queryParam("size", 101)
+        .when()
+            .get("/animals")
+        .then()
+            .statusCode(400)
+            .body("message", notNullValue());
+    }
+
+    @Test
+    void shouldReturn400WhenPageIsNegative() {
+        given()
+            .queryParam("page", -1)
+        .when()
+            .get("/animals")
+        .then()
+            .statusCode(400);
     }
 
     @Test

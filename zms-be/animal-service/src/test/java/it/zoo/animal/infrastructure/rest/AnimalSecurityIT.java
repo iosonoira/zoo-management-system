@@ -148,6 +148,6 @@ class AnimalSecurityIT {
             .get("/animals")
         .then()
             .statusCode(200)
-            .body("size()", equalTo(1));
+            .body("items.size()", equalTo(1));
     }
 }
