@@ -18,14 +18,14 @@
       "standardFlowEnabled": false,
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
-      "secret": "animal-service-dev-secret"
+      "secret": "${ANIMAL_SERVICE_CLIENT_SECRET}"
     },
     {
       "clientId": "zms-fe",
       "enabled": true,
       "publicClient": true,
       "standardFlowEnabled": true,
-      "directAccessGrantsEnabled": true,
+      "directAccessGrantsEnabled": false,
       "redirectUris": ["http://localhost:4200/*"],
       "webOrigins": ["http://localhost:4200"]
     }
@@ -34,22 +34,31 @@
     {
       "username": "admin",
       "enabled": true,
+      "email": "admin@zoo.local",
       "emailVerified": true,
-      "credentials": [{ "type": "password", "value": "admin", "temporary": false }],
+      "firstName": "Ada",
+      "lastName": "Zoo",
+      "credentials": [{ "type": "password", "value": "${ZOO_TEST_USER_PASSWORD}", "temporary": false }],
       "realmRoles": ["zoo-admin"]
     },
     {
       "username": "vet",
       "enabled": true,
+      "email": "vet@zoo.local",
       "emailVerified": true,
-      "credentials": [{ "type": "password", "value": "vet", "temporary": false }],
+      "firstName": "Vera",
+      "lastName": "Zoo",
+      "credentials": [{ "type": "password", "value": "${ZOO_TEST_USER_PASSWORD}", "temporary": false }],
       "realmRoles": ["zoo-vet"]
     },
     {
       "username": "keeper",
       "enabled": true,
+      "email": "keeper@zoo.local",
       "emailVerified": true,
-      "credentials": [{ "type": "password", "value": "keeper", "temporary": false }],
+      "firstName": "Karl",
+      "lastName": "Zoo",
+      "credentials": [{ "type": "password", "value": "${ZOO_TEST_USER_PASSWORD}", "temporary": false }],
       "realmRoles": ["zoo-keeper"]
     }
   ]
