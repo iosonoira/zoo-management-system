@@ -170,6 +170,10 @@ the login redirect, so the redirect happens for a reason the user can see.
 `includeBearerTokenInterceptor` is configured with a URL condition matching
 `environment.apiBaseUrl` only. The token is never attached to any other origin.
 
+The `withAutoRefreshToken` feature keeps the token fresh while the user is active and
+logs out after inactivity, so a keeper mid-shift does not meet a 401. A 401 that still
+arrives means the session ended server-side, and the copy says so.
+
 `KeycloakSession` reads `realm_access.roles` and reduces it to a single `ZooRole` by
 precedence `zoo-admin` > `zoo-vet` > `zoo-keeper`, because the UI is built around one
 active role while a Keycloak user can hold several. `username` comes from the token's
@@ -233,7 +237,7 @@ reachable are wider than `ApiError` currently declares:
 | Status | Source | Frontend handling |
 |---|---|---|
 | 400 | `InvalidAnimalDataExceptionMapper` | Transfer of a deceased animal; invalid page/size |
-| 401 | `UnauthorizedExceptionMapper` | **New.** Try `updateToken`; on failure, redirect to login |
+| 401 | `UnauthorizedExceptionMapper` | **New.** Terminal: the session ended server-side, so the copy asks the user to sign in again |
 | 403 | `ForbiddenExceptionMapper` | Role lacks the action — the UI should not have offered it |
 | 404 | `AnimalNotFoundExceptionMapper` | Unknown id |
 | 409 | `ConcurrentAnimalUpdateExceptionMapper` | **New.** Optimistic lock lost; ask the user to reload |
@@ -318,7 +322,8 @@ manual and listed under Definition of done.
   screen exists in `zms-fe` and designing one is feature work, not integration
 - An enclosure entity, resource or migration in `animal-service`
 - OpenAPI type generation
-- Token refresh strategy beyond `updateToken` on a 401
+- Token refresh strategy beyond `keycloak-angular`'s `withAutoRefreshToken` feature,
+  which refreshes while the user is active and logs out after inactivity
 - Deployment, reverse proxy, or any production origin configuration
 - Search, filtering or pagination in the API
 
