@@ -1,0 +1,49 @@
+package it.zoo.health.domain.model;
+
+import java.time.LocalDate;
+import java.util.UUID;
+
+public class MedicalRecord {
+
+    private UUID id;
+    private UUID animalId;
+    private String reason;
+    private String diagnosis;
+    private LocalDate examinedOn;
+    private String veterinarian;
+    private String createdBy;
+    private String updatedBy;
+    private Long version;
+
+    public MedicalRecord() {}
+
+    public MedicalRecord(UUID id, UUID animalId, String reason, String diagnosis,
+                         LocalDate examinedOn, String veterinarian) {
+        this.id = id;
+        this.animalId = animalId;
+        this.reason = reason;
+        this.diagnosis = diagnosis;
+        this.examinedOn = examinedOn;
+        this.veterinarian = veterinarian;
+    }
+
+    public UUID getId() { return id; }
+    public UUID getAnimalId() { return animalId; }
+    public String getReason() { return reason; }
+    public String getDiagnosis() { return diagnosis; }
+    public LocalDate getExaminedOn() { return examinedOn; }
+    public String getVeterinarian() { return veterinarian; }
+    public String getCreatedBy() { return createdBy; }
+    public String getUpdatedBy() { return updatedBy; }
+    public Long getVersion() { return version; }
+
+    public void setId(UUID id) { this.id = id; }
+    public void setAnimalId(UUID animalId) { this.animalId = animalId; }
+    public void setReason(String reason) { this.reason = reason; }
+    public void setDiagnosis(String diagnosis) { this.diagnosis = diagnosis; }
+    public void setExaminedOn(LocalDate examinedOn) { this.examinedOn = examinedOn; }
+    public void setVeterinarian(String veterinarian) { this.veterinarian = veterinarian; }
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
+    public void setUpdatedBy(String updatedBy) { this.updatedBy = updatedBy; }
+    public void setVersion(Long version) { this.version = version; }
+}
