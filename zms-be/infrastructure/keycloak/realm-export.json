@@ -37,12 +37,15 @@
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": false,
       "redirectUris": ["http://localhost:4200/*"],
-      "webOrigins": ["http://localhost:4200"]
+      "webOrigins": ["http://localhost:4200"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
     }
   ],
   "users": [
     {
-      "username": "admin",
+      "username": "admin.rossi",
       "enabled": true,
       "email": "admin@zoo.local",
       "emailVerified": true,
@@ -52,7 +55,7 @@
       "realmRoles": ["zoo-admin"]
     },
     {
-      "username": "vet",
+      "username": "vet.bianchi",
       "enabled": true,
       "email": "vet@zoo.local",
       "emailVerified": true,
@@ -62,7 +65,7 @@
       "realmRoles": ["zoo-vet"]
     },
     {
-      "username": "keeper",
+      "username": "keeper.conti",
       "enabled": true,
       "email": "keeper@zoo.local",
       "emailVerified": true,
