@@ -35,7 +35,7 @@ export class MockAnimalApi extends AnimalApi {
     return this.find(id);
   }
 
-  async updateStatus(id: string, status: AnimalStatus): Promise<Animal> {
+  async updateStatus(id: string, status: AnimalStatus, _name?: string): Promise<Animal> {
     await delay();
     if (!can(this.session.role(), 'updateStatus')) {
       throw forbidden('updateStatus');
@@ -47,7 +47,7 @@ export class MockAnimalApi extends AnimalApi {
     return this.save({ ...animal, status, updatedBy: this.session.username() });
   }
 
-  async transfer(id: string, targetEnclosureId: string): Promise<Animal> {
+  async transfer(id: string, targetEnclosureId: string, _name?: string): Promise<Animal> {
     await delay();
     if (!can(this.session.role(), 'transfer')) {
       throw forbidden('transfer');

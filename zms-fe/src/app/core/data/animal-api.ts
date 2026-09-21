@@ -21,7 +21,8 @@ export class ApiError extends Error {
 export abstract class AnimalApi {
   abstract listAll(): Promise<Animal[]>;
   abstract getById(id: string): Promise<Animal>;
-  abstract updateStatus(id: string, status: AnimalStatus): Promise<Animal>;
-  abstract transfer(id: string, targetEnclosureId: string): Promise<Animal>;
+  /** `name` is used only to write error copy that names the animal. */
+  abstract updateStatus(id: string, status: AnimalStatus, name?: string): Promise<Animal>;
+  abstract transfer(id: string, targetEnclosureId: string, name?: string): Promise<Animal>;
   abstract listEnclosures(): Promise<Enclosure[]>;
 }

@@ -51,11 +51,11 @@ export class AnimalStore {
   }
 
   updateStatus(id: string, status: AnimalStatus): Promise<Animal> {
-    return this.api.updateStatus(id, status);
+    return this.api.updateStatus(id, status, this.byId(id)?.name);
   }
 
   transfer(id: string, enclosureId: string): Promise<Animal> {
-    return this.api.transfer(id, enclosureId);
+    return this.api.transfer(id, enclosureId, this.byId(id)?.name);
   }
 
   /** Applies a server-confirmed animal to local state. */
