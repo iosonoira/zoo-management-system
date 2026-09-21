@@ -13,6 +13,7 @@
 
     <modules>
         <module>animal-service</module>
+        <module>health-service</module>
     </modules>
 
     <properties>
