@@ -1,13 +1,21 @@
+import { EnvironmentInjector, inject, runInInjectionContext } from '@angular/core';
 import { CanActivateFn, GuardResult, Routes } from '@angular/router';
 import { environment } from '../environments/environment';
 
 /** Live mode only: the demo build has nobody to sign in. */
 const guards: CanActivateFn[] = environment.live
   ? [
-      (route, state) =>
-        import('./core/auth/keycloak-providers').then(
-          (m) => m.animalRouteGuard(route, state) as Promise<GuardResult>,
-        ),
+      (route, state) => {
+        // The import resolves after the guard's own injection context is gone, so the
+        // Keycloak guard — which injects — runs in the injector captured here.
+        const injector = inject(EnvironmentInjector);
+        return import('./core/auth/keycloak-providers').then((m) =>
+          runInInjectionContext(
+            injector,
+            () => m.animalRouteGuard(route, state) as Promise<GuardResult>,
+          ),
+        );
+      },
     ]
   : [];
 
