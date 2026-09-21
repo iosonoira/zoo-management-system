@@ -9,6 +9,16 @@ services:
       - "5432:5432"
     volumes:
       - animal_data:/var/lib/postgresql/data
+  postgres-health:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_HEALTH_DB:-health_db}
+      POSTGRES_USER: ${POSTGRES_HEALTH_USER:-zoo}
+      POSTGRES_PASSWORD: ${POSTGRES_HEALTH_PASSWORD:?copy env.example to .env first}
+    ports:
+      - "5433:5432"
+    volumes:
+      - health_data:/var/lib/postgresql/data
   keycloak:
     image: quay.io/keycloak/keycloak:26.0
     command: ["start-dev", "--import-realm"]
@@ -16,6 +26,7 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?copy env.example to .env first}
       ANIMAL_SERVICE_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:?copy env.example to .env first}
+      HEALTH_SERVICE_CLIENT_SECRET: ${HEALTH_OIDC_CLIENT_SECRET:?copy env.example to .env first}
       ZOO_TEST_USER_PASSWORD: ${ZOO_TEST_USER_PASSWORD:?copy env.example to .env first}
     ports:
       - "8081:8080"
@@ -24,3 +35,4 @@ services:
 
 volumes:
   animal_data:
+  health_data:

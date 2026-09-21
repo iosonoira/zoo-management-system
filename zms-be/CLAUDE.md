@@ -13,8 +13,8 @@ Leggere integralmente prima di toccare qualsiasi file.
 zoo-management-system/
 ├── zms-be/
 │   ├── pom.xml                  ← parent POM (gestisce TUTTE le versioni)
-│   ├── animal-service/          ← Core: anagrafica animali [IN SVILUPPO]
-│   ├── health-service/          ← Cartelle cliniche [non iniziato]
+│   ├── animal-service/          ← Core: anagrafica animali [completato]
+│   ├── health-service/          ← Cartelle cliniche [completato]
 │   ├── feeding-service/         ← Piani alimentari [non iniziato]
 │   ├── notification-service/    ← Notifiche Kafka consumer [non iniziato]
 │   └── infrastructure/
@@ -204,7 +204,7 @@ Esempi: `shouldRegisterAnimalWithHealthyStatus`, `shouldThrowWhenNameIsBlank`
 - `mvnw` / `mvnw.cmd` per i comandi Maven (wrapper incluso per ciascun servizio)
 - Non aggiungere dipendenze senza consultare il parent POM prima
 - Comando dev: `cd zms-be/animal-service && mvnw quarkus:dev`
-- **Credenziali locali**: nessun segreto è tracciato. Prima di avviare, copiare `zms-be/infrastructure/env.example` in `zms-be/infrastructure/.env` e `zms-be/animal-service/env.example` in `zms-be/animal-service/.env`, poi scegliere i valori (`OIDC_CLIENT_SECRET` deve coincidere nei due file). Compose interrompe l'avvio se una variabile manca; Quarkus legge `.env` da solo. Il realm Keycloak sostituisce `${ANIMAL_SERVICE_CLIENT_SECRET}` e `${ZOO_TEST_USER_PASSWORD}` all'import
+- **Credenziali locali**: nessun segreto è tracciato. Prima di avviare, copiare `zms-be/infrastructure/env.example` in `zms-be/infrastructure/.env`, `zms-be/animal-service/env.example` in `zms-be/animal-service/.env`, e `zms-be/health-service/env.example` in `zms-be/health-service/.env`. Scegliere i valori in modo che: `OIDC_CLIENT_SECRET` (animal-service) coincida con quello in `infrastructure/.env`; `POSTGRES_HEALTH_PASSWORD` (infrastructure) coincida con `DB_PASSWORD` (health-service); `HEALTH_OIDC_CLIENT_SECRET` (infrastructure) coincida con `OIDC_CLIENT_SECRET` (health-service). Compose interrompe l'avvio se una variabile manca; Quarkus legge `.env` da solo. Il realm Keycloak sostituisce `${ANIMAL_SERVICE_CLIENT_SECRET}`, `${HEALTH_SERVICE_CLIENT_SECRET}` e `${ZOO_TEST_USER_PASSWORD}` all'import
 - I test non usano Keycloak Dev Services — `quarkus.devservices.enabled=false` in `application.properties`
 
 ---
@@ -244,7 +244,7 @@ Esempi: `shouldRegisterAnimalWithHealthyStatus`, `shouldThrowWhenNameIsBlank`
 
 ### Prossime fasi
 - `infrastructure/event/` — Kafka producer per eventi animale
-- Servizi restanti: `health-service`, `feeding-service`, `notification-service`
+- Servizi restanti: `feeding-service`, `notification-service`
 
 ---
 

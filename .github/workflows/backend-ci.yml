@@ -17,6 +17,11 @@ jobs:
     # Quarkus Dev Services starts Postgres through Testcontainers.
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [animal-service, health-service]
+
     steps:
       - uses: actions/checkout@v4
 
@@ -28,15 +33,15 @@ jobs:
           cache: 'maven'
 
       - name: Verify
-        working-directory: zms-be/animal-service
+        working-directory: zms-be/${{ matrix.module }}
         run: ./mvnw -B --no-transfer-progress verify
 
       - name: Publish test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-reports
+          name: test-reports-${{ matrix.module }}
           path: |
-            zms-be/animal-service/target/surefire-reports/
-            zms-be/animal-service/target/failsafe-reports/
+            zms-be/${{ matrix.module }}/target/surefire-reports/
+            zms-be/${{ matrix.module }}/target/failsafe-reports/
           if-no-files-found: ignore
