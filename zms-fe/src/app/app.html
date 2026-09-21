@@ -8,7 +8,14 @@
   </a>
 
   <div class="controls">
-    <app-role-select />
+    @if (canSwitchRole) {
+      <app-role-select />
+    } @else {
+      <span class="account">
+        <span class="account-name">{{ session.username() }}</span>
+        <button type="button" class="btn btn-quiet" (click)="signOut()">Sign out</button>
+      </span>
+    }
 
     <button
       type="button"
@@ -27,8 +34,15 @@
 </main>
 
 <footer class="footer">
-  <p>
-    Demo data. Every animal, enclosure and staff name here is fictional. The role switch stands in
-    for Keycloak sign-in; the same rules as <code>animal-service</code> apply.
-  </p>
+  @if (canSwitchRole) {
+    <p>
+      Demo data. Every animal, enclosure and staff name here is fictional. The role switch stands in
+      for Keycloak sign-in; the same rules as <code>animal-service</code> apply.
+    </p>
+  } @else {
+    <p>
+      Signed in through Keycloak. Every animal, enclosure and staff name is fictional;
+      <code>animal-service</code> enforces the rules.
+    </p>
+  }
 </footer>

@@ -17,6 +17,7 @@ const THEME_KEY = 'zms-theme';
 export class App {
   protected readonly session = inject(Session);
   protected readonly theme = signal<Theme>('light');
+  protected readonly canSwitchRole = this.session.canSwitchRole;
 
   private readonly document = inject(DOCUMENT);
 
@@ -25,6 +26,10 @@ export class App {
       this.session.restore();
       this.theme.set(this.initialTheme());
     });
+  }
+
+  protected signOut(): void {
+    this.session.signOut();
   }
 
   protected toggleTheme(): void {
