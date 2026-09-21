@@ -3,7 +3,8 @@ import { Animal, AnimalStatus, Enclosure, canBeTransferred, canTransitionTo } fr
 import { can } from '../models/permissions';
 import { Session } from '../session/session';
 import { AnimalApi, ApiError } from './animal-api';
-import { DEMO_ANIMALS, DEMO_ENCLOSURES } from './demo-data';
+import { DEMO_ANIMALS } from './demo-data';
+import { ENCLOSURES } from './enclosure-directory';
 
 const LATENCY_MS = 380;
 
@@ -52,14 +53,14 @@ export class MockAnimalApi extends AnimalApi {
     if (!canBeTransferred(animal)) {
       throw new ApiError(400, `${animal.name} is recorded as deceased and can’t be transferred.`);
     }
-    if (!DEMO_ENCLOSURES.some((e) => e.id === targetEnclosureId)) {
+    if (!ENCLOSURES.some((e) => e.id === targetEnclosureId)) {
       throw new ApiError(400, 'That enclosure doesn’t exist.');
     }
     return this.save({ ...animal, enclosureId: targetEnclosureId, updatedBy: this.session.username() });
   }
 
   async listEnclosures(): Promise<Enclosure[]> {
-    return [...DEMO_ENCLOSURES];
+    return [...ENCLOSURES];
   }
 
   private find(id: string): Animal {
