@@ -1,46 +1,24 @@
-import { Service, computed, signal } from '@angular/core';
+import { Signal } from '@angular/core';
 import { ZooRole } from '../models/animal';
-import { Permission, can } from '../models/permissions';
-
-const DEMO_USERS: Record<ZooRole, string> = {
-  'zoo-keeper': 'keeper.conti',
-  'zoo-vet': 'vet.bianchi',
-  'zoo-admin': 'admin.rossi',
-};
-
-const STORAGE_KEY = 'zms.demo-role';
+import { Permission } from '../models/permissions';
 
 /**
- * Demo stand-in for the Keycloak session: holds the active role and the
- * username that the backend would read from the token principal.
+ * Port for the signed-in user. `DemoSession` holds a role picked from the header
+ * switcher; `KeycloakSession` reads it from the access token. Components depend on
+ * this shape only.
  */
-@Service()
-export class Session {
-  readonly role = signal<ZooRole>('zoo-keeper');
-  readonly username = computed(() => DEMO_USERS[this.role()]);
+export abstract class Session {
+  /** The active role. The UI is built around one role at a time. */
+  abstract readonly role: Signal<ZooRole>;
+  /** What the backend records in `createdBy` / `updatedBy`. */
+  abstract readonly username: Signal<string>;
+  /** False when the role comes from a token and the header shows an account control. */
+  abstract readonly canSwitchRole: boolean;
 
-  can(permission: Permission): boolean {
-    return can(this.role(), permission);
-  }
-
-  setRole(role: ZooRole): void {
-    this.role.set(role);
-    try {
-      localStorage.setItem(STORAGE_KEY, role);
-    } catch {
-      // Storage unavailable (private mode, blocked site data): role stays in memory.
-    }
-  }
-
+  abstract can(permission: Permission): boolean;
+  /** Throws when `canSwitchRole` is false. */
+  abstract setRole(role: ZooRole): void;
   /** Call from the browser only, after hydration. */
-  restore(): void {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored && stored in DEMO_USERS) {
-        this.role.set(stored as ZooRole);
-      }
-    } catch {
-      // Ignore unavailable storage.
-    }
-  }
+  abstract restore(): void;
+  abstract signOut(): void;
 }

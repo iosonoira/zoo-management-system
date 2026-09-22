@@ -1,4 +1,5 @@
-import { Service, computed, inject, signal } from '@angular/core';
+import { PLATFORM_ID, Service, computed, inject, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Animal, AnimalStatus, Enclosure } from '../models/animal';
 import { AnimalApi, ApiError } from './animal-api';
 
@@ -8,6 +9,7 @@ export type LoadState = 'idle' | 'loading' | 'ready' | 'error';
 @Service()
 export class AnimalStore {
   private readonly api = inject(AnimalApi);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   private readonly animalMap = signal<ReadonlyMap<string, Animal>>(new Map());
   private readonly enclosureList = signal<readonly Enclosure[]>([]);
@@ -20,6 +22,10 @@ export class AnimalStore {
   );
 
   async load(): Promise<void> {
+    // The server has no token and nothing to hydrate from; the browser loads instead.
+    if (!this.isBrowser) {
+      return;
+    }
     if (this.state() === 'loading' || this.state() === 'ready') {
       return;
     }
@@ -51,11 +57,11 @@ export class AnimalStore {
   }
 
   updateStatus(id: string, status: AnimalStatus): Promise<Animal> {
-    return this.api.updateStatus(id, status);
+    return this.api.updateStatus(id, status, this.byId(id)?.name);
   }
 
   transfer(id: string, enclosureId: string): Promise<Animal> {
-    return this.api.transfer(id, enclosureId);
+    return this.api.transfer(id, enclosureId, this.byId(id)?.name);
   }
 
   /** Applies a server-confirmed animal to local state. */

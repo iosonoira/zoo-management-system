@@ -76,6 +76,17 @@
   gap: var(--space-1);
 }
 
+.account {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.account-name {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .theme {
   inline-size: var(--target);
   padding: 0;

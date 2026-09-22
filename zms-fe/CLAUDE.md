@@ -63,6 +63,13 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - For anything FE-related (building, APIs, patterns, syntax), rely ONLY on the official up-to-date Angular documentation: https://angular.dev/overview
 - If unsure or nothing is found on how to do something, consult angular.dev — do NOT fall back on memory, blog posts, Stack Overflow, or outdated (pre-v20) patterns
 
+## Running
+
+- `pnpm start` — demo mode. In-memory data, role switcher in the header, no backend needed.
+- `pnpm start:live` — live mode against `animal-service` on :8080 and Keycloak on :8081.
+  Requires `docker compose up -d` in `zms-be/infrastructure` and `./mvnw quarkus:dev` in
+  `zms-be/animal-service`. Sign in as `keeper.conti`, `vet.bianchi` or `admin.rossi`.
+
 ---
 
 ## Wiki Knowledge Base

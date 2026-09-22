@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "start:live": "ng serve --configuration live",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
@@ -25,6 +26,8 @@
     "@fontsource-variable/atkinson-hyperlegible-next": "^5.3.0",
     "@fontsource/atkinson-hyperlegible-mono": "^5.3.0",
     "express": "^5.1.0",
+    "keycloak-angular": "^22.0.0",
+    "keycloak-js": "^26.2.4",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

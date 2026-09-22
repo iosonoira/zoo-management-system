@@ -2,8 +2,17 @@ import { inject } from '@angular/core';
 import { Animal, AnimalStatus, Enclosure, canBeTransferred, canTransitionTo } from '../models/animal';
 import { can } from '../models/permissions';
 import { Session } from '../session/session';
-import { AnimalApi, ApiError } from './animal-api';
-import { DEMO_ANIMALS, DEMO_ENCLOSURES } from './demo-data';
+import { AnimalApi } from './animal-api';
+import {
+  deceasedStatus,
+  deceasedTransfer,
+  forbidden,
+  notFound,
+  sameStatus,
+  unknownEnclosure,
+} from './api-errors';
+import { ENCLOSURES } from './enclosure-directory';
+import { DEMO_ANIMALS } from './demo-data';
 
 const LATENCY_MS = 380;
 
@@ -26,46 +35,41 @@ export class MockAnimalApi extends AnimalApi {
     return this.find(id);
   }
 
-  async updateStatus(id: string, status: AnimalStatus): Promise<Animal> {
+  async updateStatus(id: string, status: AnimalStatus, _name?: string): Promise<Animal> {
     await delay();
     if (!can(this.session.role(), 'updateStatus')) {
-      throw new ApiError(403, 'Only vets and admins can change an animal’s status.');
+      throw forbidden('updateStatus');
     }
     const animal = this.find(id);
     if (!canTransitionTo(animal, status)) {
-      throw new ApiError(
-        422,
-        animal.status === 'DECEASED'
-          ? `${animal.name} is recorded as deceased. The status can no longer change.`
-          : `${animal.name} already has this status.`,
-      );
+      throw animal.status === 'DECEASED' ? deceasedStatus(animal.name) : sameStatus(animal.name);
     }
     return this.save({ ...animal, status, updatedBy: this.session.username() });
   }
 
-  async transfer(id: string, targetEnclosureId: string): Promise<Animal> {
+  async transfer(id: string, targetEnclosureId: string, _name?: string): Promise<Animal> {
     await delay();
     if (!can(this.session.role(), 'transfer')) {
-      throw new ApiError(403, 'Only keepers and admins can transfer animals.');
+      throw forbidden('transfer');
     }
     const animal = this.find(id);
     if (!canBeTransferred(animal)) {
-      throw new ApiError(400, `${animal.name} is recorded as deceased and can’t be transferred.`);
+      throw deceasedTransfer(animal.name);
     }
-    if (!DEMO_ENCLOSURES.some((e) => e.id === targetEnclosureId)) {
-      throw new ApiError(400, 'That enclosure doesn’t exist.');
+    if (!ENCLOSURES.some((e) => e.id === targetEnclosureId)) {
+      throw unknownEnclosure();
     }
     return this.save({ ...animal, enclosureId: targetEnclosureId, updatedBy: this.session.username() });
   }
 
   async listEnclosures(): Promise<Enclosure[]> {
-    return [...DEMO_ENCLOSURES];
+    return [...ENCLOSURES];
   }
 
   private find(id: string): Animal {
     const animal = this.animals.get(id);
     if (!animal) {
-      throw new ApiError(404, 'No animal with this tag exists.');
+      throw notFound();
     }
     return animal;
   }
