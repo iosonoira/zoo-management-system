@@ -16,7 +16,7 @@ zoo-management-system/
 │   ├── animal-service/          ← Core: anagrafica animali [completato]
 │   ├── health-service/          ← Cartelle cliniche [completato]
 │   ├── feeding-service/         ← Piani alimentari [non iniziato]
-│   ├── notification-service/    ← Notifiche Kafka consumer [non iniziato]
+│   ├── notification-service/    ← Notifiche Kafka consumer [in corso]
 │   └── infrastructure/
 │       ├── docker-compose.yml
 │       └── keycloak/
