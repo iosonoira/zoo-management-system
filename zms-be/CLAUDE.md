@@ -16,7 +16,7 @@ zoo-management-system/
 │   ├── animal-service/          ← Core: anagrafica animali [completato]
 │   ├── health-service/          ← Cartelle cliniche [completato]
 │   ├── feeding-service/         ← Piani alimentari [non iniziato]
-│   ├── notification-service/    ← Notifiche Kafka consumer [in corso]
+│   ├── notification-service/    ← Notifiche Kafka consumer [completato — minimo]
 │   └── infrastructure/
 │       ├── docker-compose.yml
 │       └── keycloak/
@@ -93,6 +93,7 @@ infrastructure → application → domain
 - Bean Validation (`@NotNull`, `@NotBlank`, `@Valid`) è permessa **solo** sui DTO in `infrastructure/rest/`
 - I mapper MapStruct stanno in `infrastructure/rest/mapper/`
 - Gli adapter Kafka (producer/consumer) stanno in `infrastructure/event/`
+- Gli eventi si pubblicano **solo tramite la porta `AnimalEventPublisher` (outbox pattern)**, mai con un emitter Kafka direttamente dall'`application/`; un consumer deve essere **idempotente** perché la consegna è at-least-once
 
 ---
 
@@ -227,6 +228,7 @@ Esempi: `shouldRegisterAnimalWithHealthyStatus`, `shouldThrowWhenNameIsBlank`
 **Infrastructure layer** (`infrastructure/`)
 - `persistence/` — `AnimalEntity`, `AnimalEntityMapper`, `AnimalPanacheRepository`, migration Flyway `V1__create_animals_table.sql`
 - `rest/` — `AnimalResource` (5 endpoint), DTO, mapper MapStruct, `ZooExceptionMapper`
+- `event/` — sealed `AnimalEvent` + `AnimalRegistered`, `AnimalStatusChanged`, `AnimalTransferred` (domain model); port `AnimalEventPublisher` nel domain; adapter `OutboxAnimalEventPublisher` (`@Transactional MANDATORY`) scrive a `outbox_event` (migration `V4`); `OutboxRelay` (`@Scheduled` 2s, batch 100, `FOR UPDATE SKIP LOCKED`) pubblica a topic `zoo.animal.events` con key animalId (at-least-once)
 
 **Test**
 - Test domain: `AnimalStatusTransitionTest`
@@ -243,8 +245,10 @@ Esempi: `shouldRegisterAnimalWithHealthyStatus`, `shouldThrowWhenNameIsBlank`
 - Test: `@TestSecurity` su `AnimalResourceIT`, matrice di autorizzazione in `AnimalSecurityIT`
 
 ### Prossime fasi
-- `infrastructure/event/` — Kafka producer per eventi animale
-- Servizi restanti: `feeding-service`, `notification-service`
+- Pulizia delle righe `outbox_event` pubblicate (dopo relay)
+- REST/UI per le notifiche su `notification-service`
+- `health-service` come consumer (es. status DECEASED → cancellazione trattamenti)
+- `feeding-service` — implementazione da zero
 
 ---
 
