@@ -2,12 +2,14 @@ package it.zoo.animal.application;
 
 import it.zoo.animal.domain.event.AnimalRegistered;
 import it.zoo.animal.domain.exception.InvalidAnimalDataException;
+import it.zoo.animal.domain.exception.UnknownEnclosureException;
 import it.zoo.animal.domain.model.Animal;
 import it.zoo.animal.domain.enums.AnimalStatus;
 import it.zoo.animal.domain.port.in.RegisterAnimalCommand;
 import it.zoo.animal.domain.port.in.RegisterAnimalUseCase;
 import it.zoo.animal.domain.port.out.AnimalEventPublisher;
 import it.zoo.animal.domain.port.out.AnimalRepository;
+import it.zoo.animal.domain.port.out.EnclosureRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 
@@ -19,10 +21,13 @@ public class RegisterAnimalService implements RegisterAnimalUseCase {
 
     private final AnimalRepository repository;
     private final AnimalEventPublisher eventPublisher;
+    private final EnclosureRepository enclosureRepository;
 
-    public RegisterAnimalService(AnimalRepository repository, AnimalEventPublisher eventPublisher) {
+    public RegisterAnimalService(AnimalRepository repository, AnimalEventPublisher eventPublisher,
+                                  EnclosureRepository enclosureRepository) {
         this.repository = repository;
         this.eventPublisher = eventPublisher;
+        this.enclosureRepository = enclosureRepository;
     }
 
     @Override
@@ -45,6 +50,9 @@ public class RegisterAnimalService implements RegisterAnimalUseCase {
         }
         if (cmd.arrivalDate() == null) {
             throw new InvalidAnimalDataException("Arrival date must not be null");
+        }
+        if (!enclosureRepository.existsById(cmd.enclosureId())) {
+            throw new UnknownEnclosureException(cmd.enclosureId());
         }
 
         Animal animal = new Animal(

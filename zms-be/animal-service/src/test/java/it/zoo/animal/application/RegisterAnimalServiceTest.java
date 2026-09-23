@@ -3,12 +3,14 @@ package it.zoo.animal.application;
 import it.zoo.animal.domain.event.AnimalEvent;
 import it.zoo.animal.domain.event.AnimalRegistered;
 import it.zoo.animal.domain.exception.InvalidAnimalDataException;
+import it.zoo.animal.domain.exception.UnknownEnclosureException;
 import it.zoo.animal.domain.model.Animal;
 import it.zoo.animal.domain.enums.AnimalStatus;
 import it.zoo.animal.domain.enums.Habitat;
 import it.zoo.animal.domain.port.in.RegisterAnimalCommand;
 import it.zoo.animal.domain.port.out.AnimalEventPublisher;
 import it.zoo.animal.domain.port.out.AnimalRepository;
+import it.zoo.animal.domain.port.out.EnclosureRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -35,6 +37,9 @@ class RegisterAnimalServiceTest {
     @Mock
     AnimalEventPublisher eventPublisher;
 
+    @Mock
+    EnclosureRepository enclosureRepository;
+
     @InjectMocks
     RegisterAnimalService service;
 
@@ -43,6 +48,7 @@ class RegisterAnimalServiceTest {
 
     @Test
     void shouldRegisterAnimalWithHealthyStatus() {
+        when(enclosureRepository.existsById(enclosureId)).thenReturn(true);
         when(repository.save(any(Animal.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         RegisterAnimalCommand cmd = new RegisterAnimalCommand(
@@ -131,6 +137,18 @@ class RegisterAnimalServiceTest {
         RegisterAnimalCommand cmd = new RegisterAnimalCommand(
                 "Leo", "Lion", true, Habitat.TERRESTRIAL, enclosureId, today, "  ");
         assertThrows(InvalidAnimalDataException.class, () -> service.register(cmd));
+        verifyNoInteractions(eventPublisher);
+    }
+
+    @Test
+    void shouldThrowWhenEnclosureDoesNotExist() {
+        when(enclosureRepository.existsById(enclosureId)).thenReturn(false);
+
+        RegisterAnimalCommand cmd = new RegisterAnimalCommand(
+                "Leo", "Lion", true, Habitat.TERRESTRIAL, enclosureId, today, "vet");
+
+        assertThrows(UnknownEnclosureException.class, () -> service.register(cmd));
+        verify(repository, never()).save(any());
         verifyNoInteractions(eventPublisher);
     }
 }

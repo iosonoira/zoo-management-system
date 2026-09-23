@@ -3,10 +3,12 @@ package it.zoo.animal.application;
 import it.zoo.animal.domain.event.AnimalTransferred;
 import it.zoo.animal.domain.exception.AnimalNotFoundException;
 import it.zoo.animal.domain.exception.InvalidAnimalDataException;
+import it.zoo.animal.domain.exception.UnknownEnclosureException;
 import it.zoo.animal.domain.model.Animal;
 import it.zoo.animal.domain.port.in.TransferAnimalUseCase;
 import it.zoo.animal.domain.port.out.AnimalEventPublisher;
 import it.zoo.animal.domain.port.out.AnimalRepository;
+import it.zoo.animal.domain.port.out.EnclosureRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 
@@ -18,10 +20,13 @@ public class TransferAnimalService implements TransferAnimalUseCase {
 
     private final AnimalRepository repository;
     private final AnimalEventPublisher eventPublisher;
+    private final EnclosureRepository enclosureRepository;
 
-    public TransferAnimalService(AnimalRepository repository, AnimalEventPublisher eventPublisher) {
+    public TransferAnimalService(AnimalRepository repository, AnimalEventPublisher eventPublisher,
+                                  EnclosureRepository enclosureRepository) {
         this.repository = repository;
         this.eventPublisher = eventPublisher;
+        this.enclosureRepository = enclosureRepository;
     }
 
     @Override
@@ -39,6 +44,9 @@ public class TransferAnimalService implements TransferAnimalUseCase {
 
         if (!animal.canBeTransferred()) {
             throw new InvalidAnimalDataException("Cannot transfer a deceased animal");
+        }
+        if (!enclosureRepository.existsById(targetEnclosureId)) {
+            throw new UnknownEnclosureException(targetEnclosureId);
         }
 
         UUID fromEnclosureId = animal.getEnclosureId();
