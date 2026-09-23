@@ -23,9 +23,10 @@ class AnimalResourceIT {
 
     @BeforeEach
     void cleanUp() {
-        QuarkusTransaction.requiringNew().run(() ->
-            em.createQuery("DELETE FROM AnimalEntity").executeUpdate()
-        );
+        QuarkusTransaction.requiringNew().run(() -> {
+            em.createQuery("DELETE FROM OutboxEventEntity").executeUpdate();
+            em.createQuery("DELETE FROM AnimalEntity").executeUpdate();
+        });
     }
 
     @Test

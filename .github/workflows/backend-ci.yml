@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [animal-service, health-service]
+        module: [animal-service, health-service, notification-service]
 
     steps:
       - uses: actions/checkout@v4

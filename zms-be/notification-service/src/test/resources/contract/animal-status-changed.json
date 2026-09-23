@@ -1,0 +1,13 @@
+{
+  "eventId": "11111111-1111-1111-1111-111111111111",
+  "eventType": "ANIMAL_STATUS_CHANGED",
+  "occurredAt": "2026-09-23T10:15:30Z",
+  "animalId": "22222222-2222-2222-2222-222222222222",
+  "performedBy": "zoo-vet",
+  "payload": {
+    "previousStatus": "HEALTHY",
+    "newStatus": "UNDER_OBSERVATION",
+    "name": "Leo",
+    "species": "Lion"
+  }
+}

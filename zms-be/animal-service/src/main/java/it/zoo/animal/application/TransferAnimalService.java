@@ -1,22 +1,27 @@
 package it.zoo.animal.application;
 
+import it.zoo.animal.domain.event.AnimalTransferred;
 import it.zoo.animal.domain.exception.AnimalNotFoundException;
 import it.zoo.animal.domain.exception.InvalidAnimalDataException;
 import it.zoo.animal.domain.model.Animal;
 import it.zoo.animal.domain.port.in.TransferAnimalUseCase;
+import it.zoo.animal.domain.port.out.AnimalEventPublisher;
 import it.zoo.animal.domain.port.out.AnimalRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @ApplicationScoped
 public class TransferAnimalService implements TransferAnimalUseCase {
 
     private final AnimalRepository repository;
+    private final AnimalEventPublisher eventPublisher;
 
-    public TransferAnimalService(AnimalRepository repository) {
+    public TransferAnimalService(AnimalRepository repository, AnimalEventPublisher eventPublisher) {
         this.repository = repository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -36,8 +41,24 @@ public class TransferAnimalService implements TransferAnimalUseCase {
             throw new InvalidAnimalDataException("Cannot transfer a deceased animal");
         }
 
+        UUID fromEnclosureId = animal.getEnclosureId();
         animal.setEnclosureId(targetEnclosureId);
         animal.setUpdatedBy(performedBy);
-        return repository.save(animal);
+        Animal savedAnimal = repository.save(animal);
+
+        AnimalTransferred event = new AnimalTransferred(
+                UUID.randomUUID(),
+                Instant.now(),
+                savedAnimal.getId(),
+                performedBy,
+                savedAnimal.getName(),
+                savedAnimal.getSpecies(),
+                savedAnimal.isDangerous(),
+                fromEnclosureId,
+                targetEnclosureId
+        );
+        eventPublisher.publish(event);
+
+        return savedAnimal;
     }
 }

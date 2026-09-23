@@ -39,6 +39,7 @@ class AnimalSecurityIT {
     @BeforeEach
     void seed() {
         QuarkusTransaction.requiringNew().run(() -> {
+            em.createQuery("DELETE FROM OutboxEventEntity").executeUpdate();
             em.createQuery("DELETE FROM AnimalEntity").executeUpdate();
             AnimalEntity entity = new AnimalEntity();
             entity.setId(SEEDED_ID);

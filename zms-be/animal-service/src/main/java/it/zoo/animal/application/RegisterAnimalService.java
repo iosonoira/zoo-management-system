@@ -1,23 +1,28 @@
 package it.zoo.animal.application;
 
+import it.zoo.animal.domain.event.AnimalRegistered;
 import it.zoo.animal.domain.exception.InvalidAnimalDataException;
 import it.zoo.animal.domain.model.Animal;
 import it.zoo.animal.domain.enums.AnimalStatus;
 import it.zoo.animal.domain.port.in.RegisterAnimalCommand;
 import it.zoo.animal.domain.port.in.RegisterAnimalUseCase;
+import it.zoo.animal.domain.port.out.AnimalEventPublisher;
 import it.zoo.animal.domain.port.out.AnimalRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @ApplicationScoped
 public class RegisterAnimalService implements RegisterAnimalUseCase {
 
     private final AnimalRepository repository;
+    private final AnimalEventPublisher eventPublisher;
 
-    public RegisterAnimalService(AnimalRepository repository) {
+    public RegisterAnimalService(AnimalRepository repository, AnimalEventPublisher eventPublisher) {
         this.repository = repository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -54,6 +59,21 @@ public class RegisterAnimalService implements RegisterAnimalUseCase {
         );
         animal.setCreatedBy(cmd.performedBy());
         animal.setUpdatedBy(cmd.performedBy());
-        return repository.save(animal);
+        Animal savedAnimal = repository.save(animal);
+
+        AnimalRegistered event = new AnimalRegistered(
+                UUID.randomUUID(),
+                Instant.now(),
+                savedAnimal.getId(),
+                cmd.performedBy(),
+                savedAnimal.getName(),
+                savedAnimal.getSpecies(),
+                savedAnimal.isDangerous(),
+                savedAnimal.getHabitat(),
+                savedAnimal.getEnclosureId()
+        );
+        eventPublisher.publish(event);
+
+        return savedAnimal;
     }
 }
