@@ -4,6 +4,7 @@ import { ZooRole } from './animal';
 export const PERMISSIONS = {
   updateStatus: ['zoo-vet', 'zoo-admin'],
   transfer: ['zoo-keeper', 'zoo-admin'],
+  register: ['zoo-admin'],
 } as const satisfies Record<string, readonly ZooRole[]>;
 
 export type Permission = keyof typeof PERMISSIONS;

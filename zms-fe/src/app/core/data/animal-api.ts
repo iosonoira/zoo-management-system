@@ -1,4 +1,4 @@
-import { Animal, AnimalStatus, Enclosure } from '../models/animal';
+import { Animal, AnimalStatus, Enclosure, NewAnimal } from '../models/animal';
 
 /** Every status `animal-service` can return, including the two the mock never raises. */
 export type ApiErrorStatus = 400 | 401 | 403 | 404 | 409 | 422 | 500;
@@ -24,5 +24,6 @@ export abstract class AnimalApi {
   /** `name` is used only to write error copy that names the animal. */
   abstract updateStatus(id: string, status: AnimalStatus, name?: string): Promise<Animal>;
   abstract transfer(id: string, targetEnclosureId: string, name?: string): Promise<Animal>;
+  abstract register(input: NewAnimal): Promise<Animal>;
   abstract listEnclosures(): Promise<Enclosure[]>;
 }

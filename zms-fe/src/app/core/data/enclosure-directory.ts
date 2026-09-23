@@ -1,9 +1,8 @@
 import { Enclosure } from '../models/animal';
 
 /**
- * Enclosures exist in the backend only as UUIDs on `animals.enclosure_id`. Until an
- * enclosure resource exists, their names and habitats live here and both the mock and
- * the HTTP adapter read from this one list. The dev seed migration uses the same ids.
+ * Demo data for the `MockAnimalApi`. Live mode reads `GET /enclosures` instead.
+ * The dev seed of animal-service uses the same ids.
  */
 export const ENCLOSURES: readonly Enclosure[] = [
   { id: '0b6e2f1a-3c4d-4e8f-9a1b-2c3d4e5f6a70', name: 'Savanna Paddock', habitat: 'TERRESTRIAL' },

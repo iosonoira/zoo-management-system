@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../environments/environment';
-import { Animal } from '../models/animal';
+import { Animal, NewAnimal } from '../models/animal';
 import { AnimalApi, ApiError } from './animal-api';
 import { HttpAnimalApi, PAGE_SIZE } from './http-animal-api';
 
@@ -23,6 +23,18 @@ function animal(overrides: Partial<Animal> = {}): Animal {
     status: 'HEALTHY',
     createdBy: 'admin.rossi',
     updatedBy: 'keeper.conti',
+    ...overrides,
+  };
+}
+
+function newAnimal(overrides: Partial<NewAnimal> = {}): NewAnimal {
+  return {
+    name: 'Kibo',
+    species: 'Reticulated giraffe',
+    dangerous: false,
+    habitat: 'TERRESTRIAL',
+    enclosureId: '0b6e2f1a-3c4d-4e8f-9a1b-2c3d4e5f6a70',
+    arrivalDate: '2019-04-11',
     ...overrides,
   };
 }
@@ -112,8 +124,18 @@ describe('HttpAnimalApi', () => {
     await expect(pending).resolves.toEqual(animal({ enclosureId: target }));
   });
 
-  it('serves enclosures from the local directory without a request', async () => {
-    await expect(api.listEnclosures()).resolves.toContainEqual({
+  it('issues GET /enclosures and returns the body', async () => {
+    const pending = api.listEnclosures();
+    const request = http.expectOne(`${BASE}/enclosures`);
+    expect(request.request.method).toBe('GET');
+    request.flush([
+      {
+        id: '0b6e2f1a-3c4d-4e8f-9a1b-2c3d4e5f6a70',
+        name: 'Savanna Paddock',
+        habitat: 'TERRESTRIAL',
+      },
+    ]);
+    await expect(pending).resolves.toContainEqual({
       id: '0b6e2f1a-3c4d-4e8f-9a1b-2c3d4e5f6a70',
       name: 'Savanna Paddock',
       habitat: 'TERRESTRIAL',
@@ -186,5 +208,46 @@ describe('HttpAnimalApi', () => {
       .expectOne(`${BASE}/animals?page=0&size=${PAGE_SIZE}`)
       .error(new ProgressEvent('network error'));
     await expect(pending).rejects.toMatchObject({ status: 500 });
+  });
+
+  it('sends register POST to /animals with the body', async () => {
+    const input = newAnimal();
+    const pending = api.register(input);
+    const request = http.expectOne(`${BASE}/animals`);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual(input);
+    const returned = animal({ name: 'Simba' });
+    request.flush(returned);
+    await expect(pending).resolves.toEqual(returned);
+  });
+
+  it('maps register 400 to the invalidAnimal message', async () => {
+    const pending = api.register(newAnimal());
+    http
+      .expectOne(`${BASE}/animals`)
+      .flush(
+        { message: 'Invalid data' },
+        { status: 400, statusText: 'Bad Request' },
+      );
+    await expect(pending).rejects.toSatisfy((error: ApiError) => {
+      expect(error.status).toBe(400);
+      expect(error.message).toContain('details');
+      return true;
+    });
+  });
+
+  it('maps register 403 to the admin-only copy', async () => {
+    const pending = api.register(newAnimal());
+    http
+      .expectOne(`${BASE}/animals`)
+      .flush(
+        { message: 'Insufficient role' },
+        { status: 403, statusText: 'Forbidden' },
+      );
+    await expect(pending).rejects.toSatisfy((error: ApiError) => {
+      expect(error.status).toBe(403);
+      expect(error.message).toContain('admins');
+      return true;
+    });
   });
 });
