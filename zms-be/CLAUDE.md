@@ -227,7 +227,7 @@ Esempi: `shouldRegisterAnimalWithHealthyStatus`, `shouldThrowWhenNameIsBlank`
 
 **Infrastructure layer** (`infrastructure/`)
 - `persistence/` — `AnimalEntity`, `AnimalEntityMapper`, `AnimalPanacheRepository`, migration Flyway `V1__create_animals_table.sql`
-- `rest/` — `AnimalResource` (5 endpoint), DTO, mapper MapStruct, `ZooExceptionMapper`
+- `rest/` — `AnimalResource` (5 endpoint), `EnclosureResource` (`GET /enclosures`), DTO, mapper MapStruct, `ZooExceptionMapper`
 - `event/` — sealed `AnimalEvent` + `AnimalRegistered`, `AnimalStatusChanged`, `AnimalTransferred` (domain model); port `AnimalEventPublisher` nel domain; adapter `OutboxAnimalEventPublisher` (`@Transactional MANDATORY`) scrive a `outbox_event` (migration `V4`); `OutboxRelay` (`@Scheduled` 2s, batch 100, `FOR UPDATE SKIP LOCKED`) pubblica a topic `zoo.animal.events` con key animalId (at-least-once)
 
 **Test**
@@ -243,6 +243,13 @@ Esempi: `shouldRegisterAnimalWithHealthyStatus`, `shouldThrowWhenNameIsBlank`
 - Audit dell'attore: `performedBy` nelle firme dei use case di scrittura, `createdBy`/`updatedBy` su `Animal`, colonne `created_by`/`updated_by` (migration `V2`); l'attore è estratto da `SecurityIdentity` in `AnimalResource` e passato come `String` — il token non esce da `infrastructure`
 - OIDC attivo in `%dev` contro Keycloak (`zms-be/infrastructure/keycloak/realm-export.json`, porta 8081) e in `%prod` via variabili d'ambiente (`OIDC_AUTH_SERVER_URL`, `OIDC_CLIENT_SECRET`, `DB_JDBC_URL`, `DB_USERNAME`, `DB_PASSWORD`); `quarkus.oidc.enabled=false` resta il default per `%test`
 - Test: `@TestSecurity` su `AnimalResourceIT`, matrice di autorizzazione in `AnimalSecurityIT`
+
+### Completato — Recinti e registrazione da UI (fase 10)
+
+- Recinti come dati persistenti: table `enclosures` (migration Flyway `V5__create_enclosures_table.sql`), seed dev con 7 recinti (`db/dev/R__seed_demo_enclosures.sql`)
+- REST: `GET /enclosures` (ruoli admin, vet, keeper; lista completa ordinata per nome, senza paginazione)
+- Validazione su register/transfer: `UnknownEnclosureException` nell'application layer via port `EnclosureRepository`, ritorna 400; nessuna FK intenzionale (V5 gira prima dei seed ripetibili, DB dev già hanno animali)
+- Test: location Flyway separata `db/test` per i recinti negli IT (profilo test)
 
 ### Prossime fasi
 - Pulizia delle righe `outbox_event` pubblicate (dopo relay)

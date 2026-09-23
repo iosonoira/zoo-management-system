@@ -6,7 +6,7 @@ Backend of the [Zoo Management System](../README.md): Java 21 and Quarkus micros
 
 | Service | Dev port | Database | What it does |
 |---|---|---|---|
-| `animal-service` | 8080 | `animal_db` on :5432 | Registers animals, changes status, transfers them between enclosures. Publishes animal events to Kafka through a transactional outbox |
+| `animal-service` | 8080 | `animal_db` on :5432 | Registers animals, changes status, transfers them between enclosures, maintains the enclosure directory. Publishes animal events to Kafka through a transactional outbox |
 | `health-service` | 8082 | `health_db` on :5433 | Medical records and treatments. Refers to animals by id only, with no runtime call to animal-service |
 | `notification-service` | 8083 | `notification_db` on :5434 | Consumes animal events idempotently and stores notifications. No REST API yet |
 | `feeding-service` | — | — | Planned, not started |
@@ -62,7 +62,7 @@ cd ../animal-service
 
 Use the same `./mvnw quarkus:dev` in `health-service` or `notification-service`. On Windows use `mvnw.cmd`.
 
-In dev mode, `animal-service` loads 19 sample animals and exposes Swagger UI at http://localhost:8080/q/swagger-ui. Every endpoint needs a bearer token from the `zoo` realm; without one it answers 401.
+In dev mode, `animal-service` loads 19 sample animals and 7 sample enclosures, and exposes Swagger UI at http://localhost:8080/q/swagger-ui. Every endpoint needs a bearer token from the `zoo` realm; without one it answers 401.
 
 ## Security
 
@@ -72,13 +72,14 @@ Authentication is OIDC against Keycloak, and authorization uses realm roles on e
 |---|:-:|:-:|:-:|
 | `POST /animals` | ✓ | | |
 | `GET /animals`, `GET /animals/{id}` | ✓ | ✓ | ✓ |
+| `GET /enclosures` | ✓ | ✓ | ✓ |
 | `PUT /animals/{id}/status` | ✓ | ✓ | |
 | `PUT /animals/{id}/transfer` | ✓ | | ✓ |
 | `POST /medical-records`, `POST /medical-records/{id}/treatments` | ✓ | ✓ | |
 | `GET /medical-records`, `GET /medical-records/{id}` | ✓ | ✓ | ✓ |
 | `PUT /treatments/{id}/status` | ✓ | ✓ | |
 
-A missing token returns 401 and a wrong role returns 403, both with a JSON body. Writes record the acting user in `createdBy` / `updatedBy`.
+A missing token returns 401 and a wrong role returns 403, both with a JSON body. Writes record the acting user in `createdBy` / `updatedBy`. Attempting to register or transfer an animal to an unknown enclosure returns 400 with an error message.
 
 ## Tests
 
@@ -89,4 +90,4 @@ Run from a service folder:
 ./mvnw verify   # unit + integration tests (*IT, real Postgres via Testcontainers)
 ```
 
-Integration tests need Docker running. Surefire skips `*IT` classes, so only `verify` runs them; CI runs `verify` on every service ([`backend-ci.yml`](../.github/workflows/backend-ci.yml)).
+Integration tests need Docker running. Surefire skips `*IT` classes, so only `verify` runs them; CI runs `verify` on every service ([`backend-ci.yml`](../.github/workflows/backend-ci.yml)). Test enclosures are loaded from a separate Flyway location (`db/test`) in the test profile.

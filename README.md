@@ -17,7 +17,7 @@ zms-fe (Angular) ──REST + JWT──▶ animal-service ──outbox──▶ 
         └──── login (PKCE) ────▶ Keycloak (realm "zoo")
 ```
 
-- **animal-service**: registers animals, changes their status, transfers them between enclosures. Publishes domain events through a transactional outbox.
+- **animal-service**: registers animals, changes their status, transfers them between enclosures, and maintains the enclosure directory. Publishes domain events through a transactional outbox.
 - **health-service**: medical records and treatments. Refers to animals by id only, with no runtime call to animal-service.
 - **notification-service**: consumes animal events idempotently. No REST API yet.
 - **feeding-service**: planned, not started.
@@ -64,7 +64,7 @@ The Keycloak realm `zoo` is imported from [`realm-export.json`](zms-be/infrastru
 
 | User | Role | Can do |
 |---|---|---|
-| `admin.rossi` | `zoo-admin` | Everything: register animals (API only for now), change status, transfer, write medical records |
+| `admin.rossi` | `zoo-admin` | Everything: register animals, change status, transfer, write medical records |
 | `vet.bianchi` | `zoo-vet` | Read animals, change their status, write medical records and treatments |
 | `keeper.conti` | `zoo-keeper` | Read animals and medical records, transfer animals between enclosures |
 

@@ -1,6 +1,6 @@
 # zms-fe
 
-Frontend of the [Zoo Management System](../README.md): Angular 22 with SSR, standalone components and signals. Staff browse animals by enclosure, open an animal's record, change its status and transfer it to another enclosure. What each user can do depends on their role.
+Frontend of the [Zoo Management System](../README.md): Angular 22 with SSR, standalone components and signals. Staff browse animals by enclosure, open an animal's record, change its status and transfer it to another enclosure, and admins register new animals. What each user can do depends on their role.
 
 ## Two modes
 
@@ -9,7 +9,7 @@ The mode is chosen at build time, through Angular's `fileReplacements` swapping 
 | | Demo (default) | Live |
 |---|---|---|
 | Command | `pnpm start` | `pnpm start:live` |
-| Data | In memory (`MockAnimalApi`), 19 sample animals | `animal-service` on :8080 (`HttpAnimalApi`) |
+| Data | In memory (`MockAnimalApi`), 19 sample animals and 7 enclosures | `animal-service` on :8080 (`HttpAnimalApi`), animals and enclosures from `/animals` and `/enclosures` |
 | Who you are | Role switcher in the header (`DemoSession`) | Keycloak login with PKCE (`KeycloakSession`) |
 | Needs a backend | No | Yes, see the [root README](../README.md#live-mode-frontend--backend--keycloak) |
 
@@ -34,7 +34,7 @@ pnpm build        # production build (demo mode, SSR)
 ```
 src/app/
 ├── core/
-│   ├── data/      AnimalApi port + HttpAnimalApi / MockAnimalApi adapters, AnimalStore
+│   ├── data/      AnimalApi port + HttpAnimalApi / MockAnimalApi adapters, AnimalStore; enclosure-directory.ts is demo-only data
 │   ├── session/   Session port + DemoSession / KeycloakSession
 │   ├── auth/      Keycloak providers, loaded only in live mode
 │   ├── models/    Animal types, labels, role permissions
@@ -43,12 +43,11 @@ src/app/
     ├── animal-list/     List grouped by enclosure
     ├── animal-detail/   One animal's record
     ├── status-sheet/    Change status (vet, admin)
-    └── transfer-sheet/  Move to another enclosure (keeper, admin)
+    ├── transfer-sheet/  Move to another enclosure (keeper, admin)
+    └── register-sheet/  Register a new animal (admin)
 ```
 
 Components depend on the `AnimalApi` and `Session` ports only; which adapter runs depends on the mode. The permission matrix in `core/models/permissions.ts` mirrors the `@RolesAllowed` annotations in `animal-service`.
-
-Registering new animals (admin) is available through the API only, not in the UI yet.
 
 ## Design
 
