@@ -27,7 +27,11 @@ public class OutboxRelay {
         this.em = em;
     }
 
-    @Scheduled(every = "${zoo.outbox.relay.interval:2s}", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+    // The first trigger can fire before startup has wired the Kafka channel
+    // (SRMSG00019 Unable to connect an emitter); skip runs until the app is up.
+    @Scheduled(every = "${zoo.outbox.relay.interval:2s}",
+            concurrentExecution = Scheduled.ConcurrentExecution.SKIP,
+            skipExecutionIf = Scheduled.ApplicationNotRunning.class)
     void relay() {
         publishPending();
     }
