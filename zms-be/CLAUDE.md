@@ -51,7 +51,7 @@ src/main/java/it/zoo/animal/
 │   └── {Name}Service.java
 │
 └── infrastructure/
-    ├── persistence/    ← JPA adapter (entity, panache repository)
+    ├── persistence/    ← JPA adapter (entity, entity mapper, JPA repository)
     ├── rest/           ← REST adapter (resource, DTO, mapper, exception handler)
     └── event/          ← Kafka adapter (producer, consumer)
 ```
@@ -93,7 +93,9 @@ infrastructure → application → domain
 ### infrastructure/: rules
 
 - JPA `@Entity` classes live in `infrastructure/persistence/`, **never** in the domain
-- The Panache pattern is **Repository** (`implements PanacheRepository<E>`), **not** Active Record (`extends PanacheEntity`)
+- Persistence uses the **Repository** pattern, **not** Active Record (`extends PanacheEntity`)
+- A repository adapter implements the domain port (`implements AnimalRepository`) and works through an injected `EntityManager`. It does **not** also implement `PanacheRepository<E>`: Panache's `findById(id)` returns the entity, the port's `findById(id)` returns `Optional<Animal>`, and a class cannot have both
+- `PanacheRepositoryBase` is fine for a repository that implements no domain port (`OutboxEventRepository`)
 - Request/response DTOs live in `infrastructure/rest/`, never in the domain or the application
 - Bean Validation (`@NotNull`, `@NotBlank`, `@Valid`) is allowed **only** on DTOs in `infrastructure/rest/`
 - MapStruct mappers live in `infrastructure/rest/mapper/`
@@ -173,7 +175,7 @@ public Animal getById(UUID id) {
 | Application service | `{Verb}{Entity}Service` | `RegisterAnimalService` |
 | Repository port (out) | `{Entity}Repository` | `AnimalRepository` |
 | JPA entity | `{Entity}Entity` | `AnimalEntity` |
-| Panache repo adapter | `{Entity}PanacheRepository` | `AnimalPanacheRepository` |
+| Repository adapter | `{Entity}JpaRepository` | `AnimalJpaRepository` |
 | REST resource | `{Entity}Resource` | `AnimalResource` |
 | Request DTO | `{Verb}{Entity}Request` | `RegisterAnimalRequest` |
 | Response DTO | `{Entity}Response` | `AnimalResponse` |

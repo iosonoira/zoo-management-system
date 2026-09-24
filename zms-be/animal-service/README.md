@@ -28,7 +28,7 @@ Does not:
 | Name, species, habitat, enclosure id, arrival date and acting user are required | `RegisterAnimalService` (explicit checks), `RegisterAnimalRequest` (Bean Validation) | 400 |
 | Name and species are at most 100 characters | `RegisterAnimalRequest` | 400 |
 | Page ≥ 0, 1 ≤ size ≤ 100 | `ListAnimalsService`, `ListAnimalsUseCase.MAX_PAGE_SIZE` | 400 |
-| Concurrent writes to the same animal: the second one fails | `@Version` on `AnimalEntity`, `AnimalPanacheRepository` | 409 (`ConcurrentAnimalUpdateException`) |
+| Concurrent writes to the same animal: the second one fails | `@Version` on `AnimalEntity`, `AnimalJpaRepository` | 409 (`ConcurrentAnimalUpdateException`) |
 
 Not checked: the animal's habitat against the enclosure's habitat; a transfer to the enclosure the animal is already in (accepted and emits an event); the arrival date being in the future.
 
@@ -58,7 +58,7 @@ Events consumed: none.
 | Broker unavailable | REST writes still commit. Events stay in `outbox_event` and the relay retries the oldest unpublished row every interval (`OutboxRelay`). See [docs/events.md](../../docs/events.md#relay-outboxrelay) |
 | Duplicate event | Not a consumer. The relay can publish the same event more than once, with the same `eventId` ([docs/events.md](../../docs/events.md#duplicates)). Duplicate REST requests are not deduplicated: two identical `POST /animals` create two animals |
 | Unreadable record | Not a consumer. Unreadable request body: 400 `Malformed request body` (`JsonProcessingExceptionMapper`). Unknown enum value: 400. Path id that is not a UUID: 404 (`WebApplicationExceptionMapper`). Covered in `AnimalResourceIT` |
-| DB rejection | Optimistic-lock conflict: 409 (`AnimalPanacheRepository`, `ConcurrentAnimalUpdateExceptionMapper`). Any other database error: 500 `Internal server error`, logged (`UnexpectedExceptionMapper`); the transaction rolls back, outbox row included |
+| DB rejection | Optimistic-lock conflict: 409 (`AnimalJpaRepository`, `ConcurrentAnimalUpdateExceptionMapper`). Any other database error: 500 `Internal server error`, logged (`UnexpectedExceptionMapper`); the transaction rolls back, outbox row included |
 | Unknown reference | Unknown animal id: 404 (`AnimalNotFoundException`). Unknown enclosure id on register or transfer: 400 (`UnknownEnclosureException`). `animals.enclosure_id` has no foreign key (`V5`), so an enclosure row removed directly in the database leaves animals pointing to it: `Not handled` |
 
 ## 5. Open questions

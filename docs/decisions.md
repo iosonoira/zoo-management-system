@@ -24,15 +24,19 @@ The entries below were seeded on 2026-09-24 from decisions already stated in `zm
 
 ## D2. Repository pattern instead of Active Record
 
-- **Date**: 2026-06-28 (commit `e4adb15`; rule recorded in `zms-be/CLAUDE.md`, commit `0c78602`)
+- **Date**: 2026-06-28 (commits `cf10ae6` and `ed04eca`; rule recorded in `zms-be/CLAUDE.md`, commit `0c78602`)
 - **Service(s)**: animal-service, health-service, notification-service
-- **Context**: Quarkus Panache supports both Active Record (`extends PanacheEntity`) and Repository.
-- **Alternatives considered**: Active Record (`extends PanacheEntity`) (`zms-be/CLAUDE.md`).
-- **Decision**: Use the Repository pattern. JPA entities live only in `infrastructure/persistence/`, and the application layer works on domain objects (`zms-be/CLAUDE.md`).
-- **Rationale**: not recorded.
+- **Context**: The domain defines its own repository ports (`port/out`), whose methods take and return domain objects, such as `Optional<Animal> findById(UUID)`. Quarkus Panache offers two styles: Active Record (`extends PanacheEntity`) and Repository (`implements PanacheRepository<E>`).
+- **Alternatives considered**:
+  - Active Record (`extends PanacheEntity`): puts persistence on the entity (`zms-be/CLAUDE.md`).
+  - An adapter that implements both `PanacheRepositoryBase<E, ID>` and the domain port. Tried first (`cf10ae6`) and dropped in `ed04eca`.
+  - Renaming the port methods to avoid the clash. Not taken: the domain would change shape to suit the framework.
+- **Decision**: Use the Repository pattern. JPA entities live only in `infrastructure/persistence/`, and the application layer works on domain objects. Each repository adapter implements only the domain port and works through an injected `EntityManager` (`{Entity}JpaRepository`).
+- **Rationale**: Panache's `findById(ID)` returns the entity and `findAll()` returns a `PanacheQuery`, while the port's methods with the same names and parameters return domain types. A class cannot declare both, so an adapter implementing both interfaces does not compile (commit message of `ed04eca`).
 - **Consequences**:
   - No class extends `PanacheEntity`.
-  - The domain repository adapters (`AnimalPanacheRepository`, `EnclosurePanacheRepository`, `MedicalRecordPanacheRepository`, `TreatmentPanacheRepository`, `NotificationPanacheRepository`) implement the domain port with an injected `EntityManager`, not `PanacheRepository<E>` as the text in `zms-be/CLAUDE.md` says. `OutboxEventRepository` is the only `PanacheRepositoryBase`.
+  - The five adapters (`AnimalJpaRepository`, `EnclosureJpaRepository`, `MedicalRecordJpaRepository`, `TreatmentJpaRepository`, `NotificationJpaRepository`) write their own JPQL instead of using Panache helpers.
+  - `OutboxEventRepository` implements no domain port, so it uses `PanacheRepositoryBase`. It is the only Panache user, so only `animal-service` depends on `quarkus-hibernate-orm-panache`. `health-service` and `notification-service` depend on `quarkus-hibernate-orm`.
   - Each entity has a hand-written mapper to and from the domain model (`*EntityMapper`).
 
 ## D3. Transactional outbox for animal events
