@@ -45,3 +45,7 @@ nb-configuration.xml
 
 # Quarkus
 /.quarkus/cli/plugins/
+
+# Claude Code (local, per-developer)
+.claude/settings.local.json
+.claude/launch.json
