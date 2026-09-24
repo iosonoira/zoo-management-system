@@ -13,7 +13,7 @@ The mode is chosen at build time, through Angular's `fileReplacements` swapping 
 | Who you are | Role switcher in the header (`DemoSession`) | Keycloak login with PKCE (`KeycloakSession`) |
 | Needs a backend | No | Yes, see the [root README](../README.md#live-mode-frontend--backend--keycloak) |
 
-Demo is the default because the portfolio build has to work for someone opening it cold, with no backend and no account. The mock follows the same contract as `/animals`, including the 400/403/404/422 errors, so the UI behaves the same in both modes.
+Demo is the default so that someone opening the app cold can use it locally with no backend and no account. No demo build is published. The mock follows the same contract as `/animals`, including the 400/403/404/422 errors, so the UI behaves the same in both modes.
 
 In live mode, sign in as `admin.rossi`, `vet.bianchi` or `keeper.conti` ([users and roles](../README.md#users-and-roles)). The Keycloak client `zms-fe` only accepts redirects to http://localhost:4200, so keep that port.
 
