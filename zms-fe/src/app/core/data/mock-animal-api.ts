@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { Animal, AnimalStatus, Enclosure, canBeTransferred, canTransitionTo } from '../models/animal';
+import { Animal, AnimalStatus, Enclosure, NewAnimal, canBeTransferred, canTransitionTo } from '../models/animal';
 import { can } from '../models/permissions';
 import { Session } from '../session/session';
 import { AnimalApi } from './animal-api';
@@ -7,6 +7,7 @@ import {
   deceasedStatus,
   deceasedTransfer,
   forbidden,
+  invalidAnimal,
   notFound,
   sameStatus,
   unknownEnclosure,
@@ -18,8 +19,8 @@ const LATENCY_MS = 380;
 
 /**
  * In-memory adapter that enforces the same rules and status codes as
- * `animal-service`: role checks (403), unknown ids (404), transfer of a
- * deceased animal (400) and invalid status transitions (422).
+ * `animal-service`: role checks (403), unknown ids (404), invalid data (400),
+ * transfer of a deceased animal (400), and invalid status transitions (422).
  */
 export class MockAnimalApi extends AnimalApi {
   private readonly session = inject(Session);
@@ -60,6 +61,29 @@ export class MockAnimalApi extends AnimalApi {
       throw unknownEnclosure();
     }
     return this.save({ ...animal, enclosureId: targetEnclosureId, updatedBy: this.session.username() });
+  }
+
+  async register(input: NewAnimal): Promise<Animal> {
+    await delay();
+    if (!can(this.session.role(), 'register')) {
+      throw forbidden('register');
+    }
+    if (!input.name.trim() || !input.species.trim()) {
+      throw invalidAnimal();
+    }
+    if (!ENCLOSURES.some((e) => e.id === input.enclosureId)) {
+      throw unknownEnclosure();
+    }
+    const animal: Animal = {
+      ...input,
+      name: input.name.trim(),
+      species: input.species.trim(),
+      id: crypto.randomUUID(),
+      status: 'HEALTHY',
+      createdBy: this.session.username(),
+      updatedBy: this.session.username(),
+    };
+    return this.save(animal);
   }
 
   async listEnclosures(): Promise<Enclosure[]> {

@@ -1,6 +1,6 @@
 import { PLATFORM_ID, Service, computed, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { Animal, AnimalStatus, Enclosure } from '../models/animal';
+import { Animal, AnimalStatus, Enclosure, NewAnimal } from '../models/animal';
 import { AnimalApi, ApiError } from './animal-api';
 
 export type LoadState = 'idle' | 'loading' | 'ready' | 'error';
@@ -62,6 +62,13 @@ export class AnimalStore {
 
   transfer(id: string, enclosureId: string): Promise<Animal> {
     return this.api.transfer(id, enclosureId, this.byId(id)?.name);
+  }
+
+  /** Registers an animal and adds the server-confirmed record to the roster. */
+  async register(input: NewAnimal): Promise<Animal> {
+    const animal = await this.api.register(input);
+    this.apply(animal);
+    return animal;
   }
 
   /** Applies a server-confirmed animal to local state. */

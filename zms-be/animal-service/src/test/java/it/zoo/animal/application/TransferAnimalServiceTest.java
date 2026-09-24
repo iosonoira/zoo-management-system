@@ -4,11 +4,13 @@ import it.zoo.animal.domain.event.AnimalEvent;
 import it.zoo.animal.domain.event.AnimalTransferred;
 import it.zoo.animal.domain.exception.AnimalNotFoundException;
 import it.zoo.animal.domain.exception.InvalidAnimalDataException;
+import it.zoo.animal.domain.exception.UnknownEnclosureException;
 import it.zoo.animal.domain.model.Animal;
 import it.zoo.animal.domain.enums.AnimalStatus;
 import it.zoo.animal.domain.enums.Habitat;
 import it.zoo.animal.domain.port.out.AnimalEventPublisher;
 import it.zoo.animal.domain.port.out.AnimalRepository;
+import it.zoo.animal.domain.port.out.EnclosureRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -22,6 +24,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -35,6 +38,9 @@ class TransferAnimalServiceTest {
     @Mock
     AnimalEventPublisher eventPublisher;
 
+    @Mock
+    EnclosureRepository enclosureRepository;
+
     @InjectMocks
     TransferAnimalService service;
 
@@ -46,6 +52,7 @@ class TransferAnimalServiceTest {
         Animal animal = new Animal(animalId, "Leo", "Lion", true,
                 Habitat.TERRESTRIAL, fromEnclosureId, LocalDate.now(), AnimalStatus.HEALTHY);
         when(repository.findById(animalId)).thenReturn(Optional.of(animal));
+        when(enclosureRepository.existsById(newEnclosureId)).thenReturn(true);
         when(repository.save(any(Animal.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Animal result = service.transfer(animalId, newEnclosureId, "keeper");
@@ -109,6 +116,22 @@ class TransferAnimalServiceTest {
 
         assertThrows(InvalidAnimalDataException.class,
                 () -> service.transfer(animalId, newEnclosureId, null));
+        verifyNoInteractions(eventPublisher);
+    }
+
+    @Test
+    void shouldThrowWhenTargetEnclosureDoesNotExist() {
+        UUID animalId = UUID.randomUUID();
+        UUID fromEnclosureId = UUID.randomUUID();
+        UUID newEnclosureId = UUID.randomUUID();
+        Animal animal = new Animal(animalId, "Leo", "Lion", true,
+                Habitat.TERRESTRIAL, fromEnclosureId, LocalDate.now(), AnimalStatus.HEALTHY);
+        when(repository.findById(animalId)).thenReturn(Optional.of(animal));
+        when(enclosureRepository.existsById(newEnclosureId)).thenReturn(false);
+
+        assertThrows(UnknownEnclosureException.class,
+                () -> service.transfer(animalId, newEnclosureId, "keeper"));
+        verify(repository, never()).save(any());
         verifyNoInteractions(eventPublisher);
     }
 }

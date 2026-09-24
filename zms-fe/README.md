@@ -1,59 +1,54 @@
-# ZmsFe
+# zms-fe
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.1.8.
+Frontend of the [Zoo Management System](../README.md): Angular 22 with SSR, standalone components and signals. Staff browse animals by enclosure, open an animal's record, change its status and transfer it to another enclosure, and admins register new animals. What each user can do depends on their role.
 
-## Development server
+## Two modes
 
-To start a local development server, run:
+The mode is chosen at build time, through Angular's `fileReplacements` swapping `src/environments/environment.ts` for `environment.live.ts`.
 
-```bash
-ng serve
-```
+| | Demo (default) | Live |
+|---|---|---|
+| Command | `pnpm start` | `pnpm start:live` |
+| Data | In memory (`MockAnimalApi`), 19 sample animals and 7 enclosures | `animal-service` on :8080 (`HttpAnimalApi`), animals and enclosures from `/animals` and `/enclosures` |
+| Who you are | Role switcher in the header (`DemoSession`) | Keycloak login with PKCE (`KeycloakSession`) |
+| Needs a backend | No | Yes, see the [root README](../README.md#live-mode-frontend--backend--keycloak) |
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Demo is the default because the portfolio build has to work for someone opening it cold, with no backend and no account. The mock follows the same contract as `/animals`, including the 400/403/404/422 errors, so the UI behaves the same in both modes.
 
-## Code scaffolding
+In live mode, sign in as `admin.rossi`, `vet.bianchi` or `keeper.conti` ([users and roles](../README.md#users-and-roles)). The Keycloak client `zms-fe` only accepts redirects to http://localhost:4200, so keep that port.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Scripts
 
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+Requires Node and pnpm (`packageManager` pins pnpm 10).
 
 ```bash
-ng build
+pnpm install
+pnpm start        # demo mode, http://localhost:4200
+pnpm start:live   # live mode against the local backend
+pnpm test         # unit tests (Vitest)
+pnpm build        # production build (demo mode, SSR)
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## Structure
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
+```
+src/app/
+├── core/
+│   ├── data/      AnimalApi port + HttpAnimalApi / MockAnimalApi adapters, AnimalStore; enclosure-directory.ts is demo-only data
+│   ├── session/   Session port + DemoSession / KeycloakSession
+│   ├── auth/      Keycloak providers, loaded only in live mode
+│   ├── models/    Animal types, labels, role permissions
+│   └── ui/        Icon, role selector
+└── features/animals/
+    ├── animal-list/     List grouped by enclosure
+    ├── animal-detail/   One animal's record
+    ├── status-sheet/    Change status (vet, admin)
+    ├── transfer-sheet/  Move to another enclosure (keeper, admin)
+    └── register-sheet/  Register a new animal (admin)
 ```
 
-## Running end-to-end tests
+Components depend on the `AnimalApi` and `Session` ports only; which adapter runs depends on the mode. The permission matrix in `core/models/permissions.ts` mirrors the `@RolesAllowed` annotations in `animal-service`.
 
-For end-to-end (e2e) testing, run:
+## Design
 
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+The visual direction is "Glasshouse Register": cool glass surfaces, a greenhouse green accent, one color per habitat and per status, Atkinson Hyperlegible, and a graphite dark mode. The design system is in [`DESIGN.md`](DESIGN.md); who the app is for is in [`PRODUCT.md`](../PRODUCT.md).

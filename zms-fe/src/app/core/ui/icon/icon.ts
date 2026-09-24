@@ -21,7 +21,8 @@ export type IconName =
   | 'user'
   | 'alert'
   | 'sun'
-  | 'moon';
+  | 'moon'
+  | 'plus';
 
 /** Pictogram set drawn for the glasshouse register: 24px grid, 2px stroke, round joins. */
 @Component({

@@ -1,14 +1,22 @@
 <div class="page">
   <header class="head">
-    <h1>Animals</h1>
-    <p class="summary">
-      @if (store.state() === 'ready') {
-        <span class="tabular">{{ store.animals().length }}</span> animals in
-        <span class="tabular">{{ occupiedEnclosures() }}</span> enclosures
-      } @else {
-        Roster and enclosure locations
-      }
-    </p>
+    <div class="head-text">
+      <h1>Animals</h1>
+      <p class="summary">
+        @if (store.state() === 'ready') {
+          <span class="tabular">{{ store.animals().length }}</span> animals in
+          <span class="tabular">{{ occupiedEnclosures() }}</span> enclosures
+        } @else {
+          Roster and enclosure locations
+        }
+      </p>
+    </div>
+    @if (session.can('register')) {
+      <button type="button" class="btn btn-primary" (click)="openRegister()">
+        <app-icon name="plus" />
+        Register animal
+      </button>
+    }
   </header>
 
   <div class="tools">
@@ -101,5 +109,9 @@
         }
       </div>
     }
+  }
+
+  @if (session.can('register')) {
+    <app-register-sheet (registered)="onRegistered($event)" />
   }
 </div>

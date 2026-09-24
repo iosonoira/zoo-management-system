@@ -7,10 +7,15 @@ import { ApiError } from './animal-api';
  * adapters map the status code to the copy below instead of forwarding the body.
  */
 
-export function forbidden(action: 'updateStatus' | 'transfer'): ApiError {
-  return action === 'updateStatus'
-    ? new ApiError(403, 'Only vets and admins can change an animal’s status.')
-    : new ApiError(403, 'Only keepers and admins can transfer animals.');
+export function forbidden(action: 'updateStatus' | 'transfer' | 'register'): ApiError {
+  switch (action) {
+    case 'updateStatus':
+      return new ApiError(403, 'Only vets and admins can change an animal’s status.');
+    case 'transfer':
+      return new ApiError(403, 'Only keepers and admins can transfer animals.');
+    case 'register':
+      return new ApiError(403, 'Only admins can register animals.');
+  }
 }
 
 export function notFound(): ApiError {
@@ -31,6 +36,10 @@ export function deceasedTransfer(name: string): ApiError {
 
 export function unknownEnclosure(): ApiError {
   return new ApiError(400, 'That enclosure doesn’t exist.');
+}
+
+export function invalidAnimal(): ApiError {
+  return new ApiError(400, 'Some details aren’t valid. Check the name, species and enclosure, then try again.');
 }
 
 /** Optimistic locking lost: another writer saved first. The mock cannot produce this. */

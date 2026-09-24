@@ -48,6 +48,16 @@ export function canBeTransferred(animal: Animal): boolean {
   return animal.status !== 'DECEASED';
 }
 
+/** Body of `POST /animals`. The form derives `habitat` from the chosen enclosure. */
+export interface NewAnimal {
+  readonly name: string;
+  readonly species: string;
+  readonly dangerous: boolean;
+  readonly habitat: Habitat;
+  readonly enclosureId: string;
+  readonly arrivalDate: string;
+}
+
 /** Short, human-readable tag code derived from the animal's UUID. */
 export function tagCode(animal: Pick<Animal, 'id'>): string {
   return animal.id.slice(0, 4).toUpperCase();

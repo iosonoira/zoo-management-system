@@ -288,6 +288,39 @@ class AnimalResourceIT {
             .body("createdBy", equalTo("admin"));
     }
 
+    @Test
+    void shouldReturn400WhenRegisteringWithUnknownEnclosure() {
+        given()
+            .contentType(ContentType.JSON)
+            .body("{" +
+                "  \"name\": \"Leo\"," +
+                "  \"species\": \"Lion\"," +
+                "  \"dangerous\": false," +
+                "  \"habitat\": \"TERRESTRIAL\"," +
+                "  \"enclosureId\": \"00000000-0000-0000-0000-000000000099\"," +
+                "  \"arrivalDate\": \"2024-01-15\"" +
+                "}")
+        .when()
+            .post("/animals")
+        .then()
+            .statusCode(400)
+            .body("message", notNullValue());
+    }
+
+    @Test
+    void shouldReturn400WhenTransferringToUnknownEnclosure() {
+        String id = postAnimal("Leo", "Lion").extract().path("id");
+
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"targetEnclosureId\": \"00000000-0000-0000-0000-000000000099\"}")
+        .when()
+            .put("/animals/" + id + "/transfer")
+        .then()
+            .statusCode(400)
+            .body("message", notNullValue());
+    }
+
     private ValidatableResponse postAnimal(String name, String species) {
         return given()
             .contentType(ContentType.JSON)

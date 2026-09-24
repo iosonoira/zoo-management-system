@@ -2,18 +2,18 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Animal, AnimalStatus, Enclosure } from '../models/animal';
+import { Animal, AnimalStatus, Enclosure, NewAnimal } from '../models/animal';
 import { AnimalApi, ApiError } from './animal-api';
 import {
   conflict,
   deceasedTransfer,
   forbidden,
+  invalidAnimal,
   notFound,
   sameStatus,
   serverError,
   sessionExpired,
 } from './api-errors';
-import { ENCLOSURES } from './enclosure-directory';
 
 /** `ListAnimalsUseCase.MAX_PAGE_SIZE`; a larger value is rejected with 400. */
 export const PAGE_SIZE = 100;
@@ -70,14 +70,20 @@ export class HttpAnimalApi extends AnimalApi {
     );
   }
 
-  /** No enclosure resource exists on the backend; the directory is local to the app. */
-  async listEnclosures(): Promise<Enclosure[]> {
-    return [...ENCLOSURES];
+  register(input: NewAnimal): Promise<Animal> {
+    return this.request(
+      () => this.http.post<Animal>(this.base, input),
+      { action: 'register' },
+    );
+  }
+
+  listEnclosures(): Promise<Enclosure[]> {
+    return this.request(() => this.http.get<Enclosure[]>(`${environment.apiBaseUrl}/enclosures`));
   }
 
   private async request<T>(
     send: () => import('rxjs').Observable<T>,
-    context: { action?: 'updateStatus' | 'transfer'; name?: string } = {},
+    context: { action?: 'updateStatus' | 'transfer' | 'register'; name?: string } = {},
   ): Promise<T> {
     try {
       return await firstValueFrom(send());
@@ -89,7 +95,7 @@ export class HttpAnimalApi extends AnimalApi {
 
 function toApiError(
   error: unknown,
-  context: { action?: 'updateStatus' | 'transfer'; name?: string },
+  context: { action?: 'updateStatus' | 'transfer' | 'register'; name?: string },
 ): ApiError {
   if (!(error instanceof HttpErrorResponse)) {
     return serverError();
@@ -97,7 +103,7 @@ function toApiError(
   const name = context.name ?? 'This animal';
   switch (error.status) {
     case 400:
-      return deceasedTransfer(name);
+      return context.action === 'register' ? invalidAnimal() : deceasedTransfer(name);
     case 401:
       return sessionExpired();
     case 403:

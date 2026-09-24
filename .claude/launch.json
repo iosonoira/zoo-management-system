@@ -12,6 +12,18 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--dir", "zms-fe", "start", "--port", "4300"],
       "port": 4300
+    },
+    {
+      "name": "zms-fe-live",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--dir", "zms-fe", "start:live", "--port", "4200"],
+      "port": 4200
+    },
+    {
+      "name": "animal-service",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd /d zms-be\\animal-service && .\\mvnw.cmd quarkus:dev -Dquarkus.console.enabled=false"],
+      "port": 8080
     }
   ]
 }

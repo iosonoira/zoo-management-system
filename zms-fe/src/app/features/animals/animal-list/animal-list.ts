@@ -1,10 +1,13 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, viewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { AnimalStore } from '../../../core/data/animal-store';
 import { Animal, AnimalStatus, Enclosure, STATUS_ORDER } from '../../../core/models/animal';
 import { STATUS_LABELS } from '../../../core/models/labels';
+import { Session } from '../../../core/session/session';
 import { Icon } from '../../../core/ui/icon/icon';
 import { AnimalPlate } from '../animal-plate/animal-plate';
 import { EnclosureSign } from '../enclosure-sign/enclosure-sign';
+import { RegisterSheet } from '../register-sheet/register-sheet';
 
 type StatusFilter = 'ALL' | AnimalStatus;
 
@@ -15,12 +18,16 @@ interface EnclosureGroup {
 
 @Component({
   selector: 'app-animal-list',
-  imports: [AnimalPlate, EnclosureSign, Icon],
+  imports: [AnimalPlate, EnclosureSign, Icon, RegisterSheet],
   templateUrl: './animal-list.html',
   styleUrl: './animal-list.scss',
 })
 export class AnimalList {
   protected readonly store = inject(AnimalStore);
+  protected readonly session = inject(Session);
+  private readonly router = inject(Router);
+
+  private readonly registerSheet = viewChild(RegisterSheet);
 
   protected readonly query = signal('');
   protected readonly filter = signal<StatusFilter>('ALL');
@@ -95,5 +102,13 @@ export class AnimalList {
   protected clear(): void {
     this.query.set('');
     this.filter.set('ALL');
+  }
+
+  protected openRegister(): void {
+    this.registerSheet()?.open();
+  }
+
+  protected onRegistered(animal: Animal): void {
+    void this.router.navigate(['/animals', animal.id]);
   }
 }

@@ -1,0 +1,92 @@
+<dialog #dialog class="sheet" aria-labelledby="register-title" (click)="onBackdrop($event)" (cancel)="pending() && $event.preventDefault()">
+  <form class="sheet-form" (submit)="submit($event)">
+    <header class="sheet-head">
+      <div>
+        <h2 id="register-title">Register an animal</h2>
+        <p>Add a new animal to the roster.</p>
+      </div>
+      <button type="button" class="btn btn-quiet" (click)="close()" [disabled]="pending()">
+        <app-icon name="close" />
+        <span class="visually-hidden">Close</span>
+      </button>
+    </header>
+
+    <fieldset class="sheet-body" [disabled]="pending()">
+      <legend class="visually-hidden">New animal details</legend>
+      <label class="field">
+        <span class="field-label">Name</span>
+        <input type="text" class="field-input" [formField]="registerForm.name" />
+        @if (registerForm.name().touched() && registerForm.name().invalid()) {
+          <span class="field-hint">Name is required.</span>
+        }
+      </label>
+
+      <label class="field">
+        <span class="field-label">Species</span>
+        <input type="text" class="field-input" [formField]="registerForm.species" />
+        @if (registerForm.species().touched() && registerForm.species().invalid()) {
+          <span class="field-hint">Species is required.</span>
+        }
+      </label>
+
+      <label class="field field-checkbox">
+        <input type="checkbox" [formField]="registerForm.dangerous" />
+        <span>Dangerous animal</span>
+      </label>
+
+      <fieldset class="enclosure-fieldset">
+        <legend class="field-label">Enclosure</legend>
+        @for (row of enclosures(); track row.enclosure.id) {
+          <label class="option">
+            <input
+              type="radio"
+              [value]="row.enclosure.id"
+              [formField]="registerForm.enclosureId"
+            />
+            <span class="stake pictogram" [attr.data-habitat]="row.enclosure.habitat">
+              <app-icon [name]="habitats[row.enclosure.habitat].icon" />
+            </span>
+            <span class="option-text">
+              <strong>{{ row.enclosure.name }}</strong>
+              <span>{{ row.detail }}</span>
+            </span>
+            <span class="option-mark">
+              @if (model().enclosureId === row.enclosure.id) {
+                <app-icon name="check" />
+              }
+            </span>
+          </label>
+        }
+        @if (registerForm.enclosureId().touched() && registerForm.enclosureId().invalid()) {
+          <span class="field-hint">Choose an enclosure.</span>
+        }
+      </fieldset>
+
+      @if (selectedEnclosure(); as enclosure) {
+        <p class="note habitat-line">
+          <app-icon [name]="habitats[enclosure.habitat].icon" />
+          Habitat: {{ habitats[enclosure.habitat].label }}
+        </p>
+      }
+
+      <label class="field">
+        <span class="field-label">Arrival date</span>
+        <input type="date" class="field-input" [attr.max]="today" [formField]="registerForm.arrivalDate" />
+      </label>
+    </fieldset>
+
+    <footer class="sheet-foot">
+      @if (error(); as message) {
+        <p class="form-error" role="alert"><app-icon name="alert" />{{ message }}</p>
+      }
+      <button type="submit" class="btn btn-primary" [disabled]="registerForm().invalid() || pending()">
+        <app-icon name="check" />
+        @if (pending()) {
+          Registering…
+        } @else {
+          Register animal
+        }
+      </button>
+    </footer>
+  </form>
+</dialog>

@@ -7,17 +7,35 @@
 }
 
 .head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--space-4);
+
+  .btn {
+    flex: none;
+  }
+
+  @media (max-width: 30rem) {
+    .btn {
+      inline-size: 100%;
+    }
+  }
+}
+
+.head-text {
   display: grid;
   gap: var(--space-1);
+}
 
-  h1 {
-    font-size: var(--text-3xl);
-    font-weight: 800;
-    letter-spacing: -0.025em;
+h1 {
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  letter-spacing: -0.025em;
 
-    @media (min-width: 48rem) {
-      font-size: 2.75rem;
-    }
+  @media (min-width: 48rem) {
+    font-size: 2.75rem;
   }
 }
 
