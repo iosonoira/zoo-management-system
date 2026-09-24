@@ -75,7 +75,7 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 ## Wiki Knowledge Base
 Path: ~/second-brain
 
-Quando salvi sessioni o cerchi conoscenza pregressa:
-1. Leggi ~/second-brain/wiki/hot.md prima (contesto recente)
-2. Se non basta, leggi ~/second-brain/wiki/index.md
-3. Salva le note di sessione in ~/second-brain/wiki/
+When saving sessions or looking for prior knowledge:
+1. Read ~/second-brain/wiki/hot.md first (recent context)
+2. If that is not enough, read ~/second-brain/wiki/index.md
+3. Save session notes in ~/second-brain/wiki/

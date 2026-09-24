@@ -37,31 +37,38 @@ Not a generic admin panel over a CRUD table: the UI is shaped by the zoo's actua
 
 ## Capabilities and Constraints
 
-**Available today** (`zms-be/animal-service`, REST under `/animals`):
+**Available today in the UI** (`zms-be/animal-service`, REST under `/animals` and `/enclosures`):
 
 | Capability | Endpoint | Roles |
 |---|---|---|
-| List animals | `GET /animals` | admin, vet, keeper |
+| List animals (paged, up to 100 per page) | `GET /animals` | admin, vet, keeper |
 | Animal detail | `GET /animals/{id}` | admin, vet, keeper |
 | Register animal | `POST /animals` | admin |
 | Update clinical status | `PUT /animals/{id}/status` | vet, admin |
 | Transfer to another enclosure | `PUT /animals/{id}/transfer` | keeper, admin |
+| List enclosures | `GET /enclosures` | admin, vet, keeper |
+
+**Available in the backend, not in the UI yet**:
+
+- `zms-be/health-service`: medical records and treatments. Reads are open to all three roles; writes are vet and admin. Endpoints are listed in [its README](zms-be/health-service/README.md).
+- `zms-be/notification-service`: stores a notification for every animal event it receives from Kafka. It has no REST API ([README](zms-be/notification-service/README.md)).
 
 **Domain terminology** (use these terms consistently in the UI):
 
 - Animal: `name`, `species`, `dangerous` (boolean flag), `habitat`, `enclosureId`, `arrivalDate`, `status`, `createdBy`, `updatedBy`.
+- Enclosure: `id`, `name`, `habitat`. A persisted, read-only list. An animal can only be registered into, or transferred to, an enclosure that exists.
 - Habitat: `TERRESTRIAL`, `AQUATIC`, `AMPHIBIOUS`.
 - Status: `HEALTHY`, `UNDER_OBSERVATION`, `IN_TREATMENT`, `DECEASED`. `DECEASED` is terminal: no further status changes and no transfers. Transition to the same status is rejected.
-- Errors: 400 invalid data, 403 forbidden for the role, 404 animal not found, 422 invalid status transition.
+- Errors: 400 invalid data (including an unknown enclosure or a transfer of a deceased animal), 401 not signed in, 403 forbidden for the role, 404 animal not found, 409 concurrent update, 422 invalid status transition.
 
 **Technical constraints**:
 
 - Frontend: Angular 22 with SSR (`zms-fe/`), standalone components, signals, Signal Forms, each component split in `.ts` / `.html` / `.scss`; only official angular.dev documentation as source (binding rules in `zms-fe/CLAUDE.md`).
-- No list filtering, search or pagination exists in the API yet; enclosures are bare UUIDs with no enclosure entity or name.
+- Search and filtering happen in the browser. The API has paging on `GET /animals` but no search or filter parameter. The frontend loads every page, then filters by status and searches by name, species or 4-character tag (`zms-fe/src/app/features/animals/animal-list/animal-list.ts`). `GET /enclosures` returns the full list without paging.
 
-**Planned, not built** (do not show as working features or empty placeholders): `health-service` (clinical records), `feeding-service` (feeding plans), `notification-service` (Kafka-driven notifications). The navigation should leave room for them.
+**Not in the UI yet** (do not show as working features or empty placeholders): clinical records and treatments (`health-service` exists, with no UI), notifications (`notification-service` exists, with no API or UI), feeding plans (`feeding-service` not started). The navigation should leave room for them.
 
-**Open decisions**: enclosure naming/representation, search and filtering, dashboard/home content.
+**Open decisions**: dashboard/home content.
 
 ## Brand Commitments
 
@@ -70,7 +77,7 @@ Not a generic admin panel over a CRUD table: the UI is shaped by the zoo's actua
 - **References (named by the user)**: Linear, for speed, clear states and controlled density; Stripe Dashboard, for readable tables, well-structured entity detail pages and sober status badges.
 - **Anti-references (named by the user)**: kids' zoo aesthetic (cartoons, mascots, random saturated colors, playful rounded fonts); AI SaaS look (purple gradients, glassmorphism, gradient text, hero-metric cards, identical card grids); 2000s enterprise software (gray on gray, endless forms, unreadable tables).
 - **Voice**: plain, direct, kind. Short concrete labels, verbs on actions ("Transfer", "Update status"). Illness, danger and death stated plainly and respectfully, never playfully.
-- **Language**: English UI by default, prepared for Italian via Angular i18n.
+- **Language**: English UI by default. Italian via Angular i18n is planned; no i18n setup exists yet.
 
 ## Evidence on Hand
 
