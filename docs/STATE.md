@@ -96,7 +96,6 @@ Contracts and failure behaviour per service are in the service READMEs. Events a
 - Backend CI: `mvnw verify` for the three modules on push to `main` and on pull requests touching `zms-be/` (`.github/workflows/backend-ci.yml`).
 
 ### Open
-- Local env setup: `infrastructure/`, `animal-service/` and `health-service/` no longer contain an `env.example` (removed in `15ba49f`), but `docker-compose.yml` errors and the READMEs still tell users to copy one.
 - No frontend CI: the workflow only covers `zms-be/`.
 
 ## Frontend (zms-fe)

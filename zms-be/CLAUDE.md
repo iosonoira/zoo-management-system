@@ -225,7 +225,7 @@ Examples: `shouldRegisterAnimalWithHealthyStatus`, `shouldThrowWhenNameIsBlank`
   - `zms-be/infrastructure/.env`, read by Docker Compose
   - `zms-be/animal-service/.env`, `zms-be/health-service/.env` and `zms-be/notification-service/.env`, read by Quarkus in dev mode
 
-  Only `notification-service/env.example` exists. The `env.example` files of `infrastructure`, `animal-service` and `health-service` were removed in `15ba49f`. The variable list is in the root `README.md` ("Live mode"). Compose stops at startup if a required variable is missing.
+  There are no `env.example` templates: the only variable list is the table in the root `README.md` ("Live mode", step 1). Keep it in sync when a variable is added. Compose stops at startup if a required variable is missing, and its error points to that table.
 
   These pairs must match:
 
