@@ -104,3 +104,20 @@ The entries below were seeded on 2026-09-24 from decisions already stated in `zm
   - The `zms-fe` client accepts redirects only to `http://localhost:4200/*` (`realm-export.json`).
   - The bearer token is attached only to requests to `environment.apiBaseUrl` (`keycloak-providers.ts`).
   - Keycloak code is loaded only in the browser and only in live mode (`main.ts`, `app.routes.ts`).
+
+## D8. One exception mapper per exception
+
+- **Date**: 2026-09-20 for animal-service (commit `c85635b`); 2026-09-21 for health-service (commit `e6adca7`)
+- **Service(s)**: animal-service, health-service
+- **Context**: Each service turns exceptions into HTTP responses with the body `{"message": ...}`. Until `c85635b`, animal-service did it with a single `ZooExceptionMapper` on `RuntimeException` (commit `042e651`), which chose the status with `instanceof` checks and returned 500 for anything else.
+- **Alternatives considered**: the single `ZooExceptionMapper` on `RuntimeException`, replaced by this decision.
+- **Decision**:
+  - One `ExceptionMapper` per domain exception (`AnimalNotFoundExceptionMapper`, `InvalidAnimalDataExceptionMapper`, …).
+  - A catch-all `UnexpectedExceptionMapper` on `Exception` that logs at ERROR and returns 500 `Internal server error`.
+  - `WebApplicationException` keeps the status the framework gave it: a dedicated `WebApplicationExceptionMapper` in animal-service, a pass-through of `getResponse()` in the health-service catch-all.
+- **Rationale** (commit message of `c85635b`): because `ZooExceptionMapper` mapped `RuntimeException`, it also caught the framework's `WebApplicationException`. A malformed UUID in the path answered 500 instead of 404, and an unparseable body 500 instead of 400. It also returned 500 without logging anything.
+- **Consequences**:
+  - Adding a domain exception means adding its mapper. Without one it reaches the catch-all and answers 500.
+  - `ErrorResponse` lives in `rest/dto/` and is shared by every mapper.
+  - The 404 on a malformed path id is covered in `AnimalResourceIT` and `MedicalRecordResourceIT`.
+  - animal-service maps an unparseable body to 400 (`JsonProcessingExceptionMapper`). health-service has no such mapper (`zms-be/health-service/README.md`).

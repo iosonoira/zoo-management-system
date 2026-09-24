@@ -105,6 +105,8 @@ infrastructure → application → domain
 - Authorization uses `@RolesAllowed` **per method** on the resource, with role names from `infrastructure/security/ZooRoles`
 - The acting user is read from `SecurityIdentity` in the resource and passed to the use case as a `String` (`performedBy`). The token never leaves `infrastructure/`
 - Every error, 401 and 403 included, returns the same body `{"message": ...}`. Without dedicated mappers the catch-all mapper would turn 401/403 into 500
+- One `ExceptionMapper` per exception (`AnimalNotFoundExceptionMapper`, `InvalidAnimalDataExceptionMapper`, …). The only catch-all is `UnexpectedExceptionMapper` on `Exception`: it logs at ERROR and returns 500
+- Never map `RuntimeException` or `Exception` without letting `WebApplicationException` keep its own status: the framework uses it for a malformed path id (404) or body (400). animal-service has a dedicated `WebApplicationExceptionMapper`; in health-service the catch-all returns `getResponse()` unchanged
 
 ---
 
@@ -179,8 +181,9 @@ public Animal getById(UUID id) {
 | REST resource | `{Entity}Resource` | `AnimalResource` |
 | Request DTO | `{Verb}{Entity}Request` | `RegisterAnimalRequest` |
 | Response DTO | `{Entity}Response` | `AnimalResponse` |
-| MapStruct mapper | `{Entity}Mapper` | `AnimalMapper` |
-| Exception handler | `{Domain}ExceptionMapper` | `ZooExceptionMapper` |
+| MapStruct mapper | `{Entity}DtoMapper`, or `{Service}DtoMapper` for one per service | `AnimalDtoMapper`, `HealthDtoMapper` |
+| Persistence mapper | `{Entity}EntityMapper` | `AnimalEntityMapper` |
+| Exception mapper | `{ExceptionName}Mapper` | `AnimalNotFoundExceptionMapper` |
 
 ---
 
