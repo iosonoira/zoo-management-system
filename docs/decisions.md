@@ -121,3 +121,28 @@ The entries below were seeded on 2026-09-24 from decisions already stated in `zm
   - `ErrorResponse` lives in `rest/dto/` and is shared by every mapper.
   - The 404 on a malformed path id is covered in `AnimalResourceIT` and `MedicalRecordResourceIT`.
   - animal-service maps an unparseable body to 400 (`JsonProcessingExceptionMapper`). health-service has no such mapper (`zms-be/health-service/README.md`).
+
+## D9. feeding-service scope, roles and deceased-animal read model
+
+- **Date**: 2026-09-27 (commits `d774c6d`..`21368c7`)
+- **Service(s)**: feeding-service, animal-service (as event producer)
+- **Context**: `feeding-service` was planned but its scope was not defined in any document: no entity, endpoint, event or role (`docs/STATE.md` at commit `b4c99e4`). It is the second service that refers to animals owned by `animal-service`, after `health-service` stored the animal id as an opaque UUID.
+- **Alternatives considered**:
+  - Scope: feeding plans only; or plans, feedings and a computed "due today" list.
+  - Events: no Kafka integration, with the animal id kept opaque as in `health-service`.
+  - Roles: plans and feedings both written by keepers and admins; or plans by admins only and feedings by all three roles.
+- **Decision**:
+  - Feeding plans (food, grams, 1 to 6 daily times, `ACTIVE`/`SUSPENDED`/`ENDED`) plus an append-only feeding log. Recurrence is stored as data; there is no scheduler.
+  - The service consumes `ANIMAL_STATUS_CHANGED` with `newStatus = DECEASED` from `zoo.animal.events`: it ends the animal's `ACTIVE` and `SUSPENDED` plans and rejects new plans for that animal with 422.
+  - Plans are written by `zoo-vet` and `zoo-admin`; feedings by `zoo-keeper` and `zoo-admin`; reads are open to all three roles.
+  - Deceased animals are kept in a local table, `deceased_animals`, filled by the consumer. There is no call to `animal-service`.
+- **Rationale** (given by the maintainer, 2026-09-27, who chose these options as the most logical ones proposed during planning):
+  - Plans plus a feeding log keep the service the same size as `health-service` and give keepers an action of their own; stored times avoid scheduling and time-zone logic.
+  - Consuming `DECEASED` makes feeding-service the first consumer with a business effect, reusing the consumer pattern of `notification-service`.
+  - Permissions follow the job: a diet is a clinical choice, feeding an animal is the keeper's work (`PRODUCT.md`, "Positioning").
+  - A local read model fed by events is the direction named after the opaque-UUID choice for `health-service`, and keeps the two services independent at runtime.
+- **Consequences**:
+  - A plan can still be created for an animal id that does not exist in `animal-service`; only ids already in `deceased_animals` are rejected.
+  - Idempotency of the consumer is per animal id, not per event id, and relies on `DECEASED` being terminal in `Animal.canTransitionTo` (`docs/events.md`).
+  - The consumer has its own dead-letter topic, `zoo.animal.events.feeding.dlq`.
+  - The frontend repeats no feeding matrix yet: there is no feeding UI.

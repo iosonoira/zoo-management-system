@@ -2,7 +2,7 @@
 
 Snapshot of what exists, what is decided but not built, and what is still open. Updated at the end of every phase.
 
-Last updated: 2026-09-24, at commit `febdaf6`.
+Last updated: 2026-09-27, at commit `dc487ba`.
 
 The three labels never mix:
 - **Implemented**: in the code on `main`. Every line cites a class or file.
@@ -80,20 +80,38 @@ Contracts and failure behaviour per service are in the service READMEs. Events a
 ## feeding-service
 
 ### Implemented
-- Nothing. `zms-be/feeding-service/` is an empty folder, and the module is not listed in `zms-be/pom.xml`.
+- Create, get and paged list of feeding plans, with an optional `animalId` filter; the list is ordered by `startedOn`, newest first (`CreateFeedingPlanService`, `GetFeedingPlanService`, `ListFeedingPlansService`, `FeedingPlanResource`, `FeedingPlanJpaRepository`).
+- Feeding plan lifecycle: `ACTIVE` → `SUSPENDED` or `ENDED`, `SUSPENDED` → `ACTIVE` or `ENDED`, with `ENDED` terminal (`FeedingPlan.canTransitionTo`, `PlanStatusTransitionTest`).
+- Recording a feeding against an `ACTIVE` plan, and a paged list of a plan's feedings ordered by `fedAt`, newest first (`RecordFeedingService`, `ListFeedingsService`, `FeedingPlanResource`, `FeedingJpaRepository`).
+- Feeding-time validation: at least one time, no nulls, no duplicates, whole minutes only, at most 6 (`CreateFeedingPlanService`); times are sorted before saving.
+- A plan cannot be created for an animal already recorded as deceased (`CreateFeedingPlanService`, `DeceasedAnimalRepository.existsByAnimalId`).
+- Role-based authorization per endpoint, with keepers recording feedings and vets/admins defining plans and their status (`@RolesAllowed` on `FeedingPlanResource`; `ZooRoles`; `FeedingSecurityIT`).
+- Audit of the acting user: `createdBy`, `updatedBy` (`V1__create_feeding_tables.sql`, `FeedingPlanResource.currentActor`).
+- Optimistic locking on feeding plans, with 409 on a conflict (`@Version` in `FeedingPlanEntity`, `FeedingPlanJpaRepository.save`, `ConcurrentFeedingPlanUpdateExceptionMapper`).
+- Concurrency safety between plan creation, feeding recording, status changes and the Kafka consumer: a per-animal Postgres advisory lock (`AnimalLock`, `PostgresAnimalLock`) serializes `CreateFeedingPlanService` and `HandleAnimalEventService` on the same animal id, and pessimistic row locks (`FeedingPlanRepository.findByIdForUpdate`, `findByAnimalIdAndStatusInForUpdate`, `FeedingPlanJpaRepository`) serialize `RecordFeedingService` and `HandleAnimalEventService` against `UpdateFeedingPlanStatusService` on the same plan (`FeedingConcurrencyIT`).
+- JSON error body on every error path (`ErrorResponse` and the `*ExceptionMapper` classes in `infrastructure/rest/`).
+- Kafka consumer of `zoo.animal.events`, own consumer group `feeding-service`: on an `ANIMAL_STATUS_CHANGED` event with `newStatus = DECEASED`, records the animal in `deceased_animals` and ends every `ACTIVE`/`SUSPENDED` plan for it; `ANIMAL_REGISTERED`, `ANIMAL_TRANSFERRED` and any other new status are read and ignored (`AnimalEventConsumer`, `HandleAnimalEventService`, `V1__create_feeding_tables.sql`). Idempotent per animal id via `deceased_animals`, not per event id. Details: [events.md](events.md#consumer-idempotency-feeding-service).
+- Dead-letter queue for any failed consumed record, on its own topic `zoo.animal.events.feeding.dlq` (`application.properties`, `failure-strategy=dead-letter-queue`).
+- Wire-format contract test against shared fixtures (`AnimalEventMessageContractTest`).
+- Prod profile configured from environment variables (`application.properties`, `%prod.*`).
+- OpenAPI with a bearer scheme (`OpenApiConfig`).
 
 ### Decided, not built
-- Feeding plans, to be implemented from scratch (overview and next-phases list in `zms-be/CLAUDE.md` at commit `febdaf6`).
+- Nothing currently recorded beyond what is implemented.
 
 ### Open
-- Scope: no entity, endpoint, event or role for feeding is defined in any document.
+- Feedings are append-only: a wrong record cannot be corrected or deleted, and no endpoint edits a plan's food, quantity or times (a new plan replaces it).
+- No REST read of `deceased_animals`, or of which plans a consumer has auto-ended. No endpoint exists.
+- No check that an animal id exists at all in `animal-service`: `CreateFeedingPlanService` only rejects ids already present in `deceased_animals`; any other UUID is accepted, the same eventual-consistency gap as `health-service`.
+- Malformed JSON body on a feeding-plan write: there is no `JsonProcessingException` mapper and no test for it, the same open item as `health-service`.
+- The animal-keyed idempotency of the Kafka consumer depends entirely on `animal-service` never allowing an animal to leave `DECEASED` (`Animal.canTransitionTo` makes it terminal). If that ever changed, a second legitimate `DECEASED` event for the same animal would be silently skipped. See [events.md, Not handled](events.md#not-handled).
 
 ## Cross-cutting
 
 ### Implemented
-- Hexagonal layout, checked by `DomainPurityTest` in all three services (no Jakarta, Quarkus, Hibernate or MapStruct imports under `domain/`).
-- Local infrastructure: three Postgres databases, Keycloak with realm `zoo`, single-node Kafka (`zms-be/infrastructure/docker-compose.yml`, `keycloak/realm-export.json`).
-- Backend CI: `mvnw verify` for the three modules on push to `main` and on pull requests touching `zms-be/` (`.github/workflows/backend-ci.yml`).
+- Hexagonal layout, checked by `DomainPurityTest` in all four services (no Jakarta, Quarkus, Hibernate or MapStruct imports under `domain/`).
+- Local infrastructure: four Postgres databases, Keycloak with realm `zoo`, single-node Kafka (`zms-be/infrastructure/docker-compose.yml`, `keycloak/realm-export.json`).
+- Backend CI: `mvnw verify` for the four modules on push to `main` and on pull requests touching `zms-be/` (`.github/workflows/backend-ci.yml`).
 
 ### Open
 - No frontend CI: the workflow only covers `zms-be/`.
@@ -116,7 +134,7 @@ Contracts and failure behaviour per service are in the service READMEs. Events a
 - Navigation that leaves room for health, feeding and notifications (`PRODUCT.md`).
 
 ### Open
-- No UI for `health-service` or notifications. The frontend calls only `/animals` and `/enclosures`.
+- No UI for `health-service`, notifications or feeding plans. The frontend calls only `/animals` and `/enclosures`.
 - Search and filtering run in the browser over the full roster; the backend has no search endpoint.
 - In live mode, any 400 on a transfer is shown as the "deceased animal" message, although the backend also returns 400 for an unknown enclosure (`toApiError`).
 - In live mode, any 422 on a status change is shown as the "same status" message, although the backend also returns 422 for a change from `DECEASED` (`toApiError`).

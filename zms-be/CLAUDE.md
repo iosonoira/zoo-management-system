@@ -223,7 +223,7 @@ Examples: `shouldRegisterAnimalWithHealthyStatus`, `shouldThrowWhenNameIsBlank`
 - Dev command, from the service folder: `./mvnw quarkus:dev` (bash) or `.\mvnw.cmd quarkus:dev` (PowerShell)
 - **Local credentials**: no secret is tracked. Each of these folders needs a git-ignored `.env`:
   - `zms-be/infrastructure/.env`, read by Docker Compose
-  - `zms-be/animal-service/.env`, `zms-be/health-service/.env` and `zms-be/notification-service/.env`, read by Quarkus in dev mode
+  - `zms-be/animal-service/.env`, `zms-be/health-service/.env`, `zms-be/feeding-service/.env` and `zms-be/notification-service/.env`, read by Quarkus in dev mode
 
   There are no `env.example` templates: the only variable list is the table in the root `README.md` ("Live mode", step 1). Keep it in sync when a variable is added. Compose stops at startup if a required variable is missing, and its error points to that table.
 
@@ -235,10 +235,12 @@ Examples: `shouldRegisterAnimalWithHealthyStatus`, `shouldThrowWhenNameIsBlank`
   | `OIDC_CLIENT_SECRET` | `OIDC_CLIENT_SECRET` in `animal-service/.env` |
   | `POSTGRES_HEALTH_USER` / `POSTGRES_HEALTH_PASSWORD` | `DB_USERNAME` / `DB_PASSWORD` in `health-service/.env` |
   | `HEALTH_OIDC_CLIENT_SECRET` | `OIDC_CLIENT_SECRET` in `health-service/.env` |
+  | `POSTGRES_FEEDING_USER` / `POSTGRES_FEEDING_PASSWORD` | `DB_USERNAME` / `DB_PASSWORD` in `feeding-service/.env` |
+  | `FEEDING_OIDC_CLIENT_SECRET` | `OIDC_CLIENT_SECRET` in `feeding-service/.env` |
   | `POSTGRES_NOTIFICATION_USER` / `POSTGRES_NOTIFICATION_PASSWORD` | `DB_USERNAME` / `DB_PASSWORD` in `notification-service/.env` |
 
-  At import, the Keycloak realm substitutes `${ANIMAL_SERVICE_CLIENT_SECRET}`, `${HEALTH_SERVICE_CLIENT_SECRET}` and `${ZOO_TEST_USER_PASSWORD}`. Compose fills them from `OIDC_CLIENT_SECRET`, `HEALTH_OIDC_CLIENT_SECRET` and `ZOO_TEST_USER_PASSWORD`.
-- **Dev Services**: `%dev.quarkus.devservices.enabled=false` is set in all three services, and only for `%dev`. In dev mode no Dev Service starts (Postgres, Kafka, Keycloak), and the services use the containers from `docker-compose.yml`. In `%test`, Dev Services stay on (see "Infrastructure layer tests")
+  At import, the Keycloak realm substitutes `${ANIMAL_SERVICE_CLIENT_SECRET}`, `${HEALTH_SERVICE_CLIENT_SECRET}`, `${FEEDING_SERVICE_CLIENT_SECRET}` and `${ZOO_TEST_USER_PASSWORD}`. Compose fills them from `OIDC_CLIENT_SECRET`, `HEALTH_OIDC_CLIENT_SECRET`, `FEEDING_OIDC_CLIENT_SECRET` and `ZOO_TEST_USER_PASSWORD`.
+- **Dev Services**: `%dev.quarkus.devservices.enabled=false` is set in all four services, and only for `%dev`. In dev mode no Dev Service starts (Postgres, Kafka, Keycloak), and the services use the containers from `docker-compose.yml`. In `%test`, Dev Services stay on (see "Infrastructure layer tests")
 
 ---
 

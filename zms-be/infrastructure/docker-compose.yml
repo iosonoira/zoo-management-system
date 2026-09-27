@@ -19,6 +19,16 @@ services:
       - "5433:5432"
     volumes:
       - health_data:/var/lib/postgresql/data
+  postgres-feeding:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_FEEDING_DB:-feeding_db}
+      POSTGRES_USER: ${POSTGRES_FEEDING_USER:-zoo}
+      POSTGRES_PASSWORD: ${POSTGRES_FEEDING_PASSWORD:?set it in zms-be/infrastructure/.env, see the Live mode table in the root README}
+    ports:
+      - "5435:5432"
+    volumes:
+      - feeding_data:/var/lib/postgresql/data
   keycloak:
     image: quay.io/keycloak/keycloak:26.0
     command: ["start-dev", "--import-realm"]
@@ -27,6 +37,7 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?set it in zms-be/infrastructure/.env, see the Live mode table in the root README}
       ANIMAL_SERVICE_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:?set it in zms-be/infrastructure/.env, see the Live mode table in the root README}
       HEALTH_SERVICE_CLIENT_SECRET: ${HEALTH_OIDC_CLIENT_SECRET:?set it in zms-be/infrastructure/.env, see the Live mode table in the root README}
+      FEEDING_SERVICE_CLIENT_SECRET: ${FEEDING_OIDC_CLIENT_SECRET:?set it in zms-be/infrastructure/.env, see the Live mode table in the root README}
       ZOO_TEST_USER_PASSWORD: ${ZOO_TEST_USER_PASSWORD:?set it in zms-be/infrastructure/.env, see the Live mode table in the root README}
     ports:
       - "8081:8080"
@@ -53,4 +64,5 @@ services:
 volumes:
   animal_data:
   health_data:
+  feeding_data:
   notification_data:
