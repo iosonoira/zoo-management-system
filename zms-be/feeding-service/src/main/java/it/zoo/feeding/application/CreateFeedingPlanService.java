@@ -51,6 +51,9 @@ public class CreateFeedingPlanService implements CreateFeedingPlanUseCase {
         if (cmd.feedingTimes().stream().anyMatch(t -> t == null)) {
             throw new InvalidFeedingDataException("Feeding times must not contain null elements");
         }
+        if (cmd.feedingTimes().stream().anyMatch(t -> t.getSecond() != 0 || t.getNano() != 0)) {
+            throw new InvalidFeedingDataException("Feeding times must be whole minutes");
+        }
         if (cmd.feedingTimes().size() > 6) {
             throw new InvalidFeedingDataException("At most 6 feeding times are allowed");
         }

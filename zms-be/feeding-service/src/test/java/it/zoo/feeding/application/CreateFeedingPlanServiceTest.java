@@ -164,6 +164,15 @@ class CreateFeedingPlanServiceTest {
     }
 
     @Test
+    void shouldThrowWhenFeedingTimeHasSeconds() {
+        CreateFeedingPlanCommand cmd = new CreateFeedingPlanCommand(
+                UUID.randomUUID(), "Hay", 500, List.of(LocalTime.of(9, 0, 30)), null, "keeper");
+
+        assertThrows(InvalidFeedingDataException.class, () -> service.create(cmd));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
     void shouldThrowWhenAnimalIsDeceased() {
         when(deceasedAnimals.existsByAnimalId(any())).thenReturn(true);
         CreateFeedingPlanCommand cmd = validCommand();
