@@ -37,18 +37,22 @@ flowchart LR
   FE -- "login (PKCE)" --> KC["Keycloak :8081<br/>realm zoo"]
   AS -. "OIDC" .-> KC
   HS["health-service<br/>:8082"] -. "OIDC" .-> KC
+  FDS["feeding-service<br/>:8084"] -. "OIDC" .-> KC
   AS --> ADB[("animal_db<br/>animals, enclosures,<br/>outbox_event")]
   HS --> HDB[("health_db<br/>medical records,<br/>treatments")]
+  FDS --> FDB[("feeding_db<br/>feeding_plans, feedings,<br/>deceased_animals")]
   AS -- "OutboxRelay" --> K[["Kafka<br/>zoo.animal.events"]]
   K --> NS["notification-service<br/>:8083"]
+  K --> FDS
   NS --> NDB[("notification_db")]
   NS -. "failed records" .-> DLQ[["zoo.animal.events.dlq"]]
+  FDS -. "failed records" .-> FDLQ[["zoo.animal.events.feeding.dlq"]]
 ```
 
 - **animal-service**: registers animals, changes their status, transfers them between enclosures, and lists enclosures. Publishes animal events through a transactional outbox. [README](zms-be/animal-service/README.md)
 - **health-service**: medical records and treatments. Refers to animals by id only, with no call to animal-service. It has a REST API but no UI yet. [README](zms-be/health-service/README.md)
 - **notification-service**: consumes animal events and stores one notification per event. No REST API. [README](zms-be/notification-service/README.md)
-- **feeding-service**: not started.
+- **feeding-service**: feeding plans and feedings. Consumes animal events to end an animal's active/suspended plans when it is declared deceased. It has a REST API but no UI yet. [README](zms-be/feeding-service/README.md)
 
 Each service has its own Postgres database and follows the same hexagonal layout (`infrastructure → application → domain`).
 
@@ -57,6 +61,7 @@ Each service has its own Postgres database and follows the same hexagonal layout
 1. A write use case in `animal-service` saves the animal and inserts an `outbox_event` row in the same transaction.
 2. `OutboxRelay` runs every 2 seconds and sends unpublished rows to `zoo.animal.events` in order, keyed by animal id.
 3. `notification-service` consumes the event, skips it if its `eventId` was already stored, and saves a notification. A record that fails for any reason goes to `zoo.animal.events.dlq`.
+4. `feeding-service` independently consumes the same topic. It ignores everything except an `ANIMAL_STATUS_CHANGED` event with `newStatus = DECEASED`, on which it records the animal and ends its active/suspended feeding plans, skipping the animal if already recorded. A record it cannot process goes to its own `zoo.animal.events.feeding.dlq`.
 
 Delivery is at-least-once. Events, payloads, ordering, duplicates and unhandled cases are in [docs/events.md](docs/events.md).
 
@@ -81,8 +86,8 @@ From [docs/STATE.md](docs/STATE.md), which has the full list:
 - `notification-service` sends valid events to the DLQ on a database failure instead of retrying. Nothing reads the DLQ.
 - Notifications have no recipients, no delivery channel and no API.
 - There is no server-side search. The frontend loads the whole roster and filters in the browser.
-- The frontend has no screens for medical records or notifications.
-- `feeding-service` is not started, and its scope is not defined.
+- The frontend has no screens for medical records, notifications or feeding plans.
+- `feeding-service` only rejects a feeding plan for an animal already recorded as deceased; it never checks that an animal id exists at all.
 - In the prod profile there is no way to create enclosures.
 
 ## Run it
@@ -107,14 +112,15 @@ Needs Docker, Java 21, Node and pnpm.
 
    | Folder | Required | Optional (default) |
    |---|---|---|
-   | `zms-be/infrastructure` | `POSTGRES_PASSWORD`, `POSTGRES_HEALTH_PASSWORD`, `POSTGRES_NOTIFICATION_PASSWORD`, `KEYCLOAK_ADMIN_PASSWORD`, `OIDC_CLIENT_SECRET`, `HEALTH_OIDC_CLIENT_SECRET`, `ZOO_TEST_USER_PASSWORD` | `POSTGRES_USER`, `POSTGRES_HEALTH_USER`, `POSTGRES_NOTIFICATION_USER` (`zoo`); `KEYCLOAK_ADMIN_USERNAME` (`admin`) |
+   | `zms-be/infrastructure` | `POSTGRES_PASSWORD`, `POSTGRES_HEALTH_PASSWORD`, `POSTGRES_FEEDING_PASSWORD`, `POSTGRES_NOTIFICATION_PASSWORD`, `KEYCLOAK_ADMIN_PASSWORD`, `OIDC_CLIENT_SECRET`, `HEALTH_OIDC_CLIENT_SECRET`, `FEEDING_OIDC_CLIENT_SECRET`, `ZOO_TEST_USER_PASSWORD` | `POSTGRES_USER`, `POSTGRES_HEALTH_USER`, `POSTGRES_FEEDING_USER`, `POSTGRES_NOTIFICATION_USER` (`zoo`); `KEYCLOAK_ADMIN_USERNAME` (`admin`) |
    | `zms-be/animal-service` | `DB_PASSWORD`, `OIDC_CLIENT_SECRET` | `DB_USERNAME` (`zoo`) |
    | `zms-be/health-service` | `DB_PASSWORD`, `OIDC_CLIENT_SECRET` | `DB_USERNAME` (`zoo`) |
+   | `zms-be/feeding-service` | `DB_PASSWORD`, `OIDC_CLIENT_SECRET` | `DB_USERNAME` (`zoo`) |
    | `zms-be/notification-service` | `DB_PASSWORD` | `DB_USERNAME` (`zoo`) |
 
    Source: `zms-be/infrastructure/docker-compose.yml` and each service's `application.properties`. You only need the `.env` of the services you run.
 
-2. **Start the infrastructure** (three Postgres databases, Keycloak, Kafka):
+2. **Start the infrastructure** (four Postgres databases, Keycloak, Kafka):
    ```bash
    cd zms-be/infrastructure
    docker compose up -d
@@ -127,7 +133,7 @@ Needs Docker, Java 21, Node and pnpm.
    ```powershell
    .\mvnw.cmd quarkus:dev
    ```
-   `health-service` (:8082) and `notification-service` (:8083) start the same way from their own folders. The frontend needs only `animal-service`.
+   `health-service` (:8082), `feeding-service` (:8084) and `notification-service` (:8083) start the same way from their own folders. The frontend needs only `animal-service`.
 
 4. **Start the frontend in live mode** on :4200:
    ```bash

@@ -52,6 +52,7 @@ Not a generic admin panel over a CRUD table: the UI is shaped by the zoo's actua
 
 - `zms-be/health-service`: medical records and treatments. Reads are open to all three roles; writes are vet and admin. Endpoints are listed in [its README](zms-be/health-service/README.md).
 - `zms-be/notification-service`: stores a notification for every animal event it receives from Kafka. It has no REST API ([README](zms-be/notification-service/README.md)).
+- `zms-be/feeding-service`: feeding plans and feedings. Reads are open to all three roles; vets and admins create plans and change their status, keepers (and admins) record feedings. It also consumes animal events to end a plan when its animal is declared deceased. Endpoints are listed in [its README](zms-be/feeding-service/README.md).
 
 **Domain terminology** (use these terms consistently in the UI):
 
@@ -66,7 +67,7 @@ Not a generic admin panel over a CRUD table: the UI is shaped by the zoo's actua
 - Frontend: Angular 22 with SSR (`zms-fe/`), standalone components, signals, Signal Forms, each component split in `.ts` / `.html` / `.scss`; only official angular.dev documentation as source (binding rules in `zms-fe/CLAUDE.md`).
 - Search and filtering happen in the browser. The API has paging on `GET /animals` but no search or filter parameter. The frontend loads every page, then filters by status and searches by name, species or 4-character tag (`zms-fe/src/app/features/animals/animal-list/animal-list.ts`). `GET /enclosures` returns the full list without paging.
 
-**Not in the UI yet** (do not show as working features or empty placeholders): clinical records and treatments (`health-service` exists, with no UI), notifications (`notification-service` exists, with no API or UI), feeding plans (`feeding-service` not started). The navigation should leave room for them.
+**Not in the UI yet** (do not show as working features or empty placeholders): clinical records and treatments (`health-service` exists, with no UI), notifications (`notification-service` exists, with no API or UI), feeding plans (`feeding-service` exists, with no UI). The navigation should leave room for them.
 
 **Open decisions**: dashboard/home content.
 
