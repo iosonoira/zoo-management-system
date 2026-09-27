@@ -16,7 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -159,9 +159,29 @@ class HandleAnimalEventServiceTest {
         verify(feedingPlans, times(2)).save(planCaptor.capture());
         for (FeedingPlan saved : planCaptor.getAllValues()) {
             assertEquals(PlanStatus.ENDED, saved.getStatus());
-            assertEquals(LocalDate.ofInstant(occurredAt, ZoneOffset.UTC), saved.getEndedOn());
+            assertEquals(LocalDate.ofInstant(occurredAt, ZoneId.systemDefault()), saved.getEndedOn());
             assertEquals("zoo-vet", saved.getUpdatedBy());
         }
+    }
+
+    @Test
+    void shouldNotEndPlanBeforeItStarted() {
+        UUID animalId = UUID.randomUUID();
+        Instant occurredAt = Instant.parse("2026-09-23T10:15:30Z");
+        HandleAnimalEventCommand cmd = new HandleAnimalEventCommand(
+                UUID.randomUUID(), "ANIMAL_STATUS_CHANGED", animalId, occurredAt, "zoo-vet", "DECEASED");
+
+        when(deceasedAnimals.existsByAnimalId(animalId)).thenReturn(false);
+        LocalDate startedAfterDeath = LocalDate.of(2026, 9, 25);
+        FeedingPlan plan = new FeedingPlan(UUID.randomUUID(), animalId, "Hay", 500,
+                List.of(), null, PlanStatus.ACTIVE, startedAfterDeath);
+        when(feedingPlans.findByAnimalIdAndStatusIn(eq(animalId), any(Collection.class)))
+                .thenReturn(List.of(plan));
+        when(feedingPlans.save(any(FeedingPlan.class))).thenAnswer(i -> i.getArgument(0));
+
+        service.handle(cmd);
+
+        assertEquals(startedAfterDeath, plan.getEndedOn());
     }
 
     @Test

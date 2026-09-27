@@ -26,7 +26,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
@@ -82,7 +82,7 @@ class AnimalEventConsumerIT {
         await().atMost(Duration.ofSeconds(20)).untilAsserted(() ->
                 assertEquals(PlanStatus.ENDED, planStatus(suspendedPlanId)));
 
-        LocalDate expectedEndedOn = LocalDate.ofInstant(occurredAt, ZoneOffset.UTC);
+        LocalDate expectedEndedOn = LocalDate.ofInstant(occurredAt, ZoneId.systemDefault());
         assertEquals(expectedEndedOn, planEndedOn(activePlanId));
         assertEquals("zoo-vet", planUpdatedBy(activePlanId));
         assertEquals(expectedEndedOn, planEndedOn(suspendedPlanId));

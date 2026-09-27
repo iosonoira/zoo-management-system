@@ -13,7 +13,7 @@ import jakarta.transaction.Transactional;
 import org.jboss.logging.Logger;
 
 import java.time.LocalDate;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -71,14 +71,14 @@ public class HandleAnimalEventService implements HandleAnimalEventUseCase {
         String updatedBy = (command.performedBy() == null || command.performedBy().isBlank())
                 ? DEFAULT_PERFORMED_BY
                 : command.performedBy();
-        LocalDate endedOn = LocalDate.ofInstant(command.occurredAt(), ZoneOffset.UTC);
+        LocalDate diedOn = LocalDate.ofInstant(command.occurredAt(), ZoneId.systemDefault());
 
         List<FeedingPlan> plansToEnd = feedingPlans.findByAnimalIdAndStatusIn(
                 command.animalId(), EnumSet.of(PlanStatus.ACTIVE, PlanStatus.SUSPENDED));
 
         for (FeedingPlan plan : plansToEnd) {
             plan.setStatus(PlanStatus.ENDED);
-            plan.setEndedOn(endedOn);
+            plan.setEndedOn(diedOn.isBefore(plan.getStartedOn()) ? plan.getStartedOn() : diedOn);
             plan.setUpdatedBy(updatedBy);
             feedingPlans.save(plan);
         }
