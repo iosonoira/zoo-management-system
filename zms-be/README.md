@@ -31,7 +31,7 @@ In `health-service`, `DomainPurityTest` fails the build if anything under `domai
 
 ## Local configuration
 
-No secret is committed. In each of these folders, copy `env.example` to `.env`:
+No secret is committed and there are no `.env` templates. Create a git-ignored `.env` in each of these folders, with the variables listed in the root README ([Live mode](../README.md#live-mode-frontend--backend--keycloak), step 1):
 
 - `infrastructure/`, read by Docker Compose
 - `animal-service/`, `health-service/`, `notification-service/`, read by Quarkus in dev mode

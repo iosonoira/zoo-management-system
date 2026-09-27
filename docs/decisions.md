@@ -24,15 +24,19 @@ The entries below were seeded on 2026-09-24 from decisions already stated in `zm
 
 ## D2. Repository pattern instead of Active Record
 
-- **Date**: 2026-06-28 (commit `e4adb15`; rule recorded in `zms-be/CLAUDE.md`, commit `0c78602`)
+- **Date**: 2026-06-28 (commits `cf10ae6` and `ed04eca`; rule recorded in `zms-be/CLAUDE.md`, commit `0c78602`)
 - **Service(s)**: animal-service, health-service, notification-service
-- **Context**: Quarkus Panache supports both Active Record (`extends PanacheEntity`) and Repository.
-- **Alternatives considered**: Active Record (`extends PanacheEntity`) (`zms-be/CLAUDE.md`).
-- **Decision**: Use the Repository pattern. JPA entities live only in `infrastructure/persistence/`, and the application layer works on domain objects (`zms-be/CLAUDE.md`).
-- **Rationale**: not recorded.
+- **Context**: The domain defines its own repository ports (`port/out`), whose methods take and return domain objects, such as `Optional<Animal> findById(UUID)`. Quarkus Panache offers two styles: Active Record (`extends PanacheEntity`) and Repository (`implements PanacheRepository<E>`).
+- **Alternatives considered**:
+  - Active Record (`extends PanacheEntity`): puts persistence on the entity (`zms-be/CLAUDE.md`).
+  - An adapter that implements both `PanacheRepositoryBase<E, ID>` and the domain port. Tried first (`cf10ae6`) and dropped in `ed04eca`.
+  - Renaming the port methods to avoid the clash. Not taken: the domain would change shape to suit the framework.
+- **Decision**: Use the Repository pattern. JPA entities live only in `infrastructure/persistence/`, and the application layer works on domain objects. Each repository adapter implements only the domain port and works through an injected `EntityManager` (`{Entity}JpaRepository`).
+- **Rationale**: Panache's `findById(ID)` returns the entity and `findAll()` returns a `PanacheQuery`, while the port's methods with the same names and parameters return domain types. A class cannot declare both, so an adapter implementing both interfaces does not compile (commit message of `ed04eca`).
 - **Consequences**:
   - No class extends `PanacheEntity`.
-  - The domain repository adapters (`AnimalPanacheRepository`, `EnclosurePanacheRepository`, `MedicalRecordPanacheRepository`, `TreatmentPanacheRepository`, `NotificationPanacheRepository`) implement the domain port with an injected `EntityManager`, not `PanacheRepository<E>` as the text in `zms-be/CLAUDE.md` says. `OutboxEventRepository` is the only `PanacheRepositoryBase`.
+  - The five adapters (`AnimalJpaRepository`, `EnclosureJpaRepository`, `MedicalRecordJpaRepository`, `TreatmentJpaRepository`, `NotificationJpaRepository`) write their own JPQL instead of using Panache helpers.
+  - `OutboxEventRepository` implements no domain port, so it uses `PanacheRepositoryBase`. It is the only Panache user, so only `animal-service` depends on `quarkus-hibernate-orm-panache`. `health-service` and `notification-service` depend on `quarkus-hibernate-orm`.
   - Each entity has a hand-written mapper to and from the domain model (`*EntityMapper`).
 
 ## D3. Transactional outbox for animal events
@@ -100,3 +104,20 @@ The entries below were seeded on 2026-09-24 from decisions already stated in `zm
   - The `zms-fe` client accepts redirects only to `http://localhost:4200/*` (`realm-export.json`).
   - The bearer token is attached only to requests to `environment.apiBaseUrl` (`keycloak-providers.ts`).
   - Keycloak code is loaded only in the browser and only in live mode (`main.ts`, `app.routes.ts`).
+
+## D8. One exception mapper per exception
+
+- **Date**: 2026-09-20 for animal-service (commit `c85635b`); 2026-09-21 for health-service (commit `e6adca7`)
+- **Service(s)**: animal-service, health-service
+- **Context**: Each service turns exceptions into HTTP responses with the body `{"message": ...}`. Until `c85635b`, animal-service did it with a single `ZooExceptionMapper` on `RuntimeException` (commit `042e651`), which chose the status with `instanceof` checks and returned 500 for anything else.
+- **Alternatives considered**: the single `ZooExceptionMapper` on `RuntimeException`, replaced by this decision.
+- **Decision**:
+  - One `ExceptionMapper` per domain exception (`AnimalNotFoundExceptionMapper`, `InvalidAnimalDataExceptionMapper`, …).
+  - A catch-all `UnexpectedExceptionMapper` on `Exception` that logs at ERROR and returns 500 `Internal server error`.
+  - `WebApplicationException` keeps the status the framework gave it: a dedicated `WebApplicationExceptionMapper` in animal-service, a pass-through of `getResponse()` in the health-service catch-all.
+- **Rationale** (commit message of `c85635b`): because `ZooExceptionMapper` mapped `RuntimeException`, it also caught the framework's `WebApplicationException`. A malformed UUID in the path answered 500 instead of 404, and an unparseable body 500 instead of 400. It also returned 500 without logging anything.
+- **Consequences**:
+  - Adding a domain exception means adding its mapper. Without one it reaches the catch-all and answers 500.
+  - `ErrorResponse` lives in `rest/dto/` and is shared by every mapper.
+  - The 404 on a malformed path id is covered in `AnimalResourceIT` and `MedicalRecordResourceIT`.
+  - animal-service maps an unparseable body to 400 (`JsonProcessingExceptionMapper`). health-service has no such mapper (`zms-be/health-service/README.md`).

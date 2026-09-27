@@ -8,11 +8,11 @@ import jakarta.persistence.EntityManager;
 import java.util.UUID;
 
 @ApplicationScoped
-public class NotificationPanacheRepository implements NotificationRepository {
+public class NotificationJpaRepository implements NotificationRepository {
 
     private final EntityManager em;
 
-    public NotificationPanacheRepository(EntityManager em) {
+    public NotificationJpaRepository(EntityManager em) {
         this.em = em;
     }
 

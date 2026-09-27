@@ -9,11 +9,11 @@ import java.util.List;
 import java.util.UUID;
 
 @ApplicationScoped
-public class EnclosurePanacheRepository implements EnclosureRepository {
+public class EnclosureJpaRepository implements EnclosureRepository {
 
     private final EntityManager em;
 
-    public EnclosurePanacheRepository(EntityManager em) {
+    public EnclosureJpaRepository(EntityManager em) {
         this.em = em;
     }
 

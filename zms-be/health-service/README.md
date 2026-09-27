@@ -27,7 +27,7 @@ Does not:
 | Reason ≤ 200, diagnosis ≤ 1000, veterinarian ≤ 100, treatment description ≤ 500 characters | `CreateMedicalRecordRequest`, `PrescribeTreatmentRequest` | 400 |
 | A treatment needs an existing medical record | `PrescribeTreatmentService`, foreign key in `V1` | 404 (`MedicalRecordNotFoundException`) |
 | Page ≥ 0, 1 ≤ size ≤ 100 | `ListMedicalRecordsService`, `ListMedicalRecordsUseCase.MAX_PAGE_SIZE` | 400 |
-| Concurrent writes to the same treatment: the second one fails | `@Version`, `TreatmentPanacheRepository` | 409 (`ConcurrentTreatmentUpdateException`) |
+| Concurrent writes to the same treatment: the second one fails | `@Version`, `TreatmentJpaRepository` | 409 (`ConcurrentTreatmentUpdateException`) |
 
 `veterinarian` is free text supplied by the client. It is stored separately from `createdBy`, which is the authenticated user (`MedicalRecordResource.currentActor`), and nothing compares the two.
 
@@ -62,5 +62,5 @@ Events produced: none. Events consumed: none.
 - Should creating a medical record, or prescribing or activating a treatment, be refused for an unknown or `DECEASED` animal? Nothing checks it today.
 - What should happen to open treatments when an animal becomes `DECEASED`? `health-service` does not consume `ANIMAL_STATUS_CHANGED`.
 - What does a malformed JSON body return? In `animal-service` the same case needed a dedicated mapper to avoid a 500; here there is none and no test.
-- Treatments in `GET /medical-records/{id}` are ordered by id, which is a random UUID (`TreatmentPanacheRepository`). Is a date order expected?
+- Treatments in `GET /medical-records/{id}` are ordered by id, which is a random UUID (`TreatmentJpaRepository`). Is a date order expected?
 - `ConcurrentMedicalRecordUpdateException` is mapped to 409, but no use case updates a medical record. Is a record update planned?

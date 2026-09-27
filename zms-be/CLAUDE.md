@@ -51,7 +51,7 @@ src/main/java/it/zoo/animal/
 │   └── {Name}Service.java
 │
 └── infrastructure/
-    ├── persistence/    ← JPA adapter (entity, panache repository)
+    ├── persistence/    ← JPA adapter (entity, entity mapper, JPA repository)
     ├── rest/           ← REST adapter (resource, DTO, mapper, exception handler)
     └── event/          ← Kafka adapter (producer, consumer)
 ```
@@ -93,7 +93,9 @@ infrastructure → application → domain
 ### infrastructure/: rules
 
 - JPA `@Entity` classes live in `infrastructure/persistence/`, **never** in the domain
-- The Panache pattern is **Repository** (`implements PanacheRepository<E>`), **not** Active Record (`extends PanacheEntity`)
+- Persistence uses the **Repository** pattern, **not** Active Record (`extends PanacheEntity`)
+- A repository adapter implements the domain port (`implements AnimalRepository`) and works through an injected `EntityManager`. It does **not** also implement `PanacheRepository<E>`: Panache's `findById(id)` returns the entity, the port's `findById(id)` returns `Optional<Animal>`, and a class cannot have both
+- `PanacheRepositoryBase` is fine for a repository that implements no domain port (`OutboxEventRepository`)
 - Request/response DTOs live in `infrastructure/rest/`, never in the domain or the application
 - Bean Validation (`@NotNull`, `@NotBlank`, `@Valid`) is allowed **only** on DTOs in `infrastructure/rest/`
 - MapStruct mappers live in `infrastructure/rest/mapper/`
@@ -103,6 +105,8 @@ infrastructure → application → domain
 - Authorization uses `@RolesAllowed` **per method** on the resource, with role names from `infrastructure/security/ZooRoles`
 - The acting user is read from `SecurityIdentity` in the resource and passed to the use case as a `String` (`performedBy`). The token never leaves `infrastructure/`
 - Every error, 401 and 403 included, returns the same body `{"message": ...}`. Without dedicated mappers the catch-all mapper would turn 401/403 into 500
+- One `ExceptionMapper` per exception (`AnimalNotFoundExceptionMapper`, `InvalidAnimalDataExceptionMapper`, …). The only catch-all is `UnexpectedExceptionMapper` on `Exception`: it logs at ERROR and returns 500
+- Never map `RuntimeException` or `Exception` without letting `WebApplicationException` keep its own status: the framework uses it for a malformed path id (404) or body (400). animal-service has a dedicated `WebApplicationExceptionMapper`; in health-service the catch-all returns `getResponse()` unchanged
 
 ---
 
@@ -173,12 +177,13 @@ public Animal getById(UUID id) {
 | Application service | `{Verb}{Entity}Service` | `RegisterAnimalService` |
 | Repository port (out) | `{Entity}Repository` | `AnimalRepository` |
 | JPA entity | `{Entity}Entity` | `AnimalEntity` |
-| Panache repo adapter | `{Entity}PanacheRepository` | `AnimalPanacheRepository` |
+| Repository adapter | `{Entity}JpaRepository` | `AnimalJpaRepository` |
 | REST resource | `{Entity}Resource` | `AnimalResource` |
 | Request DTO | `{Verb}{Entity}Request` | `RegisterAnimalRequest` |
 | Response DTO | `{Entity}Response` | `AnimalResponse` |
-| MapStruct mapper | `{Entity}Mapper` | `AnimalMapper` |
-| Exception handler | `{Domain}ExceptionMapper` | `ZooExceptionMapper` |
+| MapStruct mapper | `{Entity}DtoMapper`, or `{Service}DtoMapper` for one per service | `AnimalDtoMapper`, `HealthDtoMapper` |
+| Persistence mapper | `{Entity}EntityMapper` | `AnimalEntityMapper` |
+| Exception mapper | `{ExceptionName}Mapper` | `AnimalNotFoundExceptionMapper` |
 
 ---
 
@@ -220,7 +225,7 @@ Examples: `shouldRegisterAnimalWithHealthyStatus`, `shouldThrowWhenNameIsBlank`
   - `zms-be/infrastructure/.env`, read by Docker Compose
   - `zms-be/animal-service/.env`, `zms-be/health-service/.env` and `zms-be/notification-service/.env`, read by Quarkus in dev mode
 
-  Only `notification-service/env.example` exists. The `env.example` files of `infrastructure`, `animal-service` and `health-service` were removed in `15ba49f`. The variable list is in the root `README.md` ("Live mode"). Compose stops at startup if a required variable is missing.
+  There are no `env.example` templates: the only variable list is the table in the root `README.md` ("Live mode", step 1). Keep it in sync when a variable is added. Compose stops at startup if a required variable is missing, and its error points to that table.
 
   These pairs must match:
 

@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-animal_db}
       POSTGRES_USER: ${POSTGRES_USER:-zoo}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?copy env.example to .env first}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set it in zms-be/infrastructure/.env, see the Live mode table in the root README}
     ports:
       - "5432:5432"
     volumes:
@@ -14,7 +14,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_HEALTH_DB:-health_db}
       POSTGRES_USER: ${POSTGRES_HEALTH_USER:-zoo}
-      POSTGRES_PASSWORD: ${POSTGRES_HEALTH_PASSWORD:?copy env.example to .env first}
+      POSTGRES_PASSWORD: ${POSTGRES_HEALTH_PASSWORD:?set it in zms-be/infrastructure/.env, see the Live mode table in the root README}
     ports:
       - "5433:5432"
     volumes:
@@ -24,10 +24,10 @@ services:
     command: ["start-dev", "--import-realm"]
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
-      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?copy env.example to .env first}
-      ANIMAL_SERVICE_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:?copy env.example to .env first}
-      HEALTH_SERVICE_CLIENT_SECRET: ${HEALTH_OIDC_CLIENT_SECRET:?copy env.example to .env first}
-      ZOO_TEST_USER_PASSWORD: ${ZOO_TEST_USER_PASSWORD:?copy env.example to .env first}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?set it in zms-be/infrastructure/.env, see the Live mode table in the root README}
+      ANIMAL_SERVICE_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:?set it in zms-be/infrastructure/.env, see the Live mode table in the root README}
+      HEALTH_SERVICE_CLIENT_SECRET: ${HEALTH_OIDC_CLIENT_SECRET:?set it in zms-be/infrastructure/.env, see the Live mode table in the root README}
+      ZOO_TEST_USER_PASSWORD: ${ZOO_TEST_USER_PASSWORD:?set it in zms-be/infrastructure/.env, see the Live mode table in the root README}
     ports:
       - "8081:8080"
     volumes:
@@ -44,7 +44,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_NOTIFICATION_DB:-notification_db}
       POSTGRES_USER: ${POSTGRES_NOTIFICATION_USER:-zoo}
-      POSTGRES_PASSWORD: ${POSTGRES_NOTIFICATION_PASSWORD:?copy env.example to .env first}
+      POSTGRES_PASSWORD: ${POSTGRES_NOTIFICATION_PASSWORD:?set it in zms-be/infrastructure/.env, see the Live mode table in the root README}
     ports:
       - "5434:5432"
     volumes:

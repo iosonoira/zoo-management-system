@@ -12,11 +12,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 @ApplicationScoped
-public class TreatmentPanacheRepository implements TreatmentRepository {
+public class TreatmentJpaRepository implements TreatmentRepository {
 
     private final EntityManager em;
 
-    public TreatmentPanacheRepository(EntityManager em) {
+    public TreatmentJpaRepository(EntityManager em) {
         this.em = em;
     }
 

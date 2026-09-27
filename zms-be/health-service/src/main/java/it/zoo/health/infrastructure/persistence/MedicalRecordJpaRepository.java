@@ -13,11 +13,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 @ApplicationScoped
-public class MedicalRecordPanacheRepository implements MedicalRecordRepository {
+public class MedicalRecordJpaRepository implements MedicalRecordRepository {
 
     private final EntityManager em;
 
-    public MedicalRecordPanacheRepository(EntityManager em) {
+    public MedicalRecordJpaRepository(EntityManager em) {
         this.em = em;
     }
 

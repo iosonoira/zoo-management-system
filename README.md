@@ -110,7 +110,7 @@ Needs Docker, Java 21, Node and pnpm.
    | `zms-be/infrastructure` | `POSTGRES_PASSWORD`, `POSTGRES_HEALTH_PASSWORD`, `POSTGRES_NOTIFICATION_PASSWORD`, `KEYCLOAK_ADMIN_PASSWORD`, `OIDC_CLIENT_SECRET`, `HEALTH_OIDC_CLIENT_SECRET`, `ZOO_TEST_USER_PASSWORD` | `POSTGRES_USER`, `POSTGRES_HEALTH_USER`, `POSTGRES_NOTIFICATION_USER` (`zoo`); `KEYCLOAK_ADMIN_USERNAME` (`admin`) |
    | `zms-be/animal-service` | `DB_PASSWORD`, `OIDC_CLIENT_SECRET` | `DB_USERNAME` (`zoo`) |
    | `zms-be/health-service` | `DB_PASSWORD`, `OIDC_CLIENT_SECRET` | `DB_USERNAME` (`zoo`) |
-   | `zms-be/notification-service` | `DB_PASSWORD` (template: `env.example` in the same folder) | `DB_USERNAME` (`zoo`) |
+   | `zms-be/notification-service` | `DB_PASSWORD` | `DB_USERNAME` (`zoo`) |
 
    Source: `zms-be/infrastructure/docker-compose.yml` and each service's `application.properties`. You only need the `.env` of the services you run.
 
@@ -158,7 +158,7 @@ The Keycloak admin console is at http://localhost:8081 (`KEYCLOAK_ADMIN_USERNAME
 All commands below work in bash and PowerShell. Run them from `zms-be/infrastructure`.
 
 **`docker compose` fails with "required variable ... is missing a value".**
-`zms-be/infrastructure/.env` is missing one of the required variables in the table above. Compose checks all services at once, so a single missing variable blocks everything. The error text says "copy env.example to .env first", but that folder has no `env.example`; use the table.
+`zms-be/infrastructure/.env` is missing one of the required variables in the table above. Compose checks all services at once, so a single missing variable blocks everything. The error names the missing variable.
 
 **Login says "Invalid username or password" for users that should exist.**
 Keycloak imports the realm only when it does not exist yet, and this setup keeps no Keycloak volume, so recreating the container re-imports it:

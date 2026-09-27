@@ -12,11 +12,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 @ApplicationScoped
-public class AnimalPanacheRepository implements AnimalRepository {
+public class AnimalJpaRepository implements AnimalRepository {
 
     private final EntityManager em;
 
-    public AnimalPanacheRepository(EntityManager em) {
+    public AnimalJpaRepository(EntityManager em) {
         this.em = em;
     }
 

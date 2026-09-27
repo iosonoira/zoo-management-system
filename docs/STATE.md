@@ -16,13 +16,13 @@ Contracts and failure behaviour per service are in the service READMEs. Events a
 ### Implemented
 - Register, get, paged list, status change and transfer of animals (`RegisterAnimalService`, `GetAnimalService`, `ListAnimalsService`, `UpdateAnimalStatusService`, `TransferAnimalService`, `AnimalResource`).
 - Status rules: `DECEASED` is terminal, a change to the same status is rejected, and a `DECEASED` animal cannot be transferred (`Animal.canTransitionTo`, `Animal.canBeTransferred`).
-- Paging on `GET /animals`: `page` ≥ 0, `size` 1–100, ordered by name then id (`ListAnimalsService`, `AnimalPanacheRepository.findPage`).
+- Paging on `GET /animals`: `page` ≥ 0, `size` 1–100, ordered by name then id (`ListAnimalsService`, `AnimalJpaRepository.findPage`).
 - Enclosures as a persisted, read-only table, listed by `GET /enclosures` (`V5__create_enclosures_table.sql`, `EnclosureResource`, `ListEnclosuresService`).
 - Unknown enclosure rejected on register and transfer (`UnknownEnclosureException`, `EnclosureRepository.existsById`).
 - Dev seed data for animals and enclosures (`db/dev/R__seed_demo_animals.sql`, `db/dev/R__seed_demo_enclosures.sql`).
 - Role-based authorization per endpoint (`@RolesAllowed` on `AnimalResource`, `EnclosureResource`; `ZooRoles`; `AnimalSecurityIT`).
 - Audit of the acting user: `createdBy`, `updatedBy` (`V2__add_audit_columns.sql`, `AnimalResource.currentActor`).
-- Optimistic locking, with 409 on a conflict (`V3__add_version_column.sql`, `AnimalPanacheRepository.save`, `ConcurrentAnimalUpdateExceptionMapper`).
+- Optimistic locking, with 409 on a conflict (`V3__add_version_column.sql`, `AnimalJpaRepository.save`, `ConcurrentAnimalUpdateExceptionMapper`).
 - JSON error body on every error path (`ErrorResponse` and the `*ExceptionMapper` classes in `infrastructure/rest/`).
 - Transactional outbox and Kafka relay for three event types (`OutboxAnimalEventPublisher`, `OutboxRelay`, `V4__create_outbox_table.sql`). Details: [events.md](events.md).
 - Prod profile configured from environment variables (`application.properties`, `%prod.*`).
@@ -42,12 +42,12 @@ Contracts and failure behaviour per service are in the service READMEs. Events a
 ## health-service
 
 ### Implemented
-- Create, get and paged list of medical records, with an optional `animalId` filter; the list is ordered by examination date, newest first (`CreateMedicalRecordService`, `GetMedicalRecordService`, `ListMedicalRecordsService`, `MedicalRecordResource`, `MedicalRecordPanacheRepository`).
+- Create, get and paged list of medical records, with an optional `animalId` filter; the list is ordered by examination date, newest first (`CreateMedicalRecordService`, `GetMedicalRecordService`, `ListMedicalRecordsService`, `MedicalRecordResource`, `MedicalRecordJpaRepository`).
 - Prescribing treatments and changing their status (`PrescribeTreatmentService`, `UpdateTreatmentStatusService`, `TreatmentResource`).
 - Treatment lifecycle: `PRESCRIBED` → `ACTIVE` or `CANCELLED`, `ACTIVE` → `COMPLETED` or `CANCELLED`, with the last two terminal (`Treatment.canTransitionTo`, `TreatmentStatusTransitionTest`).
 - Examination date not in the future (`CreateMedicalRecordService`).
 - Role-based authorization per endpoint (`@RolesAllowed` on `MedicalRecordResource`, `TreatmentResource`; `HealthSecurityIT`).
-- Audit columns and optimistic locking (`V1__create_medical_records_and_treatments.sql`, `TreatmentPanacheRepository.save`).
+- Audit columns and optimistic locking (`V1__create_medical_records_and_treatments.sql`, `TreatmentJpaRepository.save`).
 
 ### Decided, not built
 - Consume animal events, for example cancelling treatments when an animal becomes `DECEASED` (next-phases list in `zms-be/CLAUDE.md` at commit `febdaf6`).
@@ -55,7 +55,7 @@ Contracts and failure behaviour per service are in the service READMEs. Events a
 ### Open
 - Eventual consistency with `animal-service`. Confirmed in code: nothing checks that the animal exists or is not `DECEASED` before a medical record is created or a treatment is prescribed or activated (`CreateMedicalRecordService`, `PrescribeTreatmentService`, `UpdateTreatmentStatusService`). There is no call to `animal-service` and no local copy of animal data.
 - Malformed JSON body: there is no `JsonProcessingException` mapper and no test for it.
-- Treatments in a record's detail are ordered by a random UUID (`TreatmentPanacheRepository.findByMedicalRecordId`).
+- Treatments in a record's detail are ordered by a random UUID (`TreatmentJpaRepository.findByMedicalRecordId`).
 - No update or delete of a medical record, although `ConcurrentMedicalRecordUpdateException` is mapped to 409.
 
 ## notification-service
@@ -96,7 +96,6 @@ Contracts and failure behaviour per service are in the service READMEs. Events a
 - Backend CI: `mvnw verify` for the three modules on push to `main` and on pull requests touching `zms-be/` (`.github/workflows/backend-ci.yml`).
 
 ### Open
-- Local env setup: `infrastructure/`, `animal-service/` and `health-service/` no longer contain an `env.example` (removed in `15ba49f`), but `docker-compose.yml` errors and the READMEs still tell users to copy one.
 - No frontend CI: the workflow only covers `zms-be/`.
 
 ## Frontend (zms-fe)
