@@ -11,8 +11,9 @@ import java.util.UUID;
 public interface FeedingPlanRepository {
     FeedingPlan save(FeedingPlan plan);
     Optional<FeedingPlan> findById(UUID id);
+    Optional<FeedingPlan> findByIdForUpdate(UUID id);
     List<FeedingPlan> findPage(UUID animalId, int page, int size);
     long count(UUID animalId);
     boolean existsById(UUID id);
-    List<FeedingPlan> findByAnimalIdAndStatusIn(UUID animalId, Collection<PlanStatus> statuses);
+    List<FeedingPlan> findByAnimalIdAndStatusInForUpdate(UUID animalId, Collection<PlanStatus> statuses);
 }

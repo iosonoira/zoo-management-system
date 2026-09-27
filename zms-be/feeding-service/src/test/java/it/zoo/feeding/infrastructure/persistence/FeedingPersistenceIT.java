@@ -96,7 +96,7 @@ class FeedingPersistenceIT {
     }
 
     @Test
-    void shouldFindByAnimalIdAndStatusIn() {
+    void shouldFindByAnimalIdAndStatusInForUpdate() {
         UUID animalId = UUID.randomUUID();
         List<LocalTime> times = List.of(LocalTime.of(8, 0));
 
@@ -111,12 +111,24 @@ class FeedingPersistenceIT {
         ended.setEndedOn(LocalDate.of(2026, 9, 10));
         savePlan(ended);
 
-        List<FeedingPlan> result = feedingPlanRepository.findByAnimalIdAndStatusIn(
-                animalId, List.of(PlanStatus.ACTIVE, PlanStatus.SUSPENDED));
+        List<FeedingPlan> result = QuarkusTransaction.requiringNew().call(() ->
+                feedingPlanRepository.findByAnimalIdAndStatusInForUpdate(
+                        animalId, List.of(PlanStatus.ACTIVE, PlanStatus.SUSPENDED)));
 
         assertEquals(2, result.size());
         assertTrue(result.stream().anyMatch(p -> p.getId().equals(active.getId())));
         assertTrue(result.stream().anyMatch(p -> p.getId().equals(suspended.getId())));
+    }
+
+    @Test
+    void shouldFindByIdForUpdate() {
+        UUID animalId = UUID.randomUUID();
+        FeedingPlan saved = savePlan(buildPlan(animalId, LocalDate.of(2026, 9, 1), List.of(LocalTime.of(8, 0))));
+
+        FeedingPlan reloaded = QuarkusTransaction.requiringNew()
+                .call(() -> feedingPlanRepository.findByIdForUpdate(saved.getId()).orElseThrow());
+
+        assertEquals(saved.getId(), reloaded.getId());
     }
 
     @Test

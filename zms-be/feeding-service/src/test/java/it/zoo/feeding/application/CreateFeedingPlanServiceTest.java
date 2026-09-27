@@ -5,11 +5,13 @@ import it.zoo.feeding.domain.exception.AnimalDeceasedException;
 import it.zoo.feeding.domain.exception.InvalidFeedingDataException;
 import it.zoo.feeding.domain.model.FeedingPlan;
 import it.zoo.feeding.domain.port.in.CreateFeedingPlanCommand;
+import it.zoo.feeding.domain.port.out.AnimalLock;
 import it.zoo.feeding.domain.port.out.DeceasedAnimalRepository;
 import it.zoo.feeding.domain.port.out.FeedingPlanRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -21,6 +23,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -33,6 +36,9 @@ class CreateFeedingPlanServiceTest {
 
     @Mock
     DeceasedAnimalRepository deceasedAnimals;
+
+    @Mock
+    AnimalLock animalLock;
 
     @InjectMocks
     CreateFeedingPlanService service;
@@ -83,6 +89,7 @@ class CreateFeedingPlanServiceTest {
 
         assertThrows(InvalidFeedingDataException.class, () -> service.create(cmd));
         verify(repository, never()).save(any());
+        verify(animalLock, never()).acquire(any());
     }
 
     @Test
@@ -92,6 +99,7 @@ class CreateFeedingPlanServiceTest {
 
         assertThrows(InvalidFeedingDataException.class, () -> service.create(cmd));
         verify(repository, never()).save(any());
+        verify(animalLock, never()).acquire(any());
     }
 
     @Test
@@ -101,6 +109,7 @@ class CreateFeedingPlanServiceTest {
 
         assertThrows(InvalidFeedingDataException.class, () -> service.create(cmd));
         verify(repository, never()).save(any());
+        verify(animalLock, never()).acquire(any());
     }
 
     @Test
@@ -110,6 +119,7 @@ class CreateFeedingPlanServiceTest {
 
         assertThrows(InvalidFeedingDataException.class, () -> service.create(cmd));
         verify(repository, never()).save(any());
+        verify(animalLock, never()).acquire(any());
     }
 
     @Test
@@ -119,6 +129,7 @@ class CreateFeedingPlanServiceTest {
 
         assertThrows(InvalidFeedingDataException.class, () -> service.create(cmd));
         verify(repository, never()).save(any());
+        verify(animalLock, never()).acquire(any());
     }
 
     @Test
@@ -128,6 +139,7 @@ class CreateFeedingPlanServiceTest {
 
         assertThrows(InvalidFeedingDataException.class, () -> service.create(cmd));
         verify(repository, never()).save(any());
+        verify(animalLock, never()).acquire(any());
     }
 
     @Test
@@ -140,6 +152,7 @@ class CreateFeedingPlanServiceTest {
 
         assertThrows(InvalidFeedingDataException.class, () -> service.create(cmd));
         verify(repository, never()).save(any());
+        verify(animalLock, never()).acquire(any());
     }
 
     @Test
@@ -152,6 +165,7 @@ class CreateFeedingPlanServiceTest {
 
         assertThrows(InvalidFeedingDataException.class, () -> service.create(cmd));
         verify(repository, never()).save(any());
+        verify(animalLock, never()).acquire(any());
     }
 
     @Test
@@ -161,6 +175,7 @@ class CreateFeedingPlanServiceTest {
 
         assertThrows(InvalidFeedingDataException.class, () -> service.create(cmd));
         verify(repository, never()).save(any());
+        verify(animalLock, never()).acquire(any());
     }
 
     @Test
@@ -170,6 +185,7 @@ class CreateFeedingPlanServiceTest {
 
         assertThrows(InvalidFeedingDataException.class, () -> service.create(cmd));
         verify(repository, never()).save(any());
+        verify(animalLock, never()).acquire(any());
     }
 
     @Test
@@ -179,5 +195,23 @@ class CreateFeedingPlanServiceTest {
 
         assertThrows(AnimalDeceasedException.class, () -> service.create(cmd));
         verify(repository, never()).save(any());
+
+        InOrder inOrder = inOrder(animalLock, deceasedAnimals);
+        inOrder.verify(animalLock).acquire(cmd.animalId());
+        inOrder.verify(deceasedAnimals).existsByAnimalId(cmd.animalId());
+    }
+
+    @Test
+    void shouldAcquireAnimalLockBeforeCheckingDeceasedAnimalsOnSuccess() {
+        when(repository.save(any(FeedingPlan.class))).thenAnswer(i -> i.getArgument(0));
+        when(deceasedAnimals.existsByAnimalId(any())).thenReturn(false);
+        CreateFeedingPlanCommand cmd = validCommand();
+
+        service.create(cmd);
+
+        InOrder inOrder = inOrder(animalLock, deceasedAnimals, repository);
+        inOrder.verify(animalLock).acquire(cmd.animalId());
+        inOrder.verify(deceasedAnimals).existsByAnimalId(cmd.animalId());
+        inOrder.verify(repository).save(any(FeedingPlan.class));
     }
 }

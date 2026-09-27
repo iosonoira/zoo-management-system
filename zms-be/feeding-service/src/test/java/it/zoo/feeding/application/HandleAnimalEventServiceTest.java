@@ -5,11 +5,13 @@ import it.zoo.feeding.domain.exception.InvalidAnimalEventException;
 import it.zoo.feeding.domain.model.DeceasedAnimal;
 import it.zoo.feeding.domain.model.FeedingPlan;
 import it.zoo.feeding.domain.port.in.HandleAnimalEventCommand;
+import it.zoo.feeding.domain.port.out.AnimalLock;
 import it.zoo.feeding.domain.port.out.DeceasedAnimalRepository;
 import it.zoo.feeding.domain.port.out.FeedingPlanRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -25,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -40,6 +43,9 @@ class HandleAnimalEventServiceTest {
     @Mock
     FeedingPlanRepository feedingPlans;
 
+    @Mock
+    AnimalLock animalLock;
+
     @InjectMocks
     HandleAnimalEventService service;
 
@@ -51,7 +57,7 @@ class HandleAnimalEventServiceTest {
     @Test
     void shouldThrowWhenCommandIsNull() {
         assertThrows(InvalidAnimalEventException.class, () -> service.handle(null));
-        verifyNoInteractions(deceasedAnimals, feedingPlans);
+        verifyNoInteractions(deceasedAnimals, feedingPlans, animalLock);
     }
 
     @Test
@@ -60,7 +66,7 @@ class HandleAnimalEventServiceTest {
                 null, "ANIMAL_STATUS_CHANGED", UUID.randomUUID(), Instant.now(), "keeper", "DECEASED");
 
         assertThrows(InvalidAnimalEventException.class, () -> service.handle(cmd));
-        verifyNoInteractions(deceasedAnimals, feedingPlans);
+        verifyNoInteractions(deceasedAnimals, feedingPlans, animalLock);
     }
 
     @Test
@@ -69,7 +75,7 @@ class HandleAnimalEventServiceTest {
                 UUID.randomUUID(), null, UUID.randomUUID(), Instant.now(), "keeper", "DECEASED");
 
         assertThrows(InvalidAnimalEventException.class, () -> service.handle(cmd));
-        verifyNoInteractions(deceasedAnimals, feedingPlans);
+        verifyNoInteractions(deceasedAnimals, feedingPlans, animalLock);
     }
 
     @Test
@@ -78,7 +84,7 @@ class HandleAnimalEventServiceTest {
                 UUID.randomUUID(), "ANIMAL_STATUS_CHANGED", null, Instant.now(), "keeper", "DECEASED");
 
         assertThrows(InvalidAnimalEventException.class, () -> service.handle(cmd));
-        verifyNoInteractions(deceasedAnimals, feedingPlans);
+        verifyNoInteractions(deceasedAnimals, feedingPlans, animalLock);
     }
 
     @Test
@@ -87,7 +93,7 @@ class HandleAnimalEventServiceTest {
                 UUID.randomUUID(), "ANIMAL_STATUS_CHANGED", UUID.randomUUID(), null, "keeper", "DECEASED");
 
         assertThrows(InvalidAnimalEventException.class, () -> service.handle(cmd));
-        verifyNoInteractions(deceasedAnimals, feedingPlans);
+        verifyNoInteractions(deceasedAnimals, feedingPlans, animalLock);
     }
 
     @Test
@@ -97,7 +103,7 @@ class HandleAnimalEventServiceTest {
 
         service.handle(cmd);
 
-        verifyNoInteractions(deceasedAnimals, feedingPlans);
+        verifyNoInteractions(deceasedAnimals, feedingPlans, animalLock);
     }
 
     @Test
@@ -105,7 +111,7 @@ class HandleAnimalEventServiceTest {
         HandleAnimalEventCommand cmd = statusChangedCommand(UUID.randomUUID(), null, "keeper");
 
         assertThrows(InvalidAnimalEventException.class, () -> service.handle(cmd));
-        verifyNoInteractions(deceasedAnimals, feedingPlans);
+        verifyNoInteractions(deceasedAnimals, feedingPlans, animalLock);
     }
 
     @Test
@@ -114,7 +120,7 @@ class HandleAnimalEventServiceTest {
 
         service.handle(cmd);
 
-        verifyNoInteractions(deceasedAnimals, feedingPlans);
+        verifyNoInteractions(deceasedAnimals, feedingPlans, animalLock);
     }
 
     @Test
@@ -127,6 +133,10 @@ class HandleAnimalEventServiceTest {
 
         verify(deceasedAnimals, never()).save(any());
         verifyNoInteractions(feedingPlans);
+
+        InOrder inOrder = inOrder(animalLock, deceasedAnimals);
+        inOrder.verify(animalLock).acquire(animalId);
+        inOrder.verify(deceasedAnimals).existsByAnimalId(animalId);
     }
 
     @Test
@@ -143,7 +153,7 @@ class HandleAnimalEventServiceTest {
                 List.of(), null, PlanStatus.ACTIVE, LocalDate.of(2026, 9, 1));
         FeedingPlan suspendedPlan = new FeedingPlan(UUID.randomUUID(), animalId, "Hay", 500,
                 List.of(), null, PlanStatus.SUSPENDED, LocalDate.of(2026, 9, 1));
-        when(feedingPlans.findByAnimalIdAndStatusIn(eq(animalId), any(Collection.class)))
+        when(feedingPlans.findByAnimalIdAndStatusInForUpdate(eq(animalId), any(Collection.class)))
                 .thenReturn(List.of(activePlan, suspendedPlan));
         when(feedingPlans.save(any(FeedingPlan.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -162,6 +172,11 @@ class HandleAnimalEventServiceTest {
             assertEquals(LocalDate.ofInstant(occurredAt, ZoneId.systemDefault()), saved.getEndedOn());
             assertEquals("zoo-vet", saved.getUpdatedBy());
         }
+
+        InOrder inOrder = inOrder(animalLock, deceasedAnimals, feedingPlans);
+        inOrder.verify(animalLock).acquire(animalId);
+        inOrder.verify(deceasedAnimals).existsByAnimalId(animalId);
+        inOrder.verify(feedingPlans).findByAnimalIdAndStatusInForUpdate(eq(animalId), any(Collection.class));
     }
 
     @Test
@@ -175,7 +190,7 @@ class HandleAnimalEventServiceTest {
         LocalDate startedAfterDeath = LocalDate.of(2026, 9, 25);
         FeedingPlan plan = new FeedingPlan(UUID.randomUUID(), animalId, "Hay", 500,
                 List.of(), null, PlanStatus.ACTIVE, startedAfterDeath);
-        when(feedingPlans.findByAnimalIdAndStatusIn(eq(animalId), any(Collection.class)))
+        when(feedingPlans.findByAnimalIdAndStatusInForUpdate(eq(animalId), any(Collection.class)))
                 .thenReturn(List.of(plan));
         when(feedingPlans.save(any(FeedingPlan.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -194,7 +209,7 @@ class HandleAnimalEventServiceTest {
         when(deceasedAnimals.existsByAnimalId(animalId)).thenReturn(false);
         FeedingPlan activePlan = new FeedingPlan(UUID.randomUUID(), animalId, "Hay", 500,
                 List.of(), null, PlanStatus.ACTIVE, LocalDate.of(2026, 9, 1));
-        when(feedingPlans.findByAnimalIdAndStatusIn(eq(animalId), any(Collection.class)))
+        when(feedingPlans.findByAnimalIdAndStatusInForUpdate(eq(animalId), any(Collection.class)))
                 .thenReturn(List.of(activePlan));
         when(feedingPlans.save(any(FeedingPlan.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -211,7 +226,7 @@ class HandleAnimalEventServiceTest {
         HandleAnimalEventCommand cmd = statusChangedCommand(animalId, "DECEASED", "keeper");
 
         when(deceasedAnimals.existsByAnimalId(animalId)).thenReturn(false);
-        when(feedingPlans.findByAnimalIdAndStatusIn(eq(animalId), any(Collection.class)))
+        when(feedingPlans.findByAnimalIdAndStatusInForUpdate(eq(animalId), any(Collection.class)))
                 .thenReturn(List.of());
 
         service.handle(cmd);

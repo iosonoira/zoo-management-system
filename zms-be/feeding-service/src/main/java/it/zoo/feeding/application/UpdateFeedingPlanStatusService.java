@@ -29,7 +29,7 @@ public class UpdateFeedingPlanStatusService implements UpdateFeedingPlanStatusUs
             throw new InvalidFeedingDataException("Actor must not be blank");
         }
 
-        FeedingPlan plan = repository.findById(id)
+        FeedingPlan plan = repository.findByIdForUpdate(id)
                 .orElseThrow(() -> new FeedingPlanNotFoundException(id));
 
         if (!plan.canTransitionTo(newStatus)) {

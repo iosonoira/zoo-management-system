@@ -39,7 +39,7 @@ class UpdateFeedingPlanStatusServiceTest {
     void shouldUpdateToSuspended() {
         UUID planId = UUID.randomUUID();
         FeedingPlan plan = planWithStatus(planId, PlanStatus.ACTIVE);
-        when(repository.findById(planId)).thenReturn(Optional.of(plan));
+        when(repository.findByIdForUpdate(planId)).thenReturn(Optional.of(plan));
         when(repository.save(any(FeedingPlan.class))).thenAnswer(i -> i.getArgument(0));
 
         FeedingPlan result = service.updateStatus(planId, PlanStatus.SUSPENDED, "keeper");
@@ -53,7 +53,7 @@ class UpdateFeedingPlanStatusServiceTest {
     void shouldUpdateToEnded() {
         UUID planId = UUID.randomUUID();
         FeedingPlan plan = planWithStatus(planId, PlanStatus.ACTIVE);
-        when(repository.findById(planId)).thenReturn(Optional.of(plan));
+        when(repository.findByIdForUpdate(planId)).thenReturn(Optional.of(plan));
         when(repository.save(any(FeedingPlan.class))).thenAnswer(i -> i.getArgument(0));
 
         FeedingPlan result = service.updateStatus(planId, PlanStatus.ENDED, "keeper");
@@ -72,7 +72,7 @@ class UpdateFeedingPlanStatusServiceTest {
     @Test
     void shouldThrowWhenPlanNotFound() {
         UUID planId = UUID.randomUUID();
-        when(repository.findById(planId)).thenReturn(Optional.empty());
+        when(repository.findByIdForUpdate(planId)).thenReturn(Optional.empty());
 
         assertThrows(FeedingPlanNotFoundException.class, () -> service.updateStatus(planId, PlanStatus.SUSPENDED, "keeper"));
     }
@@ -81,7 +81,7 @@ class UpdateFeedingPlanStatusServiceTest {
     void shouldThrowOnInvalidTransition() {
         UUID planId = UUID.randomUUID();
         FeedingPlan plan = planWithStatus(planId, PlanStatus.ENDED);
-        when(repository.findById(planId)).thenReturn(Optional.of(plan));
+        when(repository.findByIdForUpdate(planId)).thenReturn(Optional.of(plan));
 
         assertThrows(InvalidPlanStatusTransitionException.class, () -> service.updateStatus(planId, PlanStatus.ACTIVE, "keeper"));
     }
@@ -91,7 +91,7 @@ class UpdateFeedingPlanStatusServiceTest {
         UUID planId = UUID.randomUUID();
         FeedingPlan plan = planWithStatus(planId, PlanStatus.SUSPENDED);
         plan.setEndedOn(null);
-        when(repository.findById(planId)).thenReturn(Optional.of(plan));
+        when(repository.findByIdForUpdate(planId)).thenReturn(Optional.of(plan));
         when(repository.save(any(FeedingPlan.class))).thenAnswer(i -> i.getArgument(0));
 
         FeedingPlan result = service.updateStatus(planId, PlanStatus.ACTIVE, "keeper");

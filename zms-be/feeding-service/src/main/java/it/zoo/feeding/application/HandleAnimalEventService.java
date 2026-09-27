@@ -6,6 +6,7 @@ import it.zoo.feeding.domain.model.DeceasedAnimal;
 import it.zoo.feeding.domain.model.FeedingPlan;
 import it.zoo.feeding.domain.port.in.HandleAnimalEventCommand;
 import it.zoo.feeding.domain.port.in.HandleAnimalEventUseCase;
+import it.zoo.feeding.domain.port.out.AnimalLock;
 import it.zoo.feeding.domain.port.out.DeceasedAnimalRepository;
 import it.zoo.feeding.domain.port.out.FeedingPlanRepository;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -28,10 +29,13 @@ public class HandleAnimalEventService implements HandleAnimalEventUseCase {
 
     private final DeceasedAnimalRepository deceasedAnimals;
     private final FeedingPlanRepository feedingPlans;
+    private final AnimalLock animalLock;
 
-    public HandleAnimalEventService(DeceasedAnimalRepository deceasedAnimals, FeedingPlanRepository feedingPlans) {
+    public HandleAnimalEventService(DeceasedAnimalRepository deceasedAnimals, FeedingPlanRepository feedingPlans,
+            AnimalLock animalLock) {
         this.deceasedAnimals = deceasedAnimals;
         this.feedingPlans = feedingPlans;
+        this.animalLock = animalLock;
     }
 
     @Override
@@ -62,6 +66,9 @@ public class HandleAnimalEventService implements HandleAnimalEventUseCase {
         if (!DECEASED_STATUS.equals(command.newStatus())) {
             return;
         }
+
+        animalLock.acquire(command.animalId());
+
         if (deceasedAnimals.existsByAnimalId(command.animalId())) {
             return;
         }
@@ -73,7 +80,7 @@ public class HandleAnimalEventService implements HandleAnimalEventUseCase {
                 : command.performedBy();
         LocalDate diedOn = LocalDate.ofInstant(command.occurredAt(), ZoneId.systemDefault());
 
-        List<FeedingPlan> plansToEnd = feedingPlans.findByAnimalIdAndStatusIn(
+        List<FeedingPlan> plansToEnd = feedingPlans.findByAnimalIdAndStatusInForUpdate(
                 command.animalId(), EnumSet.of(PlanStatus.ACTIVE, PlanStatus.SUSPENDED));
 
         for (FeedingPlan plan : plansToEnd) {

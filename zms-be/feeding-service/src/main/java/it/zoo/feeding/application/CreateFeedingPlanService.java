@@ -6,6 +6,7 @@ import it.zoo.feeding.domain.exception.InvalidFeedingDataException;
 import it.zoo.feeding.domain.model.FeedingPlan;
 import it.zoo.feeding.domain.port.in.CreateFeedingPlanCommand;
 import it.zoo.feeding.domain.port.in.CreateFeedingPlanUseCase;
+import it.zoo.feeding.domain.port.out.AnimalLock;
 import it.zoo.feeding.domain.port.out.DeceasedAnimalRepository;
 import it.zoo.feeding.domain.port.out.FeedingPlanRepository;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -24,10 +25,13 @@ public class CreateFeedingPlanService implements CreateFeedingPlanUseCase {
 
     private final FeedingPlanRepository repository;
     private final DeceasedAnimalRepository deceasedAnimals;
+    private final AnimalLock animalLock;
 
-    public CreateFeedingPlanService(FeedingPlanRepository repository, DeceasedAnimalRepository deceasedAnimals) {
+    public CreateFeedingPlanService(FeedingPlanRepository repository, DeceasedAnimalRepository deceasedAnimals,
+            AnimalLock animalLock) {
         this.repository = repository;
         this.deceasedAnimals = deceasedAnimals;
+        this.animalLock = animalLock;
     }
 
     @Override
@@ -62,6 +66,8 @@ public class CreateFeedingPlanService implements CreateFeedingPlanUseCase {
         if (uniqueTimes.size() != cmd.feedingTimes().size()) {
             throw new InvalidFeedingDataException("Feeding times must not repeat");
         }
+
+        animalLock.acquire(cmd.animalId());
 
         if (deceasedAnimals.existsByAnimalId(cmd.animalId())) {
             throw new AnimalDeceasedException(cmd.animalId());

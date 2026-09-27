@@ -48,7 +48,7 @@ public class RecordFeedingService implements RecordFeedingUseCase {
             throw new InvalidFeedingDataException("Feeding time must not be in the future");
         }
 
-        FeedingPlan plan = planRepository.findById(cmd.planId())
+        FeedingPlan plan = planRepository.findByIdForUpdate(cmd.planId())
                 .orElseThrow(() -> new FeedingPlanNotFoundException(cmd.planId()));
 
         if (plan.getStatus() != PlanStatus.ACTIVE) {

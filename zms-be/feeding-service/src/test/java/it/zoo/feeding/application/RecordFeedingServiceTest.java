@@ -44,7 +44,7 @@ class RecordFeedingServiceTest {
     void shouldRecordFeeding() {
         UUID planId = UUID.randomUUID();
         FeedingPlan plan = new FeedingPlan(planId, UUID.randomUUID(), "Hay", 500, List.of(LocalTime.of(9, 0)), null, PlanStatus.ACTIVE, LocalDate.now());
-        when(planRepository.findById(planId)).thenReturn(Optional.of(plan));
+        when(planRepository.findByIdForUpdate(planId)).thenReturn(Optional.of(plan));
         when(feedingRepository.save(any(Feeding.class))).thenAnswer(i -> i.getArgument(0));
 
         Instant fedAt = Instant.now();
@@ -63,7 +63,7 @@ class RecordFeedingServiceTest {
     void shouldDefaultFedAtToNow() {
         UUID planId = UUID.randomUUID();
         FeedingPlan plan = new FeedingPlan(planId, UUID.randomUUID(), "Hay", 500, List.of(LocalTime.of(9, 0)), null, PlanStatus.ACTIVE, LocalDate.now());
-        when(planRepository.findById(planId)).thenReturn(Optional.of(plan));
+        when(planRepository.findByIdForUpdate(planId)).thenReturn(Optional.of(plan));
         when(feedingRepository.save(any(Feeding.class))).thenAnswer(i -> i.getArgument(0));
 
         RecordFeedingCommand cmd = new RecordFeedingCommand(planId, null, 500, null, "keeper");
@@ -113,7 +113,7 @@ class RecordFeedingServiceTest {
     @Test
     void shouldThrowWhenPlanNotFound() {
         UUID planId = UUID.randomUUID();
-        when(planRepository.findById(planId)).thenReturn(Optional.empty());
+        when(planRepository.findByIdForUpdate(planId)).thenReturn(Optional.empty());
         RecordFeedingCommand cmd = new RecordFeedingCommand(planId, Instant.now(), 500, null, "keeper");
 
         assertThrows(FeedingPlanNotFoundException.class, () -> service.record(cmd));
@@ -124,7 +124,7 @@ class RecordFeedingServiceTest {
     void shouldThrowWhenPlanIsSuspended() {
         UUID planId = UUID.randomUUID();
         FeedingPlan plan = new FeedingPlan(planId, UUID.randomUUID(), "Hay", 500, List.of(LocalTime.of(9, 0)), null, PlanStatus.SUSPENDED, LocalDate.now());
-        when(planRepository.findById(planId)).thenReturn(Optional.of(plan));
+        when(planRepository.findByIdForUpdate(planId)).thenReturn(Optional.of(plan));
         RecordFeedingCommand cmd = new RecordFeedingCommand(planId, Instant.now(), 500, null, "keeper");
 
         assertThrows(FeedingPlanNotActiveException.class, () -> service.record(cmd));
@@ -135,7 +135,7 @@ class RecordFeedingServiceTest {
     void shouldThrowWhenPlanIsEnded() {
         UUID planId = UUID.randomUUID();
         FeedingPlan plan = new FeedingPlan(planId, UUID.randomUUID(), "Hay", 500, List.of(LocalTime.of(9, 0)), null, PlanStatus.ENDED, LocalDate.now());
-        when(planRepository.findById(planId)).thenReturn(Optional.of(plan));
+        when(planRepository.findByIdForUpdate(planId)).thenReturn(Optional.of(plan));
         RecordFeedingCommand cmd = new RecordFeedingCommand(planId, Instant.now(), 500, null, "keeper");
 
         assertThrows(FeedingPlanNotActiveException.class, () -> service.record(cmd));

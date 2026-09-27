@@ -6,6 +6,7 @@ import it.zoo.feeding.domain.model.FeedingPlan;
 import it.zoo.feeding.domain.port.out.FeedingPlanRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.TypedQuery;
 
@@ -42,6 +43,12 @@ public class FeedingPlanJpaRepository implements FeedingPlanRepository {
     }
 
     @Override
+    public Optional<FeedingPlan> findByIdForUpdate(UUID id) {
+        return Optional.ofNullable(em.find(FeedingPlanEntity.class, id, LockModeType.PESSIMISTIC_WRITE))
+                .map(FeedingPlanEntityMapper::toDomain);
+    }
+
+    @Override
     public List<FeedingPlan> findPage(UUID animalId, int page, int size) {
         String jpql = animalId == null
                 ? "SELECT p FROM FeedingPlanEntity p ORDER BY p.startedOn DESC, p.id"
@@ -74,7 +81,7 @@ public class FeedingPlanJpaRepository implements FeedingPlanRepository {
     }
 
     @Override
-    public List<FeedingPlan> findByAnimalIdAndStatusIn(UUID animalId, Collection<PlanStatus> statuses) {
+    public List<FeedingPlan> findByAnimalIdAndStatusInForUpdate(UUID animalId, Collection<PlanStatus> statuses) {
         return FeedingPlanEntityMapper.toDomainList(em
                 .createQuery(
                         "SELECT p FROM FeedingPlanEntity p WHERE p.animalId = :animalId AND p.status IN :statuses "
@@ -82,6 +89,7 @@ public class FeedingPlanJpaRepository implements FeedingPlanRepository {
                         FeedingPlanEntity.class)
                 .setParameter("animalId", animalId)
                 .setParameter("statuses", statuses)
+                .setLockMode(LockModeType.PESSIMISTIC_WRITE)
                 .getResultList());
     }
 }
