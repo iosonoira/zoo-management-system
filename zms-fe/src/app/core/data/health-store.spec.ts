@@ -277,6 +277,22 @@ describe('HealthStore.createRecord', () => {
   });
 });
 
+describe('HealthStore.createRecord after switching animal', () => {
+  it('does not show the record under an animal opened meanwhile', async () => {
+    const { store } = storeWithMock();
+    await store.load('c43e9a1b-7f82-4c3b-8d2e-4a6b8c0e2d73'); // Nia
+    const before = store.records();
+    await store.createRecord({
+      animalId: '92b3c4d5-5a7f-4da2-9f9a-1b3c5d7f9e4a', // Pepe
+      reason: 'New examination',
+      diagnosis: 'Test',
+      examinedOn: '2026-09-25',
+      veterinarian: 'Dr. Test',
+    });
+    expect(store.records()).toEqual(before);
+  });
+});
+
 describe('HealthStore.prescribe', () => {
   it('appends to record detail', async () => {
     const { store } = storeWithMock();

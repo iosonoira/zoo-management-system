@@ -377,10 +377,25 @@ describe('FeedingStore', () => {
         feedingTimes: ['08:00'],
         notes: null,
       };
+      await store.load('animal-1');
       const plan = await store.createPlan(input);
 
+      expect(store.plans().map((p) => p.id)).toContain(plan.id);
       expect(store.feedings(plan.id)).toEqual([]);
       expect(store.feedingsState(plan.id)).toBe('ready');
+    });
+
+    it('createPlan does not show a plan under an animal opened meanwhile', async () => {
+      await store.load('animal-2');
+      await store.createPlan({
+        animalId: 'animal-1',
+        food: 'Test',
+        quantityGrams: 1000,
+        feedingTimes: ['08:00'],
+        notes: null,
+      });
+
+      expect(store.plans()).toEqual([]);
     });
 
     it('recordFeeding inserts in fedAt order', async () => {

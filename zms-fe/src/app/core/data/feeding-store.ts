@@ -138,6 +138,10 @@ export class FeedingStore {
 
   async createPlan(input: NewFeedingPlan): Promise<FeedingPlan> {
     const plan = await this.api.createPlan(input);
+    // The user may have opened another animal while the request was in flight.
+    if (plan.animalId !== this.animalId()) {
+      return plan;
+    }
     this.applyPlan(plan);
     // Mark its feedings as ready with none and total 0
     this.feedingMap.update((m) => new Map(m).set(plan.id, []));
@@ -149,7 +153,9 @@ export class FeedingStore {
 
   async updatePlanStatus(id: string, status: PlanStatus): Promise<FeedingPlan> {
     const plan = await this.api.updatePlanStatus(id, status);
-    this.applyPlan(plan);
+    if (plan.animalId === this.animalId()) {
+      this.applyPlan(plan);
+    }
     return plan;
   }
 

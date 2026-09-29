@@ -94,6 +94,10 @@ export class HealthStore {
 
   async createRecord(input: NewMedicalRecord): Promise<MedicalRecord> {
     const record = await this.api.createRecord(input);
+    // The user may have opened another animal while the request was in flight.
+    if (record.animalId !== this.animalId()) {
+      return record;
+    }
     this.applyRecord(record);
     // Mark its detail as ready with no treatments
     this.detailMap.update((m) => new Map(m).set(record.id, { ...record, treatments: [] }));
