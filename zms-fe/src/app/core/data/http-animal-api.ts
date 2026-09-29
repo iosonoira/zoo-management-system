@@ -8,6 +8,7 @@ import { ApiError } from './api-error';
 import { collectPages, Page } from './page';
 import {
   conflict,
+  deceasedStatus,
   deceasedTransfer,
   forbidden,
   invalidAnimal,
@@ -15,7 +16,16 @@ import {
   sameStatus,
   serverError,
   sessionExpired,
+  unknownEnclosure,
 } from './api-errors';
+
+interface RequestContext {
+  readonly action?: 'updateStatus' | 'transfer' | 'register';
+  /** Names the animal in the error copy. */
+  readonly name?: string;
+  /** Lets an ambiguous rejection re-read the animal. */
+  readonly id?: string;
+}
 
 /** `ListAnimalsUseCase.MAX_PAGE_SIZE`; a larger value is rejected with 400. */
 export const PAGE_SIZE = 100;
@@ -47,24 +57,22 @@ export class HttpAnimalApi extends AnimalApi {
   }
 
   updateStatus(id: string, status: AnimalStatus, name?: string): Promise<Animal> {
-    return this.request(
-      () => this.http.put<Animal>(`${this.base}/${id}/status`, { status }),
-      { action: 'updateStatus', name },
-    );
+    return this.request(() => this.http.put<Animal>(`${this.base}/${id}/status`, { status }), {
+      action: 'updateStatus',
+      name,
+      id,
+    });
   }
 
   transfer(id: string, targetEnclosureId: string, name?: string): Promise<Animal> {
     return this.request(
       () => this.http.put<Animal>(`${this.base}/${id}/transfer`, { targetEnclosureId }),
-      { action: 'transfer', name },
+      { action: 'transfer', name, id },
     );
   }
 
   register(input: NewAnimal): Promise<Animal> {
-    return this.request(
-      () => this.http.post<Animal>(this.base, input),
-      { action: 'register' },
-    );
+    return this.request(() => this.http.post<Animal>(this.base, input), { action: 'register' });
   }
 
   listEnclosures(): Promise<Enclosure[]> {
@@ -73,20 +81,44 @@ export class HttpAnimalApi extends AnimalApi {
 
   private async request<T>(
     send: () => import('rxjs').Observable<T>,
-    context: { action?: 'updateStatus' | 'transfer' | 'register'; name?: string } = {},
+    context: RequestContext = {},
   ): Promise<T> {
     try {
       return await firstValueFrom(send());
     } catch (error) {
+      if (
+        error instanceof HttpErrorResponse &&
+        context.id &&
+        ((context.action === 'updateStatus' && error.status === 422) ||
+          (context.action === 'transfer' && error.status === 400))
+      ) {
+        throw await this.explainRejection(context);
+      }
       throw toApiError(error, context);
+    }
+  }
+
+  /**
+   * A 422 on a status change means either "same status" or "already deceased", and a 400
+   * on a transfer either "deceased" or "unknown enclosure". The body is not forwarded, so
+   * the animal's current status decides which copy is true.
+   */
+  private async explainRejection(context: RequestContext): Promise<ApiError> {
+    const name = context.name ?? 'This animal';
+    try {
+      const animal = await firstValueFrom(this.http.get<Animal>(`${this.base}/${context.id}`));
+      if (context.action === 'transfer') {
+        return animal.status === 'DECEASED' ? deceasedTransfer(name) : unknownEnclosure();
+      }
+      return animal.status === 'DECEASED' ? deceasedStatus(name) : sameStatus(name);
+    } catch {
+      // The re-read failed too: keep the most likely reading.
+      return context.action === 'transfer' ? deceasedTransfer(name) : sameStatus(name);
     }
   }
 }
 
-function toApiError(
-  error: unknown,
-  context: { action?: 'updateStatus' | 'transfer' | 'register'; name?: string },
-): ApiError {
+function toApiError(error: unknown, context: RequestContext): ApiError {
   if (!(error instanceof HttpErrorResponse)) {
     return serverError();
   }
