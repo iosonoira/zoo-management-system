@@ -41,6 +41,15 @@ describe('mealSlots', () => {
     expect(states(['07:30', '12:30', '17:00'], [], at(13))).toEqual(['missed', 'due', 'later']);
   });
 
+  it('keeps an unfed slot due for less than an hour after its time', () => {
+    expect(states(['08:30', '15:00'], [], at(9, 29))).toEqual(['due', 'later']);
+  });
+
+  it('marks an unfed slot as missed from an hour after its time', () => {
+    expect(states(['08:30', '15:00'], [], at(9, 30))).toEqual(['missed', 'later']);
+    expect(states(['08:30', '15:00'], [], at(14, 54))).toEqual(['missed', 'later']);
+  });
+
   it('keeps an earlier unfed slot missed when a later slot is fed', () => {
     const feedings = [fed(at(12, 40))];
     expect(states(['07:30', '12:30', '17:00'], feedings, at(13))).toEqual([
@@ -59,8 +68,8 @@ describe('mealSlots', () => {
 
   it('counts a feeding up to 60 minutes before the scheduled time', () => {
     const early = fed(at(14, 0));
-    // 15:00 is still ahead, so the unfed 08:30 slot is the one that is due
-    expect(states(['08:30', '15:00'], [early], at(14, 30))).toEqual(['due', 'fed']);
+    // The unfed 08:30 slot is six hours past, so it reads as missed.
+    expect(states(['08:30', '15:00'], [early], at(14, 30))).toEqual(['missed', 'fed']);
   });
 
   it('does not count a feeding more than 60 minutes before the scheduled time', () => {

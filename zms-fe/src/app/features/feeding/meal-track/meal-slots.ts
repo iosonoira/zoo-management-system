@@ -13,6 +13,9 @@ export interface MealSlot {
 /** A meal counts for a slot when it is recorded up to this long before the scheduled time. */
 const EARLY_MS = 60 * 60 * 1000;
 
+/** An unfed meal reads as due for this long after its time; after that it was missed. */
+const DUE_MS = 60 * 60 * 1000;
+
 /** The scheduled time on the local day of `day`, as an epoch. */
 function atTime(day: Date, time: string): number {
   const [hours, minutes] = time.split(':').map(Number);
@@ -25,7 +28,8 @@ function atTime(day: Date, time: string): number {
  * Slot i owns the window from (time i − 60 min) up to (time i+1 − 60 min); the first window
  * opens at local midnight and the last one closes at the end of the day. A slot is `fed` with
  * the earliest feeding in its window. An unfed slot whose time has passed is `due` when it is the
- * latest such slot and `missed` otherwise; an unfed slot still ahead is `later`.
+ * latest such slot and its time is less than an hour ago, and `missed` otherwise; an unfed slot
+ * still ahead is `later`.
  */
 export function mealSlots(
   times: readonly string[],
@@ -54,7 +58,8 @@ export function mealSlots(
     if (atTime(now, time) > nowMs) {
       return { time, state: 'later', feeding: null };
     }
-    return { time, state: i === lastPast ? 'due' : 'missed', feeding: null };
+    const due = i === lastPast && nowMs - atTime(now, time) < DUE_MS;
+    return { time, state: due ? 'due' : 'missed', feeding: null };
   });
 }
 
