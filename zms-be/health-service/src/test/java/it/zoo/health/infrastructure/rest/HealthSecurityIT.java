@@ -65,13 +65,15 @@ class HealthSecurityIT {
 
     @Test
     void shouldRejectAnonymousRead() {
-        given().when().get("/medical-records").then().statusCode(401);
+        given().when().get("/medical-records").then().statusCode(401)
+            .body("message", equalTo("Authentication required"));
     }
 
     @Test
     void shouldRejectAnonymousWrite() {
         given().contentType(ContentType.JSON).body(RECORD_JSON)
-            .when().post("/medical-records").then().statusCode(401);
+            .when().post("/medical-records").then().statusCode(401)
+            .body("message", equalTo("Authentication required"));
     }
 
     @Test
@@ -91,7 +93,8 @@ class HealthSecurityIT {
     void shouldForbidKeeperFromCreatingRecord() {
         given().contentType(ContentType.JSON).body(RECORD_JSON)
             .when().post("/medical-records")
-            .then().statusCode(403);
+            .then().statusCode(403)
+            .body("message", equalTo("Insufficient role"));
     }
 
     @Test
@@ -99,7 +102,8 @@ class HealthSecurityIT {
     void shouldForbidKeeperFromPrescribing() {
         given().contentType(ContentType.JSON).body("{\"description\": \"Antibiotics\"}")
             .when().post("/medical-records/" + RECORD_ID + "/treatments")
-            .then().statusCode(403);
+            .then().statusCode(403)
+            .body("message", equalTo("Insufficient role"));
     }
 
     @Test
@@ -107,7 +111,8 @@ class HealthSecurityIT {
     void shouldForbidKeeperFromChangingTreatmentStatus() {
         given().contentType(ContentType.JSON).body("{\"status\": \"ACTIVE\"}")
             .when().put("/treatments/" + TREATMENT_ID + "/status")
-            .then().statusCode(403);
+            .then().statusCode(403)
+            .body("message", equalTo("Insufficient role"));
     }
 
     @Test
