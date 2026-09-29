@@ -245,8 +245,10 @@ describe('MockHealthApi', () => {
     expect(list[0].examinedOn).toBe('2026-09-20');
     expect(list[1].examinedOn).toBe('2026-09-20');
     expect(list[2].examinedOn).toBe('2026-09-15');
-    // For same date, sort by id
-    expect(list[0].id).toBe(rec2.id);
-    expect(list[1].id).toBe(rec3.id);
+    // For the same date, ascending id. The ids are random, so derive the expected order.
+    const [first, second] = [rec2.id, rec3.id].sort((a, b) => a.localeCompare(b));
+    expect(list[0].id).toBe(first);
+    expect(list[1].id).toBe(second);
+    expect(list[2].id).toBe(rec1.id);
   });
 });
