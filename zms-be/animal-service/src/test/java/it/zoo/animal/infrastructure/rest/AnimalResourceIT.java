@@ -88,6 +88,22 @@ class AnimalResourceIT {
     }
 
     @Test
+    void shouldReturnEmptyPageWhenOffsetOverflowsAnInt() {
+        postAnimal("Ape", "Primate");
+
+        given()
+            .queryParam("page", 21474837)
+            .queryParam("size", 100)
+        .when()
+            .get("/animals")
+        .then()
+            .statusCode(200)
+            .body("items.size()", equalTo(0))
+            .body("page", equalTo(21474837))
+            .body("total", equalTo(1));
+    }
+
+    @Test
     void shouldReturn400WhenSizeExceedsMaximum() {
         given()
             .queryParam("size", 101)

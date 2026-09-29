@@ -103,11 +103,22 @@ class CreateMedicalRecordServiceTest {
     }
 
     @Test
-    void shouldThrowWhenExaminedOnIsInTheFuture() {
+    void shouldThrowWhenExaminedOnIsInTheFutureEverywhere() {
         CreateMedicalRecordCommand cmd = new CreateMedicalRecordCommand(
                 UUID.randomUUID(), "Limping", "Sprained paw",
-                LocalDate.now().plusDays(1), "Dr Rossi", "vet");
+                LocalDate.now(CreateMedicalRecordService.EARLIEST_ZONE).plusDays(1), "Dr Rossi", "vet");
 
         assertThrows(InvalidMedicalDataException.class, () -> service.create(cmd));
+    }
+
+    @Test
+    void shouldAcceptTodayInAZoneAheadOfTheServer() {
+        when(repository.save(any(MedicalRecord.class))).thenAnswer(i -> i.getArgument(0));
+        LocalDate todayAtUtcPlus14 = LocalDate.now(CreateMedicalRecordService.EARLIEST_ZONE);
+        CreateMedicalRecordCommand cmd = new CreateMedicalRecordCommand(
+                UUID.randomUUID(), "Limping", "Sprained paw",
+                todayAtUtcPlus14, "Dr Rossi", "vet");
+
+        assertEquals(todayAtUtcPlus14, service.create(cmd).getExaminedOn());
     }
 }

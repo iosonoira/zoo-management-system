@@ -40,9 +40,14 @@ public class AnimalJpaRepository implements AnimalRepository {
 
     @Override
     public List<Animal> findPage(int page, int size) {
+        // setFirstResult takes an int: an offset past it cannot hold rows, and page * size would overflow.
+        long offset = (long) page * size;
+        if (offset > Integer.MAX_VALUE) {
+            return List.of();
+        }
         List<AnimalEntity> entities = em
                 .createQuery("SELECT a FROM AnimalEntity a ORDER BY a.name, a.id", AnimalEntity.class)
-                .setFirstResult(page * size)
+                .setFirstResult((int) offset)
                 .setMaxResults(size)
                 .getResultList();
         return AnimalEntityMapper.toDomainList(entities);

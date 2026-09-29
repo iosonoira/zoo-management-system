@@ -45,7 +45,7 @@ Contracts and failure behaviour per service are in the service READMEs. Events a
 - Create, get and paged list of medical records, with an optional `animalId` filter; the list is ordered by examination date, newest first (`CreateMedicalRecordService`, `GetMedicalRecordService`, `ListMedicalRecordsService`, `MedicalRecordResource`, `MedicalRecordJpaRepository`).
 - Prescribing treatments and changing their status (`PrescribeTreatmentService`, `UpdateTreatmentStatusService`, `TreatmentResource`).
 - Treatment lifecycle: `PRESCRIBED` → `ACTIVE` or `CANCELLED`, `ACTIVE` → `COMPLETED` or `CANCELLED`, with the last two terminal (`Treatment.canTransitionTo`, `TreatmentStatusTransitionTest`).
-- Examination date not in the future (`CreateMedicalRecordService`).
+- Examination date not in the future in any time zone, i.e. at most today at UTC+14 (`CreateMedicalRecordService.EARLIEST_ZONE`).
 - Role-based authorization per endpoint (`@RolesAllowed` on `MedicalRecordResource`, `TreatmentResource`; `HealthSecurityIT`).
 - Audit columns and optimistic locking (`V1__create_medical_records_and_treatments.sql`, `TreatmentJpaRepository.save`).
 
