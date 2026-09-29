@@ -286,6 +286,29 @@ input {
   --status-tint: var(--deceased-tint);
 }
 
+/* Treatment statuses reuse the four status inks: waiting is amber, being given is clay,
+   finished is a plain ringed tile, stopped is stone. */
+[data-treatment='PRESCRIBED'] {
+  --status: var(--observation);
+  --status-tint: var(--observation-tint);
+}
+[data-treatment='ACTIVE'] {
+  --status: var(--treatment);
+  --status-tint: var(--treatment-tint);
+}
+[data-treatment='COMPLETED'] {
+  --status: var(--ink-2);
+}
+[data-treatment='COMPLETED'] .status-tile {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--rule-strong);
+  color: var(--ink-3);
+}
+[data-treatment='CANCELLED'] {
+  --status: var(--deceased);
+  --status-tint: var(--deceased-tint);
+}
+
 [data-habitat='TERRESTRIAL'] {
   --habitat: var(--terrestrial);
 }

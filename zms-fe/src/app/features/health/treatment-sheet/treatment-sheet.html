@@ -1,0 +1,59 @@
+<dialog
+  #dialog
+  class="sheet"
+  [attr.aria-labelledby]="titleId()"
+  (click)="onBackdrop($event)"
+  (cancel)="pending() && $event.preventDefault()"
+>
+  <form class="sheet-form" (submit)="submit($event)">
+    <header class="sheet-head">
+      <div>
+        <h2 [id]="titleId()">Prescribe a treatment</h2>
+        <p>
+          {{ animal().name }} · {{ record().reason }}. It starts as prescribed; start it when it is
+          first given.
+        </p>
+      </div>
+      <button type="button" class="btn btn-quiet" (click)="close()" [disabled]="pending()">
+        <app-icon name="close" />
+        <span class="visually-hidden">Close</span>
+      </button>
+    </header>
+
+    <fieldset class="sheet-body" [disabled]="pending()">
+      <legend class="visually-hidden">Treatment details</legend>
+
+      <label class="field">
+        <span class="field-label">Treatment</span>
+        <textarea
+          class="field-input area"
+          rows="4"
+          [attr.aria-describedby]="hintId()"
+          [formField]="treatmentForm.description"
+        ></textarea>
+        <span [id]="hintId()" class="field-hint">What to give, how often, for how long.</span>
+        @if (treatmentForm.description().touched() && treatmentForm.description().invalid()) {
+          <span class="field-hint">{{ treatmentForm.description().errors()[0].message }}</span>
+        }
+      </label>
+    </fieldset>
+
+    <footer class="sheet-foot">
+      @if (error(); as message) {
+        <p class="form-error" role="alert"><app-icon name="alert" />{{ message }}</p>
+      }
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="treatmentForm().invalid() || pending()"
+      >
+        <app-icon name="check" />
+        @if (pending()) {
+          Saving…
+        } @else {
+          Prescribe
+        }
+      </button>
+    </footer>
+  </form>
+</dialog>

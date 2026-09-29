@@ -3,11 +3,11 @@
 
   @if (ready()) {
     <div class="body">
-      @if (!canChange()) {
+      @if (readOnly()) {
         <p class="note">
           <app-icon name="lock" />Only vets and admins can add records or change treatments.
         </p>
-      } @else if (deceased()) {
+      } @else if (deceasedNote()) {
         <p class="note">
           <app-icon name="lock" />{{ animal().name }} is deceased. You can still add a post-mortem
           record. Treatments can no longer be prescribed or started.
@@ -15,6 +15,12 @@
       }
 
       @if (views().length > 0) {
+        @if (canCreate()) {
+          <button type="button" class="btn btn-primary new-record" (click)="openRecord()">
+            <app-icon name="plus" />
+            New record
+          </button>
+        }
         <ul class="records pane clip">
           @for (v of views(); track v.record.id) {
             <li class="rec">
@@ -114,9 +120,28 @@
                           aria-label="Loading treatments"
                         ></div>
                       }
+                      @if (canPrescribe() && v.treatments) {
+                        <button
+                          type="button"
+                          class="btn btn-secondary btn-compact tx-add"
+                          (click)="openPrescribe(v.record)"
+                        >
+                          <app-icon name="plus" />
+                          Prescribe<span class="visually-hidden">
+                            for the {{ v.record.examinedOn | date: 'd MMM y' }} record</span
+                          >
+                        </button>
+                      }
                     </div>
                   </div>
 
+                  @if (canPrescribe() && v.treatments) {
+                    <app-treatment-sheet
+                      [animal]="animal()"
+                      [record]="v.record"
+                      (prescribed)="onPrescribed()"
+                    />
+                  }
                   @if (canChange() && v.treatments) {
                     @for (t of v.treatments; track t.id) {
                       @if (isOpen(t)) {
@@ -135,9 +160,21 @@
           }
         </ul>
       } @else {
-        <p class="pane empty">No medical records yet.</p>
+        <div class="pane empty-state">
+          <p>No medical records yet.</p>
+          @if (canCreate()) {
+            <button type="button" class="btn btn-primary" (click)="openRecord()">
+              <app-icon name="plus" />
+              New record
+            </button>
+          }
+        </div>
       }
     </div>
+
+    @if (canCreate()) {
+      <app-record-sheet [animal]="animal()" (created)="onRecordCreated($event)" />
+    }
   } @else if (failed()) {
     <div class="notice pane" role="alert">
       <app-icon name="alert" />

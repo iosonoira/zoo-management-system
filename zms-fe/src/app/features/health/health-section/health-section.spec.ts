@@ -1,11 +1,13 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { LoadState } from '../../../core/data/animal-store';
 import { HealthStore } from '../../../core/data/health-store';
 import { Animal, ZooRole } from '../../../core/models/animal';
 import { MedicalRecord, MedicalRecordDetail, Treatment } from '../../../core/models/health';
 import { can } from '../../../core/models/permissions';
 import { Session } from '../../../core/session/session';
+import { RecordSheet } from '../record-sheet/record-sheet';
 import { HealthSection } from './health-section';
 
 const ANIMAL: Animal = {
@@ -90,6 +92,7 @@ function fakeStore(animal: Animal, options: Options) {
 function fakeSession(role: ZooRole) {
   return {
     role: signal(role),
+    username: signal('vet.bianchi'),
     can: (permission: Parameters<typeof can>[1]) => can(role, permission),
   };
 }
@@ -302,5 +305,77 @@ describe('HealthSection', () => {
     const { root } = await setUp({ state: 'loading' });
     expect(root.querySelector('[aria-busy="true"]')).not.toBeNull();
     expect(root.querySelector('.rec-head')).toBeNull();
+  });
+
+  describe('adding records and prescribing', () => {
+    const DECEASED: Animal = { ...ANIMAL, name: 'Bruno', status: 'DECEASED' };
+    const newRecord = (t: { buttons: () => string[] }) => t.buttons().includes('New record');
+    const prescribe = (t: { buttons: () => string[] }) =>
+      t.buttons().filter((b) => b.startsWith('Prescribe'));
+
+    it('shows vets and admins New record, and a keeper nothing to add', async () => {
+      for (const role of ['zoo-vet', 'zoo-admin'] as const) {
+        expect(newRecord(await setUp({ role }))).toBe(true);
+      }
+      expect(newRecord(await setUp({ role: 'zoo-keeper' }))).toBe(false);
+    });
+
+    it('keeps New record for a deceased animal, for a post-mortem', async () => {
+      const vet = await setUp({ role: 'zoo-vet', animal: DECEASED });
+      expect(newRecord(vet)).toBe(true);
+      expect(vet.text()).toContain('You can still add a post-mortem record.');
+    });
+
+    it('offers New record as the primary action when there are no records', async () => {
+      const { root, buttons } = await setUp({ role: 'zoo-vet', records: [] });
+      expect(buttons().filter((b) => b === 'New record')).toHaveLength(1);
+      const button = Array.from(root.querySelectorAll('button')).find(
+        (b) => b.textContent!.trim() === 'New record',
+      )!;
+      expect(button.classList).toContain('btn-primary');
+      expect(newRecord(await setUp({ role: 'zoo-keeper', records: [] }))).toBe(false);
+    });
+
+    it('offers Prescribe inside each expanded record of a living animal', async () => {
+      const { buttons, headers, settle } = await setUp({
+        role: 'zoo-vet',
+        treatments: TREATMENTS,
+      });
+      expect(buttons().filter((b) => b.startsWith('Prescribe'))).toEqual([
+        'Prescribe for the 18 Sep 2026 record',
+      ]);
+      headers()[1].click();
+      await settle();
+      expect(buttons().filter((b) => b.startsWith('Prescribe'))).toEqual([
+        'Prescribe for the 18 Sep 2026 record',
+        'Prescribe for the 4 Mar 2026 record',
+      ]);
+    });
+
+    it('offers an admin Prescribe too', async () => {
+      expect(prescribe(await setUp({ role: 'zoo-admin' }))).toHaveLength(1);
+    });
+
+    it('hides Prescribe from keepers and for a deceased animal', async () => {
+      expect(prescribe(await setUp({ role: 'zoo-keeper' }))).toEqual([]);
+      expect(prescribe(await setUp({ role: 'zoo-vet', animal: DECEASED }))).toEqual([]);
+      expect(prescribe(await setUp({ role: 'zoo-admin', animal: DECEASED }))).toEqual([]);
+    });
+
+    it('opens a record that was just added, even one dated before the others', async () => {
+      const backdated: MedicalRecord = { ...OLDER, id: 'r-back', examinedOn: '2025-01-10' };
+      const { fixture, store, headers, settle, root } = await setUp({ role: 'zoo-vet' });
+      store.records.set([NEWEST, OLDER, backdated]);
+      await settle();
+      expect(headers()[2].getAttribute('aria-expanded')).toBe('false');
+
+      fixture.debugElement
+        .query(By.directive(RecordSheet))
+        .componentInstance.created.emit(backdated);
+      await settle();
+      expect(headers()[2].getAttribute('aria-expanded')).toBe('true');
+      expect(store.loadDetail).toHaveBeenCalledWith('r-back');
+      expect(root.textContent).toContain('Recorded by');
+    });
   });
 });

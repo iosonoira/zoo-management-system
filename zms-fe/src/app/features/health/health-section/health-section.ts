@@ -10,6 +10,7 @@ import {
   linkedSignal,
   output,
   untracked,
+  viewChild,
   viewChildren,
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
@@ -25,6 +26,8 @@ import {
 import { TREATMENT_STATUS_LABELS } from '../../../core/models/labels';
 import { Session } from '../../../core/session/session';
 import { Icon } from '../../../core/ui/icon/icon';
+import { RecordSheet } from '../record-sheet/record-sheet';
+import { TreatmentSheet } from '../treatment-sheet/treatment-sheet';
 import { TreatmentStatusSheet } from '../treatment-status-sheet/treatment-status-sheet';
 
 /** Open treatments come first, the one being given before the one still waiting. */
@@ -62,7 +65,7 @@ interface RecordView {
  */
 @Component({
   selector: 'app-health-section',
-  imports: [DatePipe, Icon, TreatmentStatusSheet],
+  imports: [DatePipe, Icon, RecordSheet, TreatmentSheet, TreatmentStatusSheet],
   templateUrl: './health-section.html',
   styleUrl: './health-section.scss',
 })
@@ -77,11 +80,29 @@ export class HealthSection {
 
   private readonly headers = viewChildren<ElementRef<HTMLButtonElement>>('header');
   private readonly statusSheets = viewChildren(TreatmentStatusSheet);
+  private readonly prescribeSheets = viewChildren(TreatmentSheet);
+  private readonly recordSheet = viewChild(RecordSheet);
 
   protected readonly statusLabels = TREATMENT_STATUS_LABELS;
 
   protected readonly deceased = computed(() => this.animal().status === 'DECEASED');
+  protected readonly canCreate = computed(() => this.session.can('createMedicalRecord'));
   protected readonly canChange = computed(() => this.session.can('updateTreatmentStatus'));
+  /** A record can still be added after death, for a post-mortem; a treatment can’t. */
+  protected readonly canPrescribe = computed(
+    () => this.session.can('prescribeTreatment') && !this.deceased(),
+  );
+  /** Explains the missing buttons of a role that can do none of it. */
+  protected readonly readOnly = computed(
+    () => !this.canCreate() && !this.session.can('prescribeTreatment') && !this.canChange(),
+  );
+  /** Explains why Prescribe is gone, and what is still possible. */
+  protected readonly deceasedNote = computed(
+    () =>
+      this.deceased() &&
+      this.canCreate() &&
+      (this.session.can('prescribeTreatment') || this.canChange()),
+  );
 
   /** The store keeps one animal at a time; only trust it once it holds this one. */
   private readonly forThisAnimal = computed(() => this.store.animalId() === this.animal().id);
@@ -151,6 +172,27 @@ export class HealthSection {
       ?.open();
   }
 
+  protected openRecord(): void {
+    this.recordSheet()?.open();
+  }
+
+  protected openPrescribe(record: MedicalRecord): void {
+    this.prescribeSheets()
+      .find((sheet) => sheet.record().id === record.id)
+      ?.open();
+  }
+
+  protected onRecordCreated(record: MedicalRecord): void {
+    // The newest record opens by itself, but not one dated before the others.
+    this.toggled.update((map) => new Map(map).set(record.id, true));
+    this.announce.emit(`Medical record added for ${this.animal().name}.`);
+    this.focusHeader(record.id);
+  }
+
+  protected onPrescribed(): void {
+    this.announce.emit(`Treatment prescribed for ${this.animal().name}.`);
+  }
+
   protected isOpen(treatment: Treatment): boolean {
     return isTreatmentOpen(treatment);
   }
@@ -163,14 +205,18 @@ export class HealthSection {
     );
     // A closed treatment loses its button, and with it the focus the sheet gave back.
     if (!isTreatmentOpen(treatment)) {
-      afterNextRender(
-        () =>
-          this.headers()
-            .find((h) => h.nativeElement.dataset['record'] === recordId)
-            ?.nativeElement.focus(),
-        { injector: this.injector },
-      );
+      this.focusHeader(recordId);
     }
+  }
+
+  private focusHeader(recordId: string): void {
+    afterNextRender(
+      () =>
+        this.headers()
+          .find((h) => h.nativeElement.dataset['record'] === recordId)
+          ?.nativeElement.focus(),
+      { injector: this.injector },
+    );
   }
 }
 
