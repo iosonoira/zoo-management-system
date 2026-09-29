@@ -166,3 +166,19 @@ The entries below were seeded on 2026-09-24 from decisions already stated in `zm
   - The bearer token is now attached to all three service origins in `environment.api` (`keycloak-providers.ts`, `bearerTokenConditions`). This replaces the D7 consequence that named `environment.apiBaseUrl`.
   - When `health-service` or `feeding-service` is down in live mode, only its section shows an error; the rest of the page keeps working.
   - There is still no view across animals, for example all feedings due now.
+
+## D11. No new treatments for a deceased animal, frontend only
+
+- **Date**: 2026-09-29 (commit `3426352`)
+- **Service(s)**: zms-fe
+- **Context**: `health-service` does not check the animal at all: a medical record can be created, and a treatment prescribed or started, for an animal that is `DECEASED` or does not exist (`docs/STATE.md`, health-service, Open).
+- **Alternatives considered**:
+  - Follow the backend: allow everything in the UI and leave the gap documented.
+  - Make Health read-only for a deceased animal: no new records, treatments or status changes.
+- **Decision**:
+  - For a deceased animal the UI still allows a new medical record, but does not offer prescribing a treatment or starting one (moving it to `ACTIVE`). Completing or cancelling an open treatment stays possible.
+  - Vets and admins see the reason as a lock note in the Health section.
+- **Rationale** (given by the maintainer, 2026-09-29, who chose this option as proposed during planning): a post-mortem examination is a legitimate record for a deceased animal, a new treatment is not.
+- **Consequences**:
+  - The rule lives only in the frontend (`HealthSection`, `TreatmentStatusSheet`). A direct call to `health-service` can still prescribe or start a treatment for a deceased animal.
+  - Enforcing it in the backend needs `health-service` to know which animals are deceased, for example with the event consumer and read model that D9 introduced in `feeding-service`.
