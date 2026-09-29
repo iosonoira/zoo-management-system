@@ -10,6 +10,7 @@ import {
   output,
   signal,
   untracked,
+  viewChild,
   viewChildren,
 } from '@angular/core';
 import { DatePipe, formatDate } from '@angular/common';
@@ -23,6 +24,7 @@ import { Icon } from '../../../core/ui/icon/icon';
 import { FeedingSheet } from '../feeding-sheet/feeding-sheet';
 import { MealSlot, mealSlots, relativeDay } from '../meal-track/meal-slots';
 import { MealTrack } from '../meal-track/meal-track';
+import { PlanSheet } from '../plan-sheet/plan-sheet';
 import { PlanStatusSheet } from '../plan-status-sheet/plan-status-sheet';
 
 /** A plan that is still in force: it can be fed against, or is only paused. */
@@ -44,7 +46,7 @@ interface OpenPlan {
  */
 @Component({
   selector: 'app-feeding-section',
-  imports: [DatePipe, Icon, MealTrack, FeedingSheet, PlanStatusSheet],
+  imports: [DatePipe, Icon, MealTrack, FeedingSheet, PlanStatusSheet, PlanSheet],
   templateUrl: './feeding-section.html',
   styleUrl: './feeding-section.scss',
 })
@@ -59,6 +61,7 @@ export class FeedingSection {
 
   private readonly recordSheets = viewChildren(FeedingSheet);
   private readonly statusSheets = viewChildren(PlanStatusSheet);
+  private readonly planSheet = viewChild(PlanSheet);
 
   protected readonly statusLabels = PLAN_STATUS_LABELS;
 
@@ -71,6 +74,7 @@ export class FeedingSection {
   );
   protected readonly canChangePlan = computed(() => this.session.can('updateFeedingPlanStatus'));
   protected readonly canCreatePlan = computed(() => this.session.can('createFeedingPlan'));
+  protected readonly canStartPlan = computed(() => this.canCreatePlan() && !this.deceased());
 
   /** The store keeps one animal at a time; only trust it once it holds this one. */
   private readonly forThisAnimal = computed(() => this.store.animalId() === this.animal().id);
@@ -131,6 +135,10 @@ export class FeedingSection {
       ?.open();
   }
 
+  protected openNewPlan(): void {
+    this.planSheet()?.open();
+  }
+
   protected openStatus(plan: FeedingPlan): void {
     this.statusSheets()
       .find((sheet) => sheet.plan().id === plan.id)
@@ -166,6 +174,10 @@ export class FeedingSection {
     this.announce.emit(
       `Feeding recorded for ${this.animal().name} at ${formatDate(feeding.fedAt, 'HH:mm', this.locale)}.`,
     );
+  }
+
+  protected onPlanCreated(): void {
+    this.announce.emit(`New feeding plan started for ${this.animal().name}.`);
   }
 
   protected onPlanChanged(plan: FeedingPlan): void {

@@ -10,7 +10,7 @@
         </p>
       }
 
-      @for (v of open(); track v.plan.id) {
+      @for (v of open(); track v.plan.id; let first = $first) {
         <div class="split">
           <div class="col">
             <div class="pane clip">
@@ -68,15 +68,29 @@
                 Record feeding<span class="visually-hidden"> for {{ v.plan.food }}</span>
               </button>
             }
-            @if (canChangePlan()) {
-              <button
-                type="button"
-                class="btn btn-secondary btn-compact start"
-                (click)="openStatus(v.plan)"
-              >
-                <app-icon name="status" />
-                Change plan status<span class="visually-hidden"> for {{ v.plan.food }}</span>
-              </button>
+            @if (canChangePlan() || (canStartPlan() && first)) {
+              <div class="actions">
+                @if (canChangePlan()) {
+                  <button
+                    type="button"
+                    class="btn btn-secondary btn-compact"
+                    (click)="openStatus(v.plan)"
+                  >
+                    <app-icon name="status" />
+                    Change plan status<span class="visually-hidden"> for {{ v.plan.food }}</span>
+                  </button>
+                }
+                @if (canStartPlan() && first) {
+                  <button
+                    type="button"
+                    class="btn btn-secondary btn-compact"
+                    (click)="openNewPlan()"
+                  >
+                    <app-icon name="plus" />
+                    New plan
+                  </button>
+                }
+              </div>
             }
             @if (!canRecord() && !deceased() && v.plan.status === 'ACTIVE') {
               <p class="note">
@@ -164,7 +178,12 @@
               ended().length > 0 ? 'No active feeding plan.' : 'No feeding plan yet.'
             }}
           </p>
-          @if (!canCreatePlan()) {
+          @if (canStartPlan()) {
+            <button type="button" class="btn btn-primary wide" (click)="openNewPlan()">
+              <app-icon name="plus" />
+              New plan
+            </button>
+          } @else if (!canCreatePlan()) {
             <p class="note"><app-icon name="lock" />A vet or admin needs to start a plan.</p>
           }
         </div>
@@ -203,6 +222,9 @@
       }
     </div>
 
+    @if (canStartPlan()) {
+      <app-plan-sheet [animal]="animal()" (created)="onPlanCreated()" />
+    }
     @for (v of open(); track v.plan.id) {
       @if (canRecord() && v.plan.status === 'ACTIVE') {
         <app-feeding-sheet [animal]="animal()" [plan]="v.plan" (recorded)="onRecorded($event)" />

@@ -48,8 +48,10 @@
   overflow: hidden;
 }
 
-.start {
-  justify-self: start;
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
 }
 
 .wide {

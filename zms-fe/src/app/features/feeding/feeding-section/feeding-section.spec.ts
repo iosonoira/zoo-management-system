@@ -189,6 +189,39 @@ describe('FeedingSection', () => {
     expect(text()).not.toContain('A vet or admin needs to start a plan.');
   });
 
+  it('shows a vet New plan next to Change plan status, and a keeper no New plan', async () => {
+    const vet = await setUp({ role: 'zoo-vet', plans: [makePlan('ACTIVE')] });
+    expect(vet.buttons()).toContain('New plan');
+    expect(vet.buttons().some((b) => b.startsWith('Change plan status'))).toBe(true);
+
+    const keeper = await setUp({ role: 'zoo-keeper', plans: [makePlan('ACTIVE')] });
+    expect(keeper.buttons()).not.toContain('New plan');
+  });
+
+  it('offers a vet New plan as the primary action when there is no plan', async () => {
+    const { root, buttons } = await setUp({ role: 'zoo-vet', plans: [] });
+    expect(buttons()).toContain('New plan');
+    const button = Array.from(root.querySelectorAll('button')).find(
+      (b) => b.textContent!.trim() === 'New plan',
+    )!;
+    expect(button.classList).toContain('btn-primary');
+  });
+
+  it('gives a keeper no New plan button in the empty state, only the lock note', async () => {
+    const { buttons, text } = await setUp({ role: 'zoo-keeper', plans: [] });
+    expect(buttons()).not.toContain('New plan');
+    expect(text()).toContain('A vet or admin needs to start a plan.');
+  });
+
+  it('hides New plan for a deceased animal', async () => {
+    const { buttons } = await setUp({
+      role: 'zoo-admin',
+      animal: { ...ANIMAL, name: 'Bruno', status: 'DECEASED' },
+      plans: [makePlan('ENDED')],
+    });
+    expect(buttons()).not.toContain('New plan');
+  });
+
   it('shows a Try again button when the plans fail to load, and retries', async () => {
     const { buttons, store, root } = await setUp({ state: 'error' });
     expect(root.querySelector('[role="alert"]')).not.toBeNull();
