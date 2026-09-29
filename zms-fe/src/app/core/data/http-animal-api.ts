@@ -3,7 +3,9 @@ import { inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Animal, AnimalStatus, Enclosure, NewAnimal } from '../models/animal';
-import { AnimalApi, ApiError } from './animal-api';
+import { AnimalApi } from './animal-api';
+import { ApiError } from './api-error';
+import { collectPages, Page } from './page';
 import {
   conflict,
   deceasedTransfer,
@@ -18,13 +20,6 @@ import {
 /** `ListAnimalsUseCase.MAX_PAGE_SIZE`; a larger value is rejected with 400. */
 export const PAGE_SIZE = 100;
 
-interface AnimalPageResponse {
-  readonly items: readonly Animal[];
-  readonly page: number;
-  readonly size: number;
-  readonly total: number;
-}
-
 /**
  * Live adapter for the `/animals` REST contract. `AnimalResponse` shares every field
  * name with the `Animal` interface and `arrivalDate` arrives as an ISO date string, so
@@ -38,18 +33,13 @@ export class HttpAnimalApi extends AnimalApi {
   private readonly base = `${environment.apiBaseUrl}/animals`;
 
   async listAll(): Promise<Animal[]> {
-    const all: Animal[] = [];
-    for (let page = 0; ; page++) {
-      const response = await this.request<AnimalPageResponse>(() =>
-        this.http.get<AnimalPageResponse>(`${this.base}?page=${page}&size=${PAGE_SIZE}`),
-      );
-      all.push(...response.items);
-      // Stop on a short page as well as on a satisfied total: a roster that shrinks
-      // between requests would otherwise loop forever.
-      if (response.items.length < PAGE_SIZE || all.length >= response.total) {
-        return all;
-      }
-    }
+    return collectPages(
+      (page: number) =>
+        this.request<Page<Animal>>(() =>
+          this.http.get<Page<Animal>>(`${this.base}?page=${page}&size=${PAGE_SIZE}`),
+        ),
+      PAGE_SIZE,
+    );
   }
 
   getById(id: string): Promise<Animal> {

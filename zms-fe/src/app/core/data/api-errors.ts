@@ -1,4 +1,4 @@
-import { ApiError } from './animal-api';
+import { ApiError } from './api-error';
 
 /**
  * The single source of user-facing copy for backend failures. `animal-service` returns

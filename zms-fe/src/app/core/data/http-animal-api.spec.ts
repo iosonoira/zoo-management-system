@@ -3,7 +3,8 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../environments/environment';
 import { Animal, NewAnimal } from '../models/animal';
-import { AnimalApi, ApiError } from './animal-api';
+import { AnimalApi } from './animal-api';
+import { ApiError } from './api-error';
 import { HttpAnimalApi, PAGE_SIZE } from './http-animal-api';
 
 // The suite builds with the demo `environment.ts`, so `apiBaseUrl` is empty and the

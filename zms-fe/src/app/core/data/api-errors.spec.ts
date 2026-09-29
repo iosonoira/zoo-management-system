@@ -1,4 +1,4 @@
-import { ApiError } from './animal-api';
+import { ApiError } from './api-error';
 import {
   conflict,
   deceasedStatus,
