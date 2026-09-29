@@ -1,0 +1,235 @@
+<section class="section" aria-labelledby="feeding-heading">
+  <h2 id="feeding-heading">Feeding</h2>
+
+  @if (ready()) {
+    <div class="body">
+      @if (deceased()) {
+        <p class="note">
+          <app-icon name="lock" />{{ animal().name }} is recorded as deceased. Its feeding plans
+          have ended.
+        </p>
+      }
+
+      @for (v of open(); track v.plan.id) {
+        <div class="split">
+          <div class="col">
+            <div class="pane clip">
+              @if (v.track) {
+                @if (now(); as today) {
+                  <p class="pane-label">
+                    <strong>Today</strong>
+                    <span class="tabular">{{ today | date: 'EEE d MMM' }}</span>
+                  </p>
+                }
+                @if (v.slots; as slots) {
+                  <app-meal-track [slots]="slots" />
+                } @else if (v.feedingsState !== 'error') {
+                  <div class="skeleton skeleton-track" aria-hidden="true"></div>
+                }
+              } @else if (v.plan.status === 'SUSPENDED') {
+                <p class="suspended">
+                  <app-icon name="lock" />Plan suspended. No feedings are recorded until it resumes.
+                </p>
+              }
+
+              <div class="plan">
+                <div class="plan-top">
+                  <p class="food">{{ v.plan.food }}</p>
+                  <span class="plan-state">
+                    <app-icon [name]="statusLabels[v.plan.status].icon" />{{
+                      statusLabels[v.plan.status].label
+                    }}
+                    plan
+                  </span>
+                </div>
+                <p class="plan-qty">
+                  <strong>{{ v.plan.quantityGrams }} g</strong> per meal ·
+                  {{ v.plan.feedingTimes.length }}
+                  {{ v.plan.feedingTimes.length === 1 ? 'meal' : 'meals' }} a day
+                </p>
+                @if (!v.track) {
+                  <p class="plan-qty">
+                    At <span class="tabular">{{ v.plan.feedingTimes.join(', ') }}</span>
+                  </p>
+                }
+                @if (v.plan.notes) {
+                  <p class="plan-note"><span>Plan note</span>{{ v.plan.notes }}</p>
+                }
+                <p class="by">
+                  <app-icon name="user" />Set by {{ v.plan.createdBy ?? 'an unknown user' }} on
+                  <span class="tabular">{{ v.plan.startedOn | date: 'd MMM y' }}</span>
+                </p>
+              </div>
+            </div>
+
+            @if (canRecord() && v.plan.status === 'ACTIVE') {
+              <button type="button" class="btn btn-primary wide" (click)="openRecord(v.plan)">
+                <app-icon name="bowl" />
+                Record feeding<span class="visually-hidden"> for {{ v.plan.food }}</span>
+              </button>
+            }
+            @if (canChangePlan()) {
+              <button
+                type="button"
+                class="btn btn-secondary btn-compact start"
+                (click)="openStatus(v.plan)"
+              >
+                <app-icon name="status" />
+                Change plan status<span class="visually-hidden"> for {{ v.plan.food }}</span>
+              </button>
+            }
+            @if (!canRecord() && !deceased() && v.plan.status === 'ACTIVE') {
+              <p class="note">
+                <app-icon name="lock" />Only keepers and admins can record feedings.
+              </p>
+            }
+            @if (!canChangePlan()) {
+              <p class="note"><app-icon name="lock" />Only vets and admins can change the plan.</p>
+            }
+          </div>
+
+          <div class="col">
+            <h3>
+              Recent feedings<span class="visually-hidden"> for {{ v.plan.food }}</span>
+            </h3>
+            @if (v.feedings.length > 0) {
+              <div class="pane clip">
+                <ul class="rows">
+                  @for (f of v.feedings; track f.id) {
+                    <li>
+                      <span class="when">{{ whenLabel(f.fedAt) }}</span>
+                      <span class="qty">{{ f.quantityGrams }} g</span>
+                      <span class="by"
+                        ><app-icon name="user" />{{ f.recordedBy ?? 'Unknown' }}</span
+                      >
+                      @if (f.notes) {
+                        <p class="fnote">{{ f.notes }}</p>
+                      }
+                    </li>
+                  }
+                  @if (v.hasMore && v.feedingsState !== 'error') {
+                    <li class="more">
+                      <button
+                        type="button"
+                        class="btn btn-quiet"
+                        [disabled]="v.feedingsState === 'loading'"
+                        (click)="store.loadMoreFeedings(v.plan.id)"
+                      >
+                        @if (v.feedingsState === 'loading') {
+                          Loading…
+                        } @else {
+                          Show earlier feedings<app-icon name="chevron-down" />
+                        }
+                      </button>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+            @if (v.feedingsState === 'error') {
+              <div class="notice pane" role="alert">
+                <app-icon name="alert" />
+                <div>
+                  <h3>The feedings didn’t load</h3>
+                  <p>Check your connection, then try again.</p>
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-compact"
+                  (click)="retryFeedings(v)"
+                >
+                  Try again
+                </button>
+              </div>
+            } @else if (v.feedings.length === 0) {
+              @if (v.feedingsState === 'ready') {
+                <p class="pane empty">No feedings recorded yet.</p>
+              } @else {
+                <div
+                  class="skeleton skeleton-log"
+                  role="status"
+                  aria-busy="true"
+                  aria-label="Loading feedings"
+                ></div>
+              }
+            }
+          </div>
+        </div>
+      }
+
+      @if (open().length === 0 && !deceased()) {
+        <div class="pane empty-plan">
+          <p class="empty-line">
+            <app-icon name="bowl" />{{
+              ended().length > 0 ? 'No active feeding plan.' : 'No feeding plan yet.'
+            }}
+          </p>
+          @if (!canCreatePlan()) {
+            <p class="note"><app-icon name="lock" />A vet or admin needs to start a plan.</p>
+          }
+        </div>
+      }
+
+      @if (ended().length > 0) {
+        <details class="earlier pane clip">
+          <summary>
+            <span
+              >Earlier plans <span class="tabular">({{ ended().length }})</span></span
+            >
+            <app-icon name="chevron-down" />
+          </summary>
+          <ul class="ended">
+            @for (p of ended(); track p.id) {
+              <li class="plan">
+                <p class="food">{{ p.food }}</p>
+                <p class="plan-qty">
+                  <strong>{{ p.quantityGrams }} g</strong> per meal at
+                  <span class="tabular">{{ p.feedingTimes.join(', ') }}</span>
+                </p>
+                @if (p.notes) {
+                  <p class="plan-note"><span>Plan note</span>{{ p.notes }}</p>
+                }
+                <p class="by">
+                  <app-icon name="user" />Set by {{ p.createdBy ?? 'an unknown user' }} on
+                  <span class="tabular">{{ p.startedOn | date: 'd MMM y' }}</span>
+                  @if (p.endedOn) {
+                    · ended <span class="tabular">{{ p.endedOn | date: 'd MMM y' }}</span>
+                  }
+                </p>
+              </li>
+            }
+          </ul>
+        </details>
+      }
+    </div>
+
+    @for (v of open(); track v.plan.id) {
+      @if (canRecord() && v.plan.status === 'ACTIVE') {
+        <app-feeding-sheet [animal]="animal()" [plan]="v.plan" (recorded)="onRecorded($event)" />
+      }
+      @if (canChangePlan()) {
+        <app-plan-status-sheet
+          [animal]="animal()"
+          [plan]="v.plan"
+          (changed)="onPlanChanged($event)"
+        />
+      }
+    }
+  } @else if (failed()) {
+    <div class="notice pane" role="alert">
+      <app-icon name="alert" />
+      <div>
+        <h3>Feeding plans didn’t load</h3>
+        <p>Check your connection, then try again. The rest of this page still works.</p>
+      </div>
+      <button type="button" class="btn btn-primary" (click)="store.retry()">Try again</button>
+    </div>
+  } @else {
+    <div
+      class="skeleton skeleton-section"
+      role="status"
+      aria-busy="true"
+      aria-label="Loading feeding plans"
+    ></div>
+  }
+</section>

@@ -31,6 +31,11 @@
     </header>
 
     <div class="sections">
+      <!-- Reading order is the visual order: Feeding leads for keepers and follows Location for the rest. -->
+      @if (feedingFirst()) {
+        <app-feeding-section class="lead" [animal]="a" (announce)="announce($event)" />
+      }
+
       <section class="section" aria-labelledby="status-heading">
         <h2 id="status-heading">Status</h2>
         <app-status-track [status]="a.status" />
@@ -45,7 +50,9 @@
             Update status
           </button>
         } @else if (deceased()) {
-          <p class="note"><app-icon name="lock" />Deceased is final. This record can no longer change.</p>
+          <p class="note">
+            <app-icon name="lock" />Deceased is final. This record can no longer change.
+          </p>
         } @else {
           <p class="note"><app-icon name="lock" />Only vets and admins can change status.</p>
         }
@@ -67,41 +74,49 @@
             Transfer to another enclosure
           </button>
         } @else if (deceased()) {
-          <p class="note"><app-icon name="lock" />Deceased animals stay on record and can’t be transferred.</p>
+          <p class="note">
+            <app-icon name="lock" />Deceased animals stay on record and can’t be transferred.
+          </p>
         } @else {
           <p class="note"><app-icon name="lock" />Only keepers and admins can transfer animals.</p>
         }
       </section>
 
+      @if (!feedingFirst()) {
+        <app-feeding-section [animal]="a" (announce)="announce($event)" />
+      }
+
+      <!-- Health goes here: after Location for keepers, beside Feeding for vets and admins. -->
+
       <section class="section record" aria-labelledby="record-heading">
         <h2 id="record-heading">Record</h2>
         <div class="facts-plate pane">
-        <dl class="facts">
-          <div>
-            <dt>Species</dt>
-            <dd>{{ a.species }}</dd>
-          </div>
-          <div>
-            <dt>Habitat</dt>
-            <dd class="with-icon"><app-icon [name]="habitat()!.icon" />{{ habitat()!.label }}</dd>
-          </div>
-          <div>
-            <dt>Arrived</dt>
-            <dd class="tabular">{{ a.arrivalDate | date: 'd MMM y' }}</dd>
-          </div>
-          <div>
-            <dt>Dangerous</dt>
-            <dd>{{ a.dangerous ? 'Yes, follow the handling protocol' : 'No' }}</dd>
-          </div>
-          <div>
-            <dt>Registered by</dt>
-            <dd class="with-icon"><app-icon name="user" />{{ a.createdBy ?? 'Unknown' }}</dd>
-          </div>
-          <div>
-            <dt>Last updated by</dt>
-            <dd class="with-icon"><app-icon name="user" />{{ a.updatedBy ?? 'Unknown' }}</dd>
-          </div>
-        </dl>
+          <dl class="facts">
+            <div>
+              <dt>Species</dt>
+              <dd>{{ a.species }}</dd>
+            </div>
+            <div>
+              <dt>Habitat</dt>
+              <dd class="with-icon"><app-icon [name]="habitat()!.icon" />{{ habitat()!.label }}</dd>
+            </div>
+            <div>
+              <dt>Arrived</dt>
+              <dd class="tabular">{{ a.arrivalDate | date: 'd MMM y' }}</dd>
+            </div>
+            <div>
+              <dt>Dangerous</dt>
+              <dd>{{ a.dangerous ? 'Yes, follow the handling protocol' : 'No' }}</dd>
+            </div>
+            <div>
+              <dt>Registered by</dt>
+              <dd class="with-icon"><app-icon name="user" />{{ a.createdBy ?? 'Unknown' }}</dd>
+            </div>
+            <div>
+              <dt>Last updated by</dt>
+              <dd class="with-icon"><app-icon name="user" />{{ a.updatedBy ?? 'Unknown' }}</dd>
+            </div>
+          </dl>
         </div>
       </section>
     </div>

@@ -415,6 +415,13 @@ input {
   }
 }
 
+/* Secondary action inside a row of content: 44px instead of 52px */
+.btn-compact {
+  min-block-size: var(--target);
+  padding-inline: var(--space-4);
+  font-size: var(--text-sm);
+}
+
 /* ---------- Dialog as sheet ---------- */
 
 dialog.sheet {

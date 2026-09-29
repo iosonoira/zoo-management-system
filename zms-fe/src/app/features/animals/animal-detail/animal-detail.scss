@@ -151,6 +151,13 @@
   }
 }
 
+/* A keeper's Feeding takes the whole row, so its meals and log can sit side by side. */
+.lead {
+  @media (min-width: 60rem) {
+    grid-column: 1 / -1;
+  }
+}
+
 .record {
   @media (min-width: 60rem) {
     grid-column: 1 / -1;

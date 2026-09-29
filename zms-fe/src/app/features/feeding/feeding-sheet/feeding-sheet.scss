@@ -1,0 +1,57 @@
+.sheet-body {
+  gap: var(--space-4);
+}
+
+.group {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  padding: 0;
+  border: 0;
+  margin: 0;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+  margin-block-start: var(--space-1);
+
+  .option {
+    grid-template-columns: 1fr auto;
+    min-block-size: 3.5rem;
+    padding: var(--space-2) var(--space-3);
+  }
+}
+
+.stepper {
+  display: grid;
+  grid-template-columns: 3rem 1fr 3rem;
+  gap: var(--space-2);
+
+  .btn {
+    min-block-size: 3rem;
+    padding: 0;
+    --icon-size: 1.25rem;
+  }
+
+  .field-input {
+    min-inline-size: 0;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    text-align: center;
+    appearance: textfield;
+
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+      appearance: none;
+      margin: 0;
+    }
+  }
+}
+
+.notes {
+  padding-block: var(--space-3);
+  min-block-size: 5rem;
+  resize: vertical;
+}
