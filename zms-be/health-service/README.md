@@ -22,7 +22,7 @@ Does not:
 | `COMPLETED` and `CANCELLED` are terminal | `Treatment.canTransitionTo` | 422 |
 | A transition to the current status, or to null, is rejected | `Treatment.canTransitionTo` | 422 |
 | `startedOn` is set to today the first time a treatment becomes `ACTIVE`; `endedOn` is set to today on `COMPLETED` or `CANCELLED` | `UpdateTreatmentStatusService` | — |
-| The examination date must not be in the future | `CreateMedicalRecordService` | 400 (`InvalidMedicalDataException`) |
+| The examination date must not be in the future in every time zone: it may be at most today's date at UTC+14, so a vet ahead of the server's zone can still enter their own today | `CreateMedicalRecordService.EARLIEST_ZONE` | 400 (`InvalidMedicalDataException`) |
 | Animal id, reason, diagnosis, examination date, veterinarian and acting user are required | `CreateMedicalRecordService`, `CreateMedicalRecordRequest` | 400 |
 | Reason ≤ 200, diagnosis ≤ 1000, veterinarian ≤ 100, treatment description ≤ 500 characters | `CreateMedicalRecordRequest`, `PrescribeTreatmentRequest` | 400 |
 | A treatment needs an existing medical record | `PrescribeTreatmentService`, foreign key in `V1` | 404 (`MedicalRecordNotFoundException`) |

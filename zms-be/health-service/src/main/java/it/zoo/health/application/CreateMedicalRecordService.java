@@ -9,10 +9,18 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 @ApplicationScoped
 public class CreateMedicalRecordService implements CreateMedicalRecordUseCase {
+
+    /**
+     * The vet picks the date in their own time zone, which can be ahead of the server's.
+     * UTC+14 is the first zone to reach a new day, so only a date that is in the future
+     * everywhere is rejected.
+     */
+    static final ZoneOffset EARLIEST_ZONE = ZoneOffset.ofHours(14);
 
     private final MedicalRecordRepository repository;
 
@@ -41,7 +49,7 @@ public class CreateMedicalRecordService implements CreateMedicalRecordUseCase {
         if (cmd.examinedOn() == null) {
             throw new InvalidMedicalDataException("Examination date must not be null");
         }
-        if (cmd.examinedOn().isAfter(LocalDate.now())) {
+        if (cmd.examinedOn().isAfter(LocalDate.now(EARLIEST_ZONE))) {
             throw new InvalidMedicalDataException("Examination date must not be in the future");
         }
 
