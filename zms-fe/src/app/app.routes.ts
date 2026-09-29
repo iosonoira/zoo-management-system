@@ -12,7 +12,7 @@ const guards: CanActivateFn[] = environment.live
         return import('./core/auth/keycloak-providers').then((m) =>
           runInInjectionContext(
             injector,
-            () => m.animalRouteGuard(route, state) as Promise<GuardResult>,
+            () => m.signedInGuard(route, state) as Promise<GuardResult>,
           ),
         );
       },

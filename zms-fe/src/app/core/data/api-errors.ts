@@ -1,3 +1,4 @@
+import { Permission } from '../models/permissions';
 import { ApiError } from './api-error';
 
 /**
@@ -7,14 +8,26 @@ import { ApiError } from './api-error';
  * adapters map the status code to the copy below instead of forwarding the body.
  */
 
-export function forbidden(action: 'updateStatus' | 'transfer' | 'register'): ApiError {
-  switch (action) {
+export function forbidden(permission: Permission): ApiError {
+  switch (permission) {
     case 'updateStatus':
       return new ApiError(403, 'Only vets and admins can change an animal’s status.');
     case 'transfer':
       return new ApiError(403, 'Only keepers and admins can transfer animals.');
     case 'register':
       return new ApiError(403, 'Only admins can register animals.');
+    case 'createMedicalRecord':
+      return new ApiError(403, 'Only vets and admins can add medical records.');
+    case 'prescribeTreatment':
+      return new ApiError(403, 'Only vets and admins can prescribe treatments.');
+    case 'updateTreatmentStatus':
+      return new ApiError(403, 'Only vets and admins can change a treatment’s status.');
+    case 'createFeedingPlan':
+      return new ApiError(403, 'Only vets and admins can create feeding plans.');
+    case 'updateFeedingPlanStatus':
+      return new ApiError(403, 'Only vets and admins can change a feeding plan’s status.');
+    case 'recordFeeding':
+      return new ApiError(403, 'Only keepers and admins can record feedings.');
   }
 }
 

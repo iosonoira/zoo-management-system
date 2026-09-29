@@ -7,10 +7,10 @@ import { AnimalApi } from './animal-api';
 import { ApiError } from './api-error';
 import { HttpAnimalApi, PAGE_SIZE } from './http-animal-api';
 
-// The suite builds with the demo `environment.ts`, so `apiBaseUrl` is empty and the
+// The suite builds with the demo `environment.ts`, so `api.animal` is empty and the
 // adapter's paths are origin-relative. Reading it back keeps the expectations true of
 // whichever environment a run is built with.
-const BASE = environment.apiBaseUrl;
+const BASE = environment.api.animal;
 
 function animal(overrides: Partial<Animal> = {}): Animal {
   return {

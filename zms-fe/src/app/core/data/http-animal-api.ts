@@ -30,7 +30,7 @@ export const PAGE_SIZE = 100;
  */
 export class HttpAnimalApi extends AnimalApi {
   private readonly http = inject(HttpClient);
-  private readonly base = `${environment.apiBaseUrl}/animals`;
+  private readonly base = `${environment.api.animal}/animals`;
 
   async listAll(): Promise<Animal[]> {
     return collectPages(
@@ -68,7 +68,7 @@ export class HttpAnimalApi extends AnimalApi {
   }
 
   listEnclosures(): Promise<Enclosure[]> {
-    return this.request(() => this.http.get<Enclosure[]>(`${environment.apiBaseUrl}/enclosures`));
+    return this.request(() => this.http.get<Enclosure[]>(`${environment.api.animal}/enclosures`));
   }
 
   private async request<T>(

@@ -19,13 +19,22 @@ import { KeycloakSession } from '../session/keycloak-session';
 import { Session } from '../session/session';
 
 /**
- * Attach the bearer token to `animal-service` and to nothing else. Anchored at both
- * ends so a host merely starting with the API origin cannot match.
+ * One condition per backend origin, so the bearer token reaches those services and
+ * nothing else (not Keycloak, not the app's own server). Each pattern is anchored at
+ * both ends so a host merely starting with an API origin cannot match. An empty origin
+ * would match every relative URL, so it is refused.
  */
-const apiCondition = createInterceptorCondition<IncludeBearerTokenCondition>({
-  urlPattern: new RegExp(`^${escapeForRegExp(environment.apiBaseUrl)}(/.*)?$`, 'i'),
-  bearerPrefix: 'Bearer',
-});
+export function bearerTokenConditions(origins: readonly string[]): IncludeBearerTokenCondition[] {
+  return origins.map((origin) => {
+    if (!origin) {
+      throw new Error('bearerTokenConditions() needs a non-empty origin for every service.');
+    }
+    return createInterceptorCondition<IncludeBearerTokenCondition>({
+      urlPattern: new RegExp(`^${escapeForRegExp(origin)}(/.*)?$`, 'i'),
+      bearerPrefix: 'Bearer',
+    });
+  });
+}
 
 function escapeForRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -59,7 +68,10 @@ export function keycloakProviders(): (Provider | EnvironmentProviders)[] {
       ],
       providers: [AutoRefreshTokenService, UserActivityService],
     }),
-    { provide: INCLUDE_BEARER_TOKEN_INTERCEPTOR_CONFIG, useValue: [apiCondition] },
+    {
+      provide: INCLUDE_BEARER_TOKEN_INTERCEPTOR_CONFIG,
+      useValue: bearerTokenConditions(Object.values(environment.api)),
+    },
     provideHttpClient(withFetch(), withInterceptors([includeBearerTokenInterceptor])),
     { provide: Session, useClass: KeycloakSession },
   ];
@@ -73,9 +85,9 @@ const isSignedIn = async (
   if (authData.authenticated) {
     return true;
   }
-  // Any zoo role may read the roster; the backend enforces the rest per endpoint.
+  // Any zoo role may read every service; each backend enforces its writes per endpoint.
   await inject(Keycloak).login({ redirectUri: window.location.href });
   return false;
 };
 
-export const animalRouteGuard = createAuthGuard<CanActivateFn>(isSignedIn);
+export const signedInGuard = createAuthGuard<CanActivateFn>(isSignedIn);
