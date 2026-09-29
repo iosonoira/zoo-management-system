@@ -1,0 +1,91 @@
+<dialog
+  #dialog
+  class="sheet"
+  aria-labelledby="record-title"
+  (click)="onBackdrop($event)"
+  (cancel)="pending() && $event.preventDefault()"
+>
+  <form class="sheet-form" (submit)="submit($event)">
+    <header class="sheet-head">
+      <div>
+        <h2 id="record-title">New medical record</h2>
+        <p>{{ animal().name }}. Recorded under your name.</p>
+      </div>
+      <button type="button" class="btn btn-quiet" (click)="close()" [disabled]="pending()">
+        <app-icon name="close" />
+        <span class="visually-hidden">Close</span>
+      </button>
+    </header>
+
+    <fieldset class="sheet-body" [disabled]="pending()">
+      <legend class="visually-hidden">Medical record details</legend>
+
+      @if (deceased()) {
+        <p class="note">
+          <app-icon name="lock" />{{ animal().name }} is deceased. Use this for a post-mortem
+          examination.
+        </p>
+      }
+
+      <label class="field">
+        <span class="field-label">Examined on</span>
+        <input
+          type="date"
+          class="field-input"
+          [attr.max]="today()"
+          [formField]="recordForm.examinedOn"
+        />
+        @if (recordForm.examinedOn().touched() && recordForm.examinedOn().invalid()) {
+          <span class="field-hint">{{ recordForm.examinedOn().errors()[0].message }}</span>
+        }
+      </label>
+
+      <label class="field">
+        <span class="field-label">Reason for the examination</span>
+        <input
+          type="text"
+          class="field-input"
+          placeholder="For example, limping on the left hind leg"
+          [formField]="recordForm.reason"
+        />
+        @if (recordForm.reason().touched() && recordForm.reason().invalid()) {
+          <span class="field-hint">{{ recordForm.reason().errors()[0].message }}</span>
+        }
+      </label>
+
+      <label class="field">
+        <span class="field-label">Diagnosis</span>
+        <textarea class="field-input area" rows="4" [formField]="recordForm.diagnosis"></textarea>
+        @if (recordForm.diagnosis().touched() && recordForm.diagnosis().invalid()) {
+          <span class="field-hint">{{ recordForm.diagnosis().errors()[0].message }}</span>
+        }
+      </label>
+
+      <label class="field">
+        <span class="field-label">Veterinarian</span>
+        <input type="text" class="field-input" [formField]="recordForm.veterinarian" />
+        @if (recordForm.veterinarian().touched() && recordForm.veterinarian().invalid()) {
+          <span class="field-hint">{{ recordForm.veterinarian().errors()[0].message }}</span>
+        }
+      </label>
+    </fieldset>
+
+    <footer class="sheet-foot">
+      @if (error(); as message) {
+        <p class="form-error" role="alert"><app-icon name="alert" />{{ message }}</p>
+      }
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="recordForm().invalid() || pending()"
+      >
+        <app-icon name="check" />
+        @if (pending()) {
+          Saving…
+        } @else {
+          Add record
+        }
+      </button>
+    </footer>
+  </form>
+</dialog>

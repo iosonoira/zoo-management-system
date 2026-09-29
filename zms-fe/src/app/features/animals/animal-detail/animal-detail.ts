@@ -19,6 +19,8 @@ import { Animal, canBeTransferred, tagCode } from '../../../core/models/animal';
 import { HABITAT_LABELS, STATUS_LABELS } from '../../../core/models/labels';
 import { Session } from '../../../core/session/session';
 import { Icon } from '../../../core/ui/icon/icon';
+import { FeedingSection } from '../../feeding/feeding-section/feeding-section';
+import { HealthSection } from '../../health/health-section/health-section';
 import { EnclosureSign } from '../enclosure-sign/enclosure-sign';
 import { StatusSheet } from '../status-sheet/status-sheet';
 import { StatusTrack } from '../status-track/status-track';
@@ -26,7 +28,17 @@ import { TransferSheet } from '../transfer-sheet/transfer-sheet';
 
 @Component({
   selector: 'app-animal-detail',
-  imports: [RouterLink, DatePipe, Icon, EnclosureSign, StatusTrack, TransferSheet, StatusSheet],
+  imports: [
+    RouterLink,
+    DatePipe,
+    Icon,
+    EnclosureSign,
+    StatusTrack,
+    TransferSheet,
+    StatusSheet,
+    FeedingSection,
+    HealthSection,
+  ],
   templateUrl: './animal-detail.html',
   styleUrl: './animal-detail.scss',
 })
@@ -62,6 +74,8 @@ export class AnimalDetail {
     return animal ? this.store.enclosureById().get(animal.enclosureId) : undefined;
   });
   protected readonly deceased = computed(() => this.animal()?.status === 'DECEASED');
+  /** Keepers work from Feeding, so it leads their page. */
+  protected readonly feedingFirst = computed(() => this.session.role() === 'zoo-keeper');
   protected readonly canTransfer = computed(
     () => this.session.can('transfer') && !!this.animal() && canBeTransferred(this.animal()!),
   );
@@ -121,7 +135,7 @@ export class AnimalDetail {
     }
   }
 
-  private announce(message: string): void {
+  protected announce(message: string): void {
     this.announcement.set(message);
     clearTimeout(this.announceTimer);
     if (this.isBrowser) {

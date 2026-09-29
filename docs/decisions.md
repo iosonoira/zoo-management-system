@@ -146,3 +146,39 @@ The entries below were seeded on 2026-09-24 from decisions already stated in `zm
   - Idempotency of the consumer is per animal id, not per event id, and relies on `DECEASED` being terminal in `Animal.canTransitionTo` (`docs/events.md`).
   - The consumer has its own dead-letter topic, `zoo.animal.events.feeding.dlq`.
   - The frontend repeats no feeding matrix yet: there is no feeding UI.
+
+## D10. Health and feeding live inside the animal page
+
+- **Date**: 2026-09-29 (commit `c9ed49e`)
+- **Service(s)**: zms-fe
+- **Context**: `health-service` and `feeding-service` had no UI (`docs/STATE.md`, Frontend). `PRODUCT.md` asked the navigation to "leave room" for them but did not say where they go.
+- **Alternatives considered**:
+  - Global sections `/health` and `/feeding` in a new navigation, with lists across animals.
+  - Both: sections in the animal page plus global lists.
+  - Inside the animal page, as tabs (Overview, Feeding, Health) rather than stacked sections. Both layouts were drawn as a mockup before any code.
+- **Decision**:
+  - Feeding and Health are sections of `/animals/:id`, stacked with Status, Location and Record. There is no new navigation.
+  - The order depends on the role: keepers see Feeding first; vets and admins see Status and Location first, then Health and Feeding side by side from 60rem.
+- **Rationale** (given by the maintainer, 2026-09-29, who adopted the reasons proposed during planning and chose the stacked layout from the mockup):
+  - The product is centred on the animal (`PRODUCT.md`, "Product Purpose"), and both APIs filter by `animalId` without a cross-animal list by status, so global sections would be unfiltered lists.
+  - Stacked sections keep the page's existing grammar and show a reviewer the whole feature without a click; Feeding leads for keepers because recording a meal is their most frequent action.
+- **Consequences**:
+  - The bearer token is now attached to all three service origins in `environment.api` (`keycloak-providers.ts`, `bearerTokenConditions`). This replaces the D7 consequence that named `environment.apiBaseUrl`.
+  - When `health-service` or `feeding-service` is down in live mode, only its section shows an error; the rest of the page keeps working.
+  - There is still no view across animals, for example all feedings due now.
+
+## D11. No new treatments for a deceased animal, frontend only
+
+- **Date**: 2026-09-29 (commit `3426352`)
+- **Service(s)**: zms-fe
+- **Context**: `health-service` does not check the animal at all: a medical record can be created, and a treatment prescribed or started, for an animal that is `DECEASED` or does not exist (`docs/STATE.md`, health-service, Open).
+- **Alternatives considered**:
+  - Follow the backend: allow everything in the UI and leave the gap documented.
+  - Make Health read-only for a deceased animal: no new records, treatments or status changes.
+- **Decision**:
+  - For a deceased animal the UI still allows a new medical record, but does not offer prescribing a treatment or starting one (moving it to `ACTIVE`). Completing or cancelling an open treatment stays possible.
+  - Vets and admins see the reason as a lock note in the Health section.
+- **Rationale** (given by the maintainer, 2026-09-29, who chose this option as proposed during planning): a post-mortem examination is a legitimate record for a deceased animal, a new treatment is not.
+- **Consequences**:
+  - The rule lives only in the frontend (`HealthSection`, `TreatmentStatusSheet`). A direct call to `health-service` can still prescribe or start a treatment for a deceased animal.
+  - Enforcing it in the backend needs `health-service` to know which animals are deceased, for example with the event consumer and read model that D9 introduced in `feeding-service`.

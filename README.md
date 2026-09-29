@@ -38,6 +38,8 @@ flowchart LR
   AS -. "OIDC" .-> KC
   HS["health-service<br/>:8082"] -. "OIDC" .-> KC
   FDS["feeding-service<br/>:8084"] -. "OIDC" .-> KC
+  FE -- "REST + JWT" --> HS
+  FE -- "REST + JWT" --> FDS
   AS --> ADB[("animal_db<br/>animals, enclosures,<br/>outbox_event")]
   HS --> HDB[("health_db<br/>medical records,<br/>treatments")]
   FDS --> FDB[("feeding_db<br/>feeding_plans, feedings,<br/>deceased_animals")]
@@ -50,9 +52,9 @@ flowchart LR
 ```
 
 - **animal-service**: registers animals, changes their status, transfers them between enclosures, and lists enclosures. Publishes animal events through a transactional outbox. [README](zms-be/animal-service/README.md)
-- **health-service**: medical records and treatments. Refers to animals by id only, with no call to animal-service. It has a REST API but no UI yet. [README](zms-be/health-service/README.md)
+- **health-service**: medical records and treatments. Refers to animals by id only, with no call to animal-service. The frontend shows its records and treatments in the Health section of the animal page. [README](zms-be/health-service/README.md)
 - **notification-service**: consumes animal events and stores one notification per event. No REST API. [README](zms-be/notification-service/README.md)
-- **feeding-service**: feeding plans and feedings. Consumes animal events to end an animal's active/suspended plans when it is declared deceased. It has a REST API but no UI yet. [README](zms-be/feeding-service/README.md)
+- **feeding-service**: feeding plans and feedings. Consumes animal events to end an animal's active/suspended plans when it is declared deceased. The frontend shows its plans and feedings in the Feeding section of the animal page. [README](zms-be/feeding-service/README.md)
 
 Each service has its own Postgres database and follows the same hexagonal layout (`infrastructure → application → domain`).
 
@@ -86,7 +88,8 @@ From [docs/STATE.md](docs/STATE.md), which has the full list:
 - `notification-service` sends valid events to the DLQ on a database failure instead of retrying. Nothing reads the DLQ.
 - Notifications have no recipients, no delivery channel and no API.
 - There is no server-side search. The frontend loads the whole roster and filters in the browser.
-- The frontend has no screens for medical records, notifications or feeding plans.
+- The frontend has no screen for notifications and no view across animals: medical records and feeding plans are sections of one animal's page.
+- The frontend does not offer new treatments for a deceased animal, but `health-service` still accepts them.
 - `feeding-service` only rejects a feeding plan for an animal already recorded as deceased; it never checks that an animal id exists at all.
 - In the prod profile there is no way to create enclosures.
 
@@ -133,7 +136,7 @@ Needs Docker, Java 21, Node and pnpm.
    ```powershell
    .\mvnw.cmd quarkus:dev
    ```
-   `health-service` (:8082), `feeding-service` (:8084) and `notification-service` (:8083) start the same way from their own folders. The frontend needs only `animal-service`.
+   `health-service` (:8082), `feeding-service` (:8084) and `notification-service` (:8083) start the same way from their own folders. The frontend calls `animal-service` (:8080), `health-service` (:8082) and `feeding-service` (:8084). Without the last two the animal page still loads, and only its Health or Feeding section shows an error. `notification-service` has no REST API and the frontend does not use it.
 
 4. **Start the frontend in live mode** on :4200:
    ```bash
@@ -149,11 +152,11 @@ The Keycloak realm `zoo` is imported from [`realm-export.json`](zms-be/infrastru
 
 | User | Role | Can do |
 |---|---|---|
-| `admin.rossi` | `zoo-admin` | Everything: register animals, change status, transfer, write medical records and treatments |
-| `vet.bianchi` | `zoo-vet` | Read animals, change their status, write medical records and treatments |
-| `keeper.conti` | `zoo-keeper` | Read animals and medical records, transfer animals between enclosures |
+| `admin.rossi` | `zoo-admin` | Everything: register animals, change status, transfer, write medical records and treatments, start and change feeding plans, record feedings |
+| `vet.bianchi` | `zoo-vet` | Read animals, change their status, write medical records and treatments, start and change feeding plans |
+| `keeper.conti` | `zoo-keeper` | Read animals, medical records and feeding plans, transfer animals between enclosures, record feedings |
 
-All three can list enclosures. Medical records are available through the `health-service` API only. The full endpoint matrix is in the [backend README](zms-be/README.md#security).
+All three can list enclosures. The frontend shows medical records and feeding plans on the animal page; both are also available through the `health-service` and `feeding-service` APIs. The full endpoint matrix is in the [backend README](zms-be/README.md#security).
 
 Every write records who made it (`createdBy` / `updatedBy`, taken from the token).
 

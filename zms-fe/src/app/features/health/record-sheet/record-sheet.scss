@@ -1,0 +1,9 @@
+.sheet-body {
+  gap: var(--space-4);
+}
+
+.area {
+  padding-block: var(--space-3);
+  min-block-size: 6rem;
+  resize: vertical;
+}

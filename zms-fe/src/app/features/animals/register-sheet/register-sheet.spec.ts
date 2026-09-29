@@ -1,7 +1,7 @@
 import { By } from '@angular/platform-browser';
 import { TestBed } from '@angular/core/testing';
 import { AnimalStore } from '../../../core/data/animal-store';
-import { ApiError } from '../../../core/data/animal-api';
+import { ApiError } from '../../../core/data/api-error';
 import { Animal, Enclosure, NewAnimal } from '../../../core/models/animal';
 import { RegisterSheet } from './register-sheet';
 

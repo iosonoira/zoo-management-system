@@ -1,0 +1,133 @@
+<dialog
+  #dialog
+  class="sheet"
+  [attr.aria-labelledby]="titleId()"
+  (click)="onBackdrop($event)"
+  (cancel)="pending() && $event.preventDefault()"
+>
+  <form class="sheet-form" (submit)="submit($event)">
+    <header class="sheet-head">
+      <div>
+        <h2 [id]="titleId()">Record feeding</h2>
+        <p>{{ animal().name }} · {{ plan().food }}. The feeding is recorded under your name.</p>
+      </div>
+      <button type="button" class="btn btn-quiet" (click)="close()" [disabled]="pending()">
+        <app-icon name="close" />
+        <span class="visually-hidden">Close</span>
+      </button>
+    </header>
+
+    <fieldset class="sheet-body" [disabled]="pending()">
+      <legend class="visually-hidden">Feeding details</legend>
+
+      <fieldset class="group">
+        <legend class="field-label">Time fed</legend>
+        <div class="pair">
+          <label class="option">
+            <input type="radio" value="now" [formField]="feedForm.when" />
+            <span class="option-text">
+              <strong>Now</strong>
+              <span class="tabular">{{ nowLabel() }}</span>
+            </span>
+            <span class="option-mark">
+              @if (model().when === 'now') {
+                <app-icon name="check" />
+              }
+            </span>
+          </label>
+          <label class="option">
+            <input type="radio" value="earlier" [formField]="feedForm.when" />
+            <span class="option-text">
+              <strong>Earlier today</strong>
+              <span>Pick a time</span>
+            </span>
+            <span class="option-mark">
+              @if (model().when === 'earlier') {
+                <app-icon name="check" />
+              }
+            </span>
+          </label>
+        </div>
+      </fieldset>
+
+      @if (model().when === 'earlier') {
+        <label class="field">
+          <span class="field-label">Time it was fed</span>
+          <input type="time" class="field-input" [formField]="feedForm.time" />
+          @if (
+            feedForm.time().invalid() && (feedForm.time().touched() || feedForm.time().dirty())
+          ) {
+            <span class="field-hint">{{ feedForm.time().errors()[0].message }}</span>
+          }
+        </label>
+      }
+
+      <div class="field">
+        <label class="field-label" [for]="gramsId()">Amount fed, in grams</label>
+        <div class="stepper">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            [attr.aria-label]="step + ' grams less'"
+            [disabled]="(model().grams ?? 0) <= 0 || pending()"
+            (click)="nudge(-1)"
+          >
+            <app-icon name="minus" />
+          </button>
+          <input
+            type="number"
+            inputmode="numeric"
+            class="field-input"
+            [id]="gramsId()"
+            [formField]="feedForm.grams"
+          />
+          <button
+            type="button"
+            class="btn btn-secondary"
+            [attr.aria-label]="step + ' grams more'"
+            [disabled]="pending()"
+            (click)="nudge(1)"
+          >
+            <app-icon name="plus" />
+          </button>
+        </div>
+        @if (
+          feedForm.grams().invalid() && (feedForm.grams().touched() || feedForm.grams().dirty())
+        ) {
+          <span class="field-hint">{{ feedForm.grams().errors()[0].message }}</span>
+        } @else {
+          <span class="field-hint">
+            The plan says <span class="tabular">{{ plan().quantityGrams }} g</span> per meal.
+          </span>
+        }
+      </div>
+
+      <label class="field">
+        <span class="field-label">Notes (optional)</span>
+        <textarea
+          class="field-input notes"
+          rows="3"
+          placeholder="Anything the next keeper should know"
+          [formField]="feedForm.notes"
+        ></textarea>
+        @if (feedForm.notes().invalid()) {
+          <span class="field-hint">{{ feedForm.notes().errors()[0].message }}</span>
+        }
+      </label>
+    </fieldset>
+
+    <footer class="sheet-foot">
+      @if (error(); as message) {
+        <p class="form-error" role="alert"><app-icon name="alert" />{{ message }}</p>
+      }
+      <button type="submit" class="btn btn-primary" [disabled]="feedForm().invalid() || pending()">
+        @if (pending()) {
+          Recording…
+        } @else {
+          Record <span class="tabular">{{ model().grams ?? 0 }} g</span> at
+          <span class="tabular">{{ timeLabel() }}</span>
+        }
+      </button>
+    </footer>
+  </form>
+</dialog>

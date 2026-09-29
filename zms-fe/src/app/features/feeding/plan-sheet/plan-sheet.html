@@ -1,0 +1,119 @@
+<dialog
+  #dialog
+  class="sheet"
+  aria-labelledby="plan-title"
+  (click)="onBackdrop($event)"
+  (cancel)="pending() && $event.preventDefault()"
+>
+  <form class="sheet-form" (submit)="submit($event)">
+    <header class="sheet-head">
+      <div>
+        <h2 id="plan-title">New feeding plan</h2>
+        <p>{{ animal().name }}. The plan starts today and is recorded under your name.</p>
+      </div>
+      <button type="button" class="btn btn-quiet" (click)="close()" [disabled]="pending()">
+        <app-icon name="close" />
+        <span class="visually-hidden">Close</span>
+      </button>
+    </header>
+
+    <fieldset class="sheet-body" [disabled]="pending()">
+      <legend class="visually-hidden">Plan details</legend>
+
+      @if (hasOpenPlan()) {
+        <p class="warning-note">
+          <app-icon name="alert" />
+          {{ animal().name }} already has an open plan. It stays as it is: suspend or end it if this
+          one replaces it.
+        </p>
+      }
+
+      <label class="field">
+        <span class="field-label">Food</span>
+        <input
+          type="text"
+          class="field-input"
+          placeholder="For example, chopped vegetables and fruit"
+          [formField]="planForm.food"
+        />
+        @if (planForm.food().invalid() && (planForm.food().touched() || planForm.food().dirty())) {
+          <span class="field-hint">{{ planForm.food().errors()[0].message }}</span>
+        }
+      </label>
+
+      <label class="field">
+        <span class="field-label">Grams per meal</span>
+        <input type="number" inputmode="numeric" class="field-input" [formField]="planForm.grams" />
+        @if (
+          planForm.grams().invalid() && (planForm.grams().touched() || planForm.grams().dirty())
+        ) {
+          <span class="field-hint">{{ planForm.grams().errors()[0].message }}</span>
+        }
+      </label>
+
+      <fieldset class="group">
+        <legend class="field-label">Feeding times</legend>
+        @for (time of planForm.times; track $index; let i = $index) {
+          <div class="time-row">
+            <input
+              #timeInput
+              type="time"
+              step="60"
+              class="field-input"
+              [attr.aria-label]="'Feeding time ' + (i + 1)"
+              [formField]="time"
+            />
+            <button
+              type="button"
+              class="btn btn-quiet"
+              [attr.aria-label]="removeLabel(time().value())"
+              [disabled]="!canRemoveTime() || pending()"
+              (click)="removeTime(i)"
+            >
+              <app-icon name="minus" />
+            </button>
+          </div>
+        }
+        <button
+          type="button"
+          class="btn btn-quiet add"
+          [disabled]="!canAddTime() || pending()"
+          (click)="addTime()"
+        >
+          <app-icon name="plus" />
+          Add a time
+        </button>
+        <p class="field-hint" aria-live="polite">
+          {{ timesHint() ?? 'Up to ' + maxTimes + ' times a day.' }}
+        </p>
+      </fieldset>
+
+      <label class="field">
+        <span class="field-label">Notes (optional)</span>
+        <textarea
+          class="field-input notes"
+          rows="3"
+          placeholder="Anything the keepers should know"
+          [formField]="planForm.notes"
+        ></textarea>
+        @if (planForm.notes().invalid()) {
+          <span class="field-hint">{{ planForm.notes().errors()[0].message }}</span>
+        }
+      </label>
+    </fieldset>
+
+    <footer class="sheet-foot">
+      @if (error(); as message) {
+        <p class="form-error" role="alert"><app-icon name="alert" />{{ message }}</p>
+      }
+      <button type="submit" class="btn btn-primary" [disabled]="planForm().invalid() || pending()">
+        <app-icon name="check" />
+        @if (pending()) {
+          Starting…
+        } @else {
+          Start plan
+        }
+      </button>
+    </footer>
+  </form>
+</dialog>

@@ -2,7 +2,7 @@
 
 Snapshot of what exists, what is decided but not built, and what is still open. Updated at the end of every phase.
 
-Last updated: 2026-09-27, at commit `dc487ba`.
+Last updated: 2026-09-29, at commit `2e012b5`.
 
 The three labels never mix:
 - **Implemented**: in the code on `main`. Every line cites a class or file.
@@ -120,22 +120,32 @@ Contracts and failure behaviour per service are in the service READMEs. Events a
 
 ### Implemented
 - Two build-time modes: demo (default) and live (`src/environments/environment.ts`, `environment.live.ts`, `angular.json`).
-- Demo mode: in-memory API with the same error statuses as the backend (`MockAnimalApi`, `demo-data.ts`, `enclosure-directory.ts`), and a role switcher persisted in `localStorage` (`DemoSession`).
-- Live mode: Keycloak login with PKCE S256 and `check-sso`, token auto-refresh, bearer token sent only to the API origin (`keycloak-providers.ts`, `KeycloakSession`).
+- Demo mode: in-memory APIs for animals, health and feeding with the same error statuses as the backend (`MockAnimalApi`, `MockHealthApi`, `MockFeedingApi`, `demo-data.ts`, `demo-health.ts`, `demo-feeding.ts`, `enclosure-directory.ts`), and a role switcher persisted in `localStorage` (`DemoSession`).
+- Live mode: Keycloak login with PKCE S256 and `check-sso`, token auto-refresh, bearer token sent only to the three service origins in `environment.api` (`animal`, `health`, `feeding`), and a route guard that asks a visitor who is not signed in to log in (`keycloak-providers.ts` `bearerTokenConditions` and `signedInGuard`, `KeycloakSession`).
 - Animal list grouped by enclosure, with client-side search by name, species or 4-character tag and a status filter (`AnimalList`).
 - Animal detail, status change, transfer, and registration for admins (`AnimalDetail`, `StatusSheet`, `TransferSheet`, `RegisterSheet`).
-- Role-aware actions, using the same matrix as `AnimalResource` (`core/models/permissions.ts`).
-- Full roster loaded by walking every page of `GET /animals` at size 100 (`HttpAnimalApi.listAll`); enclosures loaded from `GET /enclosures` (`HttpAnimalApi.listEnclosures`).
-- HTTP status mapped to fixed user-facing error copy (`http-animal-api.ts` `toApiError`, `api-errors.ts`).
+- Health section on the animal page: medical records newest first, each opening onto its diagnosis and treatments; add a record, prescribe a treatment and change a treatment's status (`HealthSection`, `RecordSheet`, `TreatmentSheet`, `TreatmentStatusSheet`, `HealthStore`, `HttpHealthApi`).
+- Feeding section on the animal page: today's meals as a meal track, the plan behind them, a log of recent feedings ten at a time with "Show earlier feedings", earlier plans; record a feeding, start a plan and suspend, resume or end it (`FeedingSection`, `MealTrack`, `FeedingSheet`, `PlanSheet`, `PlanStatusSheet`, `FeedingStore`, `HttpFeedingApi`).
+- Meal states `fed`, `due`, `missed` and `later` per scheduled time, computed in the browser from the plan's times and the loaded feedings, with a one-hour window before a time and one hour of "due" after it (`meal-slots.ts`).
+- Order of the sections by role: keepers see Feeding, Status, Location, Health, Record; vets and admins see Status and Location, then Health and Feeding, then Record ([D10](decisions.md#d10-health-and-feeding-live-inside-the-animal-page), `AnimalDetail`).
+- Each of the Health and Feeding sections loads and fails on its own, with a "Try again" button (`HealthSection`, `FeedingSection`, `HealthStore.state`, `FeedingStore.state`).
+- For a deceased animal, no prescribing and no starting a treatment (moving it to `ACTIVE`); a new medical record is still offered and an open treatment can still be completed or cancelled ([D11](decisions.md#d11-no-new-treatments-for-a-deceased-animal-frontend-only), `HealthSection`, `TreatmentStatusSheet`).
+- For a deceased animal, the Feeding section offers neither recording a feeding nor starting a plan (`FeedingSection.canRecord`, `canStartPlan`). In demo mode `MockFeedingApi` ends the animal's active and suspended plans, as the `feeding-service` consumer does.
+- Role-aware actions, using the same matrix as `AnimalResource`, `MedicalRecordResource`, `TreatmentResource` and `FeedingPlanResource` (`core/models/permissions.ts`).
+- Full roster loaded by walking every page of `GET /animals` at size 100 (`HttpAnimalApi.listAll`); enclosures loaded from `GET /enclosures` (`HttpAnimalApi.listEnclosures`). An animal's medical records and feeding plans are loaded the same way (`HttpHealthApi.listRecords`, `HttpFeedingApi.listPlans`).
+- HTTP status mapped to fixed user-facing error copy (`http-animal-api.ts`, `http-health-api.ts` and `http-feeding-api.ts` `toApiError`, `api-errors.ts`). A 422 on a status change and a 400 on a transfer re-read the animal to choose between the two possible messages (`HttpAnimalApi.explainRejection`).
 - Unit tests with Vitest (`*.spec.ts` under `src/app/`).
 
 ### Decided, not built
 - Italian UI through Angular i18n ("prepared for Italian via Angular i18n", `PRODUCT.md`). No i18n setup exists in the code.
-- Navigation that leaves room for health, feeding and notifications (`PRODUCT.md`).
+- Navigation that leaves room for notifications (`PRODUCT.md`). Health and feeding went into the animal page instead, with no new navigation ([D10](decisions.md#d10-health-and-feeding-live-inside-the-animal-page)).
 
 ### Open
-- No UI for `health-service`, notifications or feeding plans. The frontend calls only `/animals` and `/enclosures`.
+- No UI for notifications. The frontend calls `/animals`, `/enclosures`, `/medical-records`, `/treatments` and `/feeding-plans`.
 - Search and filtering run in the browser over the full roster; the backend has no search endpoint.
-- In live mode, any 400 on a transfer is shown as the "deceased animal" message, although the backend also returns 400 for an unknown enclosure (`toApiError`).
-- In live mode, any 422 on a status change is shown as the "same status" message, although the backend also returns 422 for a change from `DECEASED` (`toApiError`).
+- No view across animals, for example all feedings due now. Health and feeding are sections of one animal's page ([D10](decisions.md#d10-health-and-feeding-live-inside-the-animal-page)).
+- The rule that blocks new treatments for a deceased animal exists only in the frontend. A direct call to `health-service` can still prescribe or start one ([D11](decisions.md#d11-no-new-treatments-for-a-deceased-animal-frontend-only)).
+- Meal states use only the feedings loaded for a plan, which start as the newest page of 10 (`FEEDING_PAGE_SIZE`, `FeedingStore.loadFeedings`). A plan with more than 10 feedings on the current day would show the meals fed earlier that day as not recorded until "Show earlier feedings" loads them (`FeedingSection`, `mealSlots`).
+- Meal states are the frontend's own reading of the plan: local time zone of the browser, fixed one-hour windows (`EARLY_MS`, `DUE_MS` in `meal-slots.ts`). `feeding-service` has no endpoint that reports missed meals (`FeedingPlanResource`).
+- `FeedingStore` and `HealthStore` hold one animal and do not reload it while it stays the current one (`FeedingStore.load`, `HealthStore.load`). After a status change to `DECEASED`, nothing reloads the plans that `feeding-service` ends in response, so the section keeps showing them with their old status (without the meal track or Record feeding, which it hides for a deceased animal) until another animal is opened or the page is reloaded.
 - Dashboard or home content (`PRODUCT.md`, "Open decisions").

@@ -14,8 +14,8 @@ interface RoleOption {
 }
 
 const ROLE_JOBS: Record<ZooRole, string> = {
-  'zoo-keeper': 'Transfers animals between enclosures',
-  'zoo-vet': 'Changes clinical status',
+  'zoo-keeper': 'Transfers animals, records feedings',
+  'zoo-vet': 'Clinical status, medical records, feeding plans',
   'zoo-admin': 'Registers animals, full access',
 };
 

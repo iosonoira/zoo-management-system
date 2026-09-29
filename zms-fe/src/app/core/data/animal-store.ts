@@ -1,7 +1,8 @@
 import { PLATFORM_ID, Service, computed, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Animal, AnimalStatus, Enclosure, NewAnimal } from '../models/animal';
-import { AnimalApi, ApiError } from './animal-api';
+import { AnimalApi } from './animal-api';
+import { ApiError } from './api-error';
 
 export type LoadState = 'idle' | 'loading' | 'ready' | 'error';
 

@@ -151,6 +151,14 @@
   }
 }
 
+/* A keeper's Feeding and Health take the whole row, so their columns can sit side by side.
+   For vets and admins, Health and Feeding share one row instead. */
+.lead {
+  @media (min-width: 60rem) {
+    grid-column: 1 / -1;
+  }
+}
+
 .record {
   @media (min-width: 60rem) {
     grid-column: 1 / -1;
@@ -240,34 +248,4 @@
 
 .skeleton-block {
   block-size: 14rem;
-}
-
-.toast {
-  position: fixed;
-  inset-inline: var(--gutter);
-  inset-block-end: calc(var(--space-4) + env(safe-area-inset-bottom));
-  z-index: var(--z-toast);
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  max-inline-size: 30rem;
-  margin-inline: auto;
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius);
-  background: var(--ink);
-  color: var(--pane);
-  font-weight: 700;
-  box-shadow: var(--shadow-lift);
-  opacity: 0;
-  transform: translateY(0.75rem);
-  pointer-events: none;
-  transition:
-    opacity var(--dur) var(--ease-out),
-    transform var(--dur) var(--ease-out);
-  --icon-size: 1.25rem;
-
-  &.show {
-    opacity: 1;
-    transform: none;
-  }
 }

@@ -1,0 +1,31 @@
+<ol class="meals" aria-label="Today’s meals">
+  @for (slot of slots(); track slot.time) {
+    <li
+      class="meal"
+      [attr.data-meal]="slot.state"
+      [attr.aria-current]="slot.state === 'due' ? 'true' : null"
+    >
+      <span class="time">{{ slot.time }}</span>
+      @switch (slot.state) {
+        @case ('fed') {
+          <span class="state"><app-icon name="check" />Fed</span>
+          @if (slot.feeding; as feeding) {
+            <span class="detail"
+              >{{ feeding.fedAt | date: 'HH:mm' }} · {{ feeding.quantityGrams }} g</span
+            >
+          }
+        }
+        @case ('due') {
+          <span class="state"><app-icon name="clock" />Due now</span>
+          <span class="detail">Not recorded yet</span>
+        }
+        @case ('missed') {
+          <span class="state"><app-icon name="alert" />Not recorded</span>
+        }
+        @default {
+          <span class="state"><app-icon name="clock" />Later</span>
+        }
+      }
+    </li>
+  }
+</ol>

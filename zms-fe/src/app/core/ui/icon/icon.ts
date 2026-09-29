@@ -22,7 +22,10 @@ export type IconName =
   | 'alert'
   | 'sun'
   | 'moon'
-  | 'plus';
+  | 'plus'
+  | 'minus'
+  | 'bowl'
+  | 'clock';
 
 /** Pictogram set drawn for the glasshouse register: 24px grid, 2px stroke, round joins. */
 @Component({

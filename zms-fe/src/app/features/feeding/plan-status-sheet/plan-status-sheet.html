@@ -1,0 +1,80 @@
+<dialog
+  #dialog
+  class="sheet"
+  [attr.aria-labelledby]="titleId()"
+  (click)="onBackdrop($event)"
+  (cancel)="pending() && $event.preventDefault()"
+>
+  <form class="sheet-form" (submit)="submit($event)">
+    <header class="sheet-head">
+      <div>
+        <h2 [id]="titleId()">Change plan status</h2>
+        <p>
+          {{ animal().name }} · {{ plan().food }}. The plan is
+          {{ labels[plan().status].label.toLowerCase() }}. The change is recorded under your name.
+        </p>
+      </div>
+      <button type="button" class="btn btn-quiet" (click)="close()" [disabled]="pending()">
+        <app-icon name="close" />
+        <span class="visually-hidden">Close</span>
+      </button>
+    </header>
+
+    <fieldset class="sheet-body" [disabled]="pending()">
+      <legend class="visually-hidden">New plan status</legend>
+      @for (target of options(); track target) {
+        <label class="option">
+          <input
+            type="radio"
+            name="plan-status"
+            [value]="target"
+            [checked]="selected() === target"
+            (change)="selected.set(target)"
+          />
+          <span class="status-tile symbol">
+            <app-icon [name]="labels[target].icon" />
+          </span>
+          <span class="option-text">
+            <strong>{{ actions[target] }}</strong>
+            <span>{{ labels[target].description }}</span>
+          </span>
+          <span class="option-mark">
+            @if (selected() === target) {
+              <app-icon name="check" />
+            }
+          </span>
+        </label>
+      }
+    </fieldset>
+
+    <footer class="sheet-foot">
+      @if (grave()) {
+        <p class="warning-note">
+          <app-icon name="lock" />
+          This can’t be undone. The plan stays on record, but no more feedings can be recorded on
+          it. Start a new plan to feed on a different schedule.
+        </p>
+      }
+      @if (error(); as message) {
+        <p class="form-error" role="alert"><app-icon name="alert" />{{ message }}</p>
+      }
+      <button
+        type="submit"
+        class="btn"
+        [class.btn-primary]="!grave()"
+        [class.btn-grave]="grave()"
+        [disabled]="!selected() || pending()"
+      >
+        @if (pending()) {
+          Saving…
+        } @else if (grave()) {
+          End this plan for good
+        } @else if (selected(); as s) {
+          {{ actions[s] }} this plan
+        } @else {
+          Choose what to do
+        }
+      </button>
+    </footer>
+  </form>
+</dialog>

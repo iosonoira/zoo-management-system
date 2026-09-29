@@ -3,13 +3,15 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../environments/environment';
 import { Animal, NewAnimal } from '../models/animal';
-import { AnimalApi, ApiError } from './animal-api';
+import { AnimalApi } from './animal-api';
+import { ApiError } from './api-error';
+import { deceasedStatus, deceasedTransfer, sameStatus, unknownEnclosure } from './api-errors';
 import { HttpAnimalApi, PAGE_SIZE } from './http-animal-api';
 
-// The suite builds with the demo `environment.ts`, so `apiBaseUrl` is empty and the
+// The suite builds with the demo `environment.ts`, so `api.animal` is empty and the
 // adapter's paths are origin-relative. Reading it back keeps the expectations true of
 // whichever environment a run is built with.
-const BASE = environment.apiBaseUrl;
+const BASE = environment.api.animal;
 
 function animal(overrides: Partial<Animal> = {}): Animal {
   return {
@@ -103,9 +105,7 @@ describe('HttpAnimalApi', () => {
 
   it('sends the status as the backend expects it', async () => {
     const pending = api.updateStatus('7f3a9c21-5b64-4e1d-8a2f-0c9b7d6e5a41', 'IN_TREATMENT');
-    const request = http.expectOne(
-      `${BASE}/animals/7f3a9c21-5b64-4e1d-8a2f-0c9b7d6e5a41/status`,
-    );
+    const request = http.expectOne(`${BASE}/animals/7f3a9c21-5b64-4e1d-8a2f-0c9b7d6e5a41/status`);
     expect(request.request.method).toBe('PUT');
     expect(request.request.body).toEqual({ status: 'IN_TREATMENT' });
     request.flush(animal({ status: 'IN_TREATMENT' }));
@@ -115,9 +115,7 @@ describe('HttpAnimalApi', () => {
   it('sends the transfer target as the backend expects it', async () => {
     const target = '1c7f3a2b-4d5e-4f90-8b2c-3d4e5f6a7b81';
     const pending = api.transfer('7f3a9c21-5b64-4e1d-8a2f-0c9b7d6e5a41', target);
-    const request = http.expectOne(
-      `${BASE}/animals/7f3a9c21-5b64-4e1d-8a2f-0c9b7d6e5a41/transfer`,
-    );
+    const request = http.expectOne(`${BASE}/animals/7f3a9c21-5b64-4e1d-8a2f-0c9b7d6e5a41/transfer`);
     expect(request.request.method).toBe('PUT');
     expect(request.request.body).toEqual({ targetEnclosureId: target });
     request.flush(animal({ enclosureId: target }));
@@ -191,14 +189,14 @@ describe('HttpAnimalApi', () => {
   });
 
   it('maps 422 to the transition copy', async () => {
-    const pending = api.updateStatus(
-      '7f3a9c21-5b64-4e1d-8a2f-0c9b7d6e5a41',
-      'HEALTHY',
-      'Kibo',
-    );
+    const id = '7f3a9c21-5b64-4e1d-8a2f-0c9b7d6e5a41';
+    const pending = api.updateStatus(id, 'HEALTHY', 'Kibo');
     http
-      .expectOne(`${BASE}/animals/7f3a9c21-5b64-4e1d-8a2f-0c9b7d6e5a41/status`)
+      .expectOne(`${BASE}/animals/${id}/status`)
       .flush({ message: 'Same status' }, { status: 422, statusText: 'Unprocessable Entity' });
+    // The re-read is issued after await, so we use vi.waitFor to detect it.
+    const reread = await vi.waitFor(() => http.expectOne(`${BASE}/animals/${id}`));
+    reread.flush(animal({ status: 'HEALTHY' }));
     await expect(pending).rejects.toMatchObject({ status: 422 });
   });
 
@@ -225,10 +223,7 @@ describe('HttpAnimalApi', () => {
     const pending = api.register(newAnimal());
     http
       .expectOne(`${BASE}/animals`)
-      .flush(
-        { message: 'Invalid data' },
-        { status: 400, statusText: 'Bad Request' },
-      );
+      .flush({ message: 'Invalid data' }, { status: 400, statusText: 'Bad Request' });
     await expect(pending).rejects.toSatisfy((error: ApiError) => {
       expect(error.status).toBe(400);
       expect(error.message).toContain('details');
@@ -240,14 +235,106 @@ describe('HttpAnimalApi', () => {
     const pending = api.register(newAnimal());
     http
       .expectOne(`${BASE}/animals`)
-      .flush(
-        { message: 'Insufficient role' },
-        { status: 403, statusText: 'Forbidden' },
-      );
+      .flush({ message: 'Insufficient role' }, { status: 403, statusText: 'Forbidden' });
     await expect(pending).rejects.toSatisfy((error: ApiError) => {
       expect(error.status).toBe(403);
       expect(error.message).toContain('admins');
       return true;
     });
+  });
+
+  it('distinguishes 422 on updateStatus: re-read returns DECEASED', async () => {
+    const id = '7f3a9c21-5b64-4e1d-8a2f-0c9b7d6e5a41';
+    const pending = api.updateStatus(id, 'IN_TREATMENT', 'Kibo');
+    http
+      .expectOne(`${BASE}/animals/${id}/status`)
+      .flush({ message: 'Unprocessable' }, { status: 422, statusText: 'Unprocessable Entity' });
+
+    // The re-read is issued after await, so we use vi.waitFor to detect it.
+    const reread = await vi.waitFor(() => http.expectOne(`${BASE}/animals/${id}`));
+    reread.flush(animal({ status: 'DECEASED' }));
+
+    await expect(pending).rejects.toSatisfy((error: ApiError) => {
+      expect(error.message).toBe(deceasedStatus('Kibo').message);
+      return true;
+    });
+  });
+
+  it('distinguishes 422 on updateStatus: re-read returns HEALTHY', async () => {
+    const id = '7f3a9c21-5b64-4e1d-8a2f-0c9b7d6e5a41';
+    const pending = api.updateStatus(id, 'IN_TREATMENT', 'Bruno');
+    http
+      .expectOne(`${BASE}/animals/${id}/status`)
+      .flush({ message: 'Unprocessable' }, { status: 422, statusText: 'Unprocessable Entity' });
+
+    const reread = await vi.waitFor(() => http.expectOne(`${BASE}/animals/${id}`));
+    reread.flush(animal({ status: 'HEALTHY' }));
+
+    await expect(pending).rejects.toSatisfy((error: ApiError) => {
+      expect(error.message).toBe(sameStatus('Bruno').message);
+      return true;
+    });
+  });
+
+  it('distinguishes 400 on transfer: re-read returns DECEASED', async () => {
+    const id = '7f3a9c21-5b64-4e1d-8a2f-0c9b7d6e5a41';
+    const target = '1c7f3a2b-4d5e-4f90-8b2c-3d4e5f6a7b81';
+    const pending = api.transfer(id, target, 'Simba');
+    http
+      .expectOne(`${BASE}/animals/${id}/transfer`)
+      .flush({ message: 'Bad Request' }, { status: 400, statusText: 'Bad Request' });
+
+    const reread = await vi.waitFor(() => http.expectOne(`${BASE}/animals/${id}`));
+    reread.flush(animal({ status: 'DECEASED' }));
+
+    await expect(pending).rejects.toSatisfy((error: ApiError) => {
+      expect(error.message).toBe(deceasedTransfer('Simba').message);
+      return true;
+    });
+  });
+
+  it('distinguishes 400 on transfer: re-read returns HEALTHY', async () => {
+    const id = '7f3a9c21-5b64-4e1d-8a2f-0c9b7d6e5a41';
+    const target = '1c7f3a2b-4d5e-4f90-8b2c-3d4e5f6a7b81';
+    const pending = api.transfer(id, target, 'Kibo');
+    http
+      .expectOne(`${BASE}/animals/${id}/transfer`)
+      .flush({ message: 'Bad Request' }, { status: 400, statusText: 'Bad Request' });
+
+    const reread = await vi.waitFor(() => http.expectOne(`${BASE}/animals/${id}`));
+    reread.flush(animal({ status: 'HEALTHY' }));
+
+    await expect(pending).rejects.toSatisfy((error: ApiError) => {
+      expect(error.message).toBe(unknownEnclosure().message);
+      return true;
+    });
+  });
+
+  it('falls back to sameStatus when re-read fails on 422', async () => {
+    const id = '7f3a9c21-5b64-4e1d-8a2f-0c9b7d6e5a41';
+    const pending = api.updateStatus(id, 'IN_TREATMENT', 'Leo');
+    http
+      .expectOne(`${BASE}/animals/${id}/status`)
+      .flush({ message: 'Unprocessable' }, { status: 422, statusText: 'Unprocessable Entity' });
+
+    const reread = await vi.waitFor(() => http.expectOne(`${BASE}/animals/${id}`));
+    reread.flush({ message: 'Error' }, { status: 500, statusText: 'Server Error' });
+
+    await expect(pending).rejects.toSatisfy((error: ApiError) => {
+      expect(error.message).toBe(sameStatus('Leo').message);
+      return true;
+    });
+  });
+
+  it('does not re-read on register 400', async () => {
+    const pending = api.register(newAnimal());
+    http
+      .expectOne(`${BASE}/animals`)
+      .flush({ message: 'Invalid data' }, { status: 400, statusText: 'Bad Request' });
+    await expect(pending).rejects.toSatisfy((error: ApiError) => {
+      expect(error.status).toBe(400);
+      return true;
+    });
+    // http.verify() in afterEach ensures no extra requests were made.
   });
 });
