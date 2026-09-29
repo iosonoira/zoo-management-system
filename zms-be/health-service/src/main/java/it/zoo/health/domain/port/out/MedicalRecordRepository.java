@@ -11,5 +11,4 @@ public interface MedicalRecordRepository {
     Optional<MedicalRecord> findById(UUID id);
     List<MedicalRecord> findPage(UUID animalId, int page, int size);
     long count(UUID animalId);
-    boolean existsById(UUID id);
 }

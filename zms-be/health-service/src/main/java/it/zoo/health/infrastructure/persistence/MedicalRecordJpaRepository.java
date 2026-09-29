@@ -70,9 +70,4 @@ public class MedicalRecordJpaRepository implements MedicalRecordRepository {
                 .setParameter("animalId", animalId)
                 .getSingleResult();
     }
-
-    @Override
-    public boolean existsById(UUID id) {
-        return em.find(MedicalRecordEntity.class, id) != null;
-    }
 }
