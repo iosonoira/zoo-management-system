@@ -43,7 +43,7 @@ All endpoints need a bearer token. Roles are Keycloak realm roles read from `rea
 | `POST /medical-records/{id}/treatments` | `zoo-vet`, `zoo-admin` | 201, treatment | `MedicalRecordResource.prescribe` |
 | `PUT /treatments/{id}/status` | `zoo-vet`, `zoo-admin` | 200, treatment | `TreatmentResource.updateStatus` |
 
-Errors share the body `{"message": ...}` (`ErrorResponse`); 401 and 403 come from `SecurityExceptionMapper`. The authorization matrix is covered by `HealthSecurityIT`.
+Errors share the body `{"message": ...}` (`ErrorResponse`); 401 and 403 come from `SecurityExceptionMapper`, `UnauthorizedExceptionMapper`, `ForbiddenExceptionMapper`. The authorization matrix is covered by `HealthSecurityIT`.
 
 Events produced: none. Events consumed: none.
 
