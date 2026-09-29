@@ -1,6 +1,9 @@
 import { Feeding, FeedingPlan, NewFeeding, NewFeedingPlan, PlanStatus } from '../models/feeding';
 import { Page } from './page';
 
+/** The log shows the latest ten, then "Show earlier". */
+export const FEEDING_PAGE_SIZE = 10;
+
 /** Port for the feeding-service REST contract (`/feeding-plans`). */
 export abstract class FeedingApi {
   /** Every plan of one animal, most recent start first. */

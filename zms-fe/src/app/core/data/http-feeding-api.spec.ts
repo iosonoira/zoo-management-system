@@ -14,7 +14,8 @@ import {
   planNotActive,
   planNotFound,
 } from './api-errors';
-import { FEEDING_PAGE_SIZE, HttpFeedingApi, PLAN_PAGE_SIZE } from './http-feeding-api';
+import { FEEDING_PAGE_SIZE } from './feeding-api';
+import { HttpFeedingApi, PLAN_PAGE_SIZE } from './http-feeding-api';
 
 const BASE = environment.api.feeding;
 

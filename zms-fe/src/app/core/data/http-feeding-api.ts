@@ -3,7 +3,7 @@ import { inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Feeding, FeedingPlan, NewFeeding, NewFeedingPlan, PlanStatus } from '../models/feeding';
-import { FeedingApi } from './feeding-api';
+import { FeedingApi, FEEDING_PAGE_SIZE } from './feeding-api';
 import { ApiError } from './api-error';
 import { collectPages, Page } from './page';
 import {
@@ -25,9 +25,6 @@ interface RequestContext {
 
 /** The backend maximum; `listPlans` uses this to walk all pages. */
 export const PLAN_PAGE_SIZE = 100;
-
-/** The log shows the latest ten, then "Show earlier". */
-export const FEEDING_PAGE_SIZE = 10;
 
 /**
  * Live adapter for the feeding-service REST contract. Responses are typed, not mapped
