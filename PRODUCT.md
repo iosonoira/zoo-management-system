@@ -37,7 +37,7 @@ Not a generic admin panel over a CRUD table: the UI is shaped by the zoo's actua
 
 ## Capabilities and Constraints
 
-**Available today in the UI** (`zms-be/animal-service`, REST under `/animals` and `/enclosures`):
+**Available today in the UI** (`zms-be/animal-service` under `/animals` and `/enclosures`, `zms-be/health-service` under `/medical-records` and `/treatments`, `zms-be/feeding-service` under `/feeding-plans`):
 
 | Capability | Endpoint | Roles |
 |---|---|---|
@@ -47,12 +47,22 @@ Not a generic admin panel over a CRUD table: the UI is shaped by the zoo's actua
 | Update clinical status | `PUT /animals/{id}/status` | vet, admin |
 | Transfer to another enclosure | `PUT /animals/{id}/transfer` | keeper, admin |
 | List enclosures | `GET /enclosures` | admin, vet, keeper |
+| List an animal's medical records (all pages) | `GET /medical-records?animalId=` | admin, vet, keeper |
+| Medical record with its treatments | `GET /medical-records/{id}` | admin, vet, keeper |
+| Add a medical record | `POST /medical-records` | vet, admin |
+| Prescribe a treatment | `POST /medical-records/{id}/treatments` | vet, admin |
+| Update a treatment's status | `PUT /treatments/{id}/status` | vet, admin |
+| List an animal's feeding plans (all pages) | `GET /feeding-plans?animalId=` | admin, vet, keeper |
+| Start a feeding plan | `POST /feeding-plans` | vet, admin |
+| Update a feeding plan's status | `PUT /feeding-plans/{id}/status` | vet, admin |
+| List a plan's feedings (paged, 10 per page) | `GET /feeding-plans/{id}/feedings` | admin, vet, keeper |
+| Record a feeding | `POST /feeding-plans/{id}/feedings` | keeper, admin |
+
+Health and feeding appear as sections of the animal page, not as pages of their own ([D10](docs/decisions.md)). The UI never calls `GET /feeding-plans/{id}`. For a deceased animal the UI offers no new treatment and no start of one, while a new medical record is still offered; this rule exists only in the frontend ([D11](docs/decisions.md)).
 
 **Available in the backend, not in the UI yet**:
 
-- `zms-be/health-service`: medical records and treatments. Reads are open to all three roles; writes are vet and admin. Endpoints are listed in [its README](zms-be/health-service/README.md).
 - `zms-be/notification-service`: stores a notification for every animal event it receives from Kafka. It has no REST API ([README](zms-be/notification-service/README.md)).
-- `zms-be/feeding-service`: feeding plans and feedings. Reads are open to all three roles; vets and admins create plans and change their status, keepers (and admins) record feedings. It also consumes animal events to end a plan when its animal is declared deceased. Endpoints are listed in [its README](zms-be/feeding-service/README.md).
 
 **Domain terminology** (use these terms consistently in the UI):
 
@@ -67,7 +77,7 @@ Not a generic admin panel over a CRUD table: the UI is shaped by the zoo's actua
 - Frontend: Angular 22 with SSR (`zms-fe/`), standalone components, signals, Signal Forms, each component split in `.ts` / `.html` / `.scss`; only official angular.dev documentation as source (binding rules in `zms-fe/CLAUDE.md`).
 - Search and filtering happen in the browser. The API has paging on `GET /animals` but no search or filter parameter. The frontend loads every page, then filters by status and searches by name, species or 4-character tag (`zms-fe/src/app/features/animals/animal-list/animal-list.ts`). `GET /enclosures` returns the full list without paging.
 
-**Not in the UI yet** (do not show as working features or empty placeholders): clinical records and treatments (`health-service` exists, with no UI), notifications (`notification-service` exists, with no API or UI), feeding plans (`feeding-service` exists, with no UI). The navigation should leave room for them.
+**Not in the UI yet** (do not show as working features or empty placeholders): notifications (`notification-service` exists, with no API or UI). The navigation should leave room for them.
 
 **Open decisions**: dashboard/home content.
 

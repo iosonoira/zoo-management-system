@@ -134,6 +134,13 @@ components:
   button-quiet-hover:
     backgroundColor: "{colors.ground-deep}"
     textColor: "{colors.ink}"
+  button-compact:
+    backgroundColor: "{colors.pane}"
+    textColor: "{colors.ink}"
+    typography: "{typography.body-sm}"
+    rounded: "{rounded.md}"
+    padding: "0 1rem"
+    height: "{spacing.target}"
   search-field:
     backgroundColor: "{colors.pane}"
     textColor: "{colors.ink}"
@@ -174,6 +181,10 @@ components:
   status-tile:
     rounded: "{rounded.md}"
     size: "2.25rem"
+  meal-cell:
+    backgroundColor: "{colors.pane}"
+    textColor: "{colors.ink}"
+    padding: "0.75rem 1rem"
   danger-tab:
     textColor: "{colors.danger}"
     typography: "{typography.hazard}"
@@ -233,6 +244,7 @@ A near-colourless glasshouse where hue is rationed to action (green), place (hab
 ### Tertiary: status and hazard
 - **Leaf** (healthy, healthy-tint): Healthy text and tint. On roster rows, healthy uses neither; it gets an empty ringed tile in ink-3 and a regular-weight grey word. Where status is the subject (detail hero chip, status track lit cell, status sheet option), healthy shows its faint tint like every other status.
 - **Amber** (observation, observation-tint), **Clay** (treatment, treatment-tint), **Stone** (deceased, deceased-tint): Status ink and soft tint pairs. Ink colours the icon and the bold status word; tint fills the status tile, the hero status chip and the lit track cell.
+- **Treatment statuses** reuse these pairs and add no colour: prescribed is Amber, active is Clay, cancelled is Stone, and completed is a plain ringed tile with no tint (`[data-treatment]` in `styles.scss`).
 - **Signal Red** (danger, danger-tint): The outlined DANGER tab on plates and the tinted band across the top of the detail hero. Nothing else.
 
 ### Neutral
@@ -263,7 +275,7 @@ A near-colourless glasshouse where hue is rationed to action (green), place (hab
 ### Hierarchy
 - **Display** (800, 2.75rem mobile / 4rem from 48rem, line-height 1, -0.035em): The animal's name on the detail hero. Wraps anywhere rather than overflowing.
 - **Headline** (800, 2.25rem mobile / 2.75rem from 48rem, 1.1, -0.025em): The page title ("Animals") above its count summary.
-- **Title** (800, 1.375rem, 1.1, -0.015em): Section headings (Status, Location, Record), sheet titles, empty and error notices, the large location sign.
+- **Title** (800, 1.375rem, 1.1, -0.015em): Section headings (Status, Location, Health, Feeding, Record), sheet titles, empty and error notices, the large location sign, the scheduled times in the meal track (tabular).
 - **Name** (700, 1.1875rem, 1.2, -0.01em): Animal names on roster plates, single line with ellipsis. Enclosure names in pane headers step down to 700 at 1.0625rem.
 - **Body** (400, 1.0625rem, 1.45): Default text, buttons (at 700), search input, ledes capped at 60ch.
 - **Body small** (400, 0.9375rem, 1.3): Plate meta (status word and species), filter chips, sheet descriptions, notes.
@@ -283,7 +295,7 @@ A near-colourless glasshouse where hue is rationed to action (green), place (hab
 A single-column register on mobile that becomes a flowing bed-by-bed wall on desktop. Spacing runs on a 4px rhythm (0.25, 0.5, 0.75, 1, 1.5, 2, 3rem). The page gutter is 1rem, widening to 2rem from 48rem. Every interactive control is at least 44px (target); primary and sheet buttons are 52px tall; plates are 68px; sheet options 64px.
 
 - **Roster:** max 84rem. Headline and summary, then search (full width, max 28rem beside the filters from 64rem) and status filter chips that scroll horizontally on mobile, bleeding into the gutter, and wrap from 64rem. Enclosure panes stack with 1rem gaps; from 64rem they flow down CSS columns (24rem columns, 1.5rem gap, never split across columns) so short beds leave no holes. On mobile the enclosure header sticks to the top while its animals scroll under it.
-- **Detail:** max 72rem. Quiet back link, hero pane (name and species on the left; status chip and tag on the right from 48rem, bottom-aligned), then Status and Location side by side from 60rem, with Record spanning both. Record facts are a hairline grid: 1 column, 2 from 40rem, 3 from 60rem.
+- **Detail:** max 72rem. Quiet back link, hero pane (name and species on the left; status chip and tag on the right from 48rem, bottom-aligned), then the sections. From 60rem the page has two columns. For vets and admins Status and Location share the first row, Health and Feeding the second, and Record spans both. For keepers Feeding and Health each take a full row, in the order Feeding, Status and Location, Health, Record. In Feeding, from a 52rem container, the plan and meal track (5fr) sit beside the log of recent feedings (6fr). Record facts are a hairline grid: 1 column, 2 from 40rem, 3 from 60rem.
 - **Sheets:** bottom sheet on mobile (max 88dvh or 44rem, safe-area padding); centred dialog up to 34rem from 48rem. Head, scrolling body, pinned footer with full-width actions.
 - **Toast:** fixed above the bottom edge, max 30rem, centred.
 
@@ -314,8 +326,9 @@ Solid and quiet, never outlined in colour.
 - **Shape:** gently rounded (md), 52px tall, 1.5rem horizontal padding, 700 weight, 20px icon with 0.5rem gap.
 - **Primary:** conservatory green with pane ink; hover deepens; disabled drops to deep ground with ink-3. Full width inside sections and sheet footers.
 - **Secondary:** clear pane with a strong glazing ring; hover to pane-hover.
-- **Grave:** ink fill with pane text, used only to confirm an irreversible record (deceased).
+- **Grave:** ink fill with pane text, used only to confirm a change that cannot be undone: marking an animal deceased, ending a feeding plan, completing or cancelling a treatment.
 - **Quiet:** transparent, ink-2, 44px; hover fills deep ground. Back link, close, theme toggle.
+- **Compact:** a secondary button for an action inside a row of content, 44px tall (target) instead of 52px, 1rem horizontal padding, body-small text (`.btn-compact`, used together with secondary). Change status on a treatment, Prescribe, Change plan status, New plan, and Try again inside a notice.
 - **Press:** every button nudges down 1px on active. Transitions are 140ms ease-out.
 
 ### Chips
@@ -346,6 +359,20 @@ The same header in its own pane at 72px, with a 44px stake and a title-size name
 ### Status track
 Four equal cells in clinical order inside one pane, divided by rules. The current cell is lit with its status tint, icon and bold label in status ink, and a single 7px dot in the corner. Idle cells are ink-3.
 
+### Meal track
+Today's meals of one feeding plan: one pane, one cell per scheduled time, divided by 1px glazing rules. Cells wrap onto further rows on narrow widths and each grows to fill its row. A cell holds the time (title size, 800, tabular), the state as an icon and a word, and a detail line.
+- **Fed:** check icon and "Fed", detail with the time it was recorded and the grams. The time drops to ink-2.
+- **Due now:** clock icon and "Due now", detail "Not recorded yet". The one cell that gets a 2px inset ink ring, a bold ink word and a heavier icon stroke, and `aria-current`. Green stays on the action, not on the meal.
+- **Not recorded:** alert icon and "Not recorded", ink word, icon in ink-2.
+- **Later:** clock icon and "Later", in the quiet ink-2 word and ink-3 icon.
+The state is always an icon and a word. The rules that assign a state are in `features/feeding/meal-track/meal-slots.ts`.
+
+### Treatment rows
+Each treatment in a medical record is a row with a status tile, its description and a line with the status word in bold, then the start and end dates. The tile takes the treatment status hues (see Colors). Prescribed uses the status icon, active the cross, completed the check and cancelled the close mark. An open treatment carries a compact secondary button.
+
+### Icons
+Pictograms drawn on a 24px grid with a 2px stroke and round joins (`Icon`). Three were added with health and feeding: **bowl** (Record feeding, an empty feeding-plan state), **clock** (the Due now and Later meal states) and **minus** (the amount stepper in the feeding sheet, beside plus, and removing a feeding time in the plan sheet).
+
 ### Danger tab and danger band
 The tab is a small uppercase hazard label outlined 1.5px in danger red with a warning icon, placed after the animal's name. On the detail hero, danger becomes a full-bleed tinted band across the top of the pane with a hairline in 30% danger.
 
@@ -361,7 +388,8 @@ Radio rows styled as 64px panes: tile or stake, label and description, and a rou
 - **Do** use conservatory green for the one primary action in a section, for selection and for focus.
 - **Do** set tag codes in Atkinson Hyperlegible Mono in a recessed ground chip, and counts and dates with tabular numerals.
 - **Do** keep controls at least 44px and primary actions at 52px, full width on mobile.
-- **Do** pair every status colour with its icon and its word.
+- **Do** pair every status colour with its icon and its word, meal states and treatment statuses included.
+- **Do** mark the next unrecorded meal with an ink ring, not with green.
 - **Do** keep motion to 140 to 220ms ease-out and replace view-transition movement with a 150ms crossfade under reduced motion.
 
 ### Don't:
