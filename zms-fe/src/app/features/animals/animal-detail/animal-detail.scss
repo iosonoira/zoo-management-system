@@ -151,7 +151,8 @@
   }
 }
 
-/* A keeper's Feeding takes the whole row, so its meals and log can sit side by side. */
+/* A keeper's Feeding and Health take the whole row, so their columns can sit side by side.
+   For vets and admins, Health and Feeding share one row instead. */
 .lead {
   @media (min-width: 60rem) {
     grid-column: 1 / -1;

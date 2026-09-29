@@ -1,0 +1,158 @@
+<section class="section" aria-labelledby="health-heading">
+  <h2 id="health-heading">Health</h2>
+
+  @if (ready()) {
+    <div class="body">
+      @if (!canChange()) {
+        <p class="note">
+          <app-icon name="lock" />Only vets and admins can add records or change treatments.
+        </p>
+      } @else if (deceased()) {
+        <p class="note">
+          <app-icon name="lock" />{{ animal().name }} is deceased. You can still add a post-mortem
+          record. Treatments can no longer be prescribed or started.
+        </p>
+      }
+
+      @if (views().length > 0) {
+        <ul class="records pane clip">
+          @for (v of views(); track v.record.id) {
+            <li class="rec">
+              <h3>
+                <button
+                  #header
+                  type="button"
+                  class="rec-head"
+                  [attr.data-record]="v.record.id"
+                  [attr.aria-expanded]="v.open"
+                  [attr.aria-controls]="v.panelId"
+                  (click)="toggle(v)"
+                >
+                  <span class="rec-meta">
+                    <span class="tabular">{{ v.record.examinedOn | date: 'd MMM y' }}</span>
+                    · {{ v.record.veterinarian }}
+                  </span>
+                  <span class="rec-reason">{{ v.record.reason }}</span>
+                  @if (v.summary; as summary) {
+                    <span class="rec-summary">{{ summary }}</span>
+                  }
+                  <app-icon name="chevron-down" />
+                </button>
+              </h3>
+
+              <div class="rec-panel" [id]="v.panelId" [hidden]="!v.open">
+                @if (v.open) {
+                  <div class="rec-body">
+                    <div class="rec-main">
+                      <p class="label">Diagnosis</p>
+                      <p class="diag">{{ v.record.diagnosis }}</p>
+                      <p class="by">
+                        <app-icon name="user" />Recorded by
+                        {{ v.record.createdBy ?? 'an unknown user' }}
+                      </p>
+                    </div>
+
+                    <div class="rec-tx">
+                      <h4 class="label">Treatments</h4>
+                      @if (v.treatments; as treatments) {
+                        @if (treatments.length > 0) {
+                          <ul>
+                            @for (t of treatments; track t.id) {
+                              <li class="tx" [attr.data-treatment]="t.status">
+                                <span class="status-tile tile">
+                                  <app-icon [name]="statusLabels[t.status].icon" />
+                                </span>
+                                <div>
+                                  <p class="tx-desc">{{ t.description }}</p>
+                                  <p class="tx-meta">
+                                    <strong>{{ statusLabels[t.status].label }}</strong>
+                                    @if (t.startedOn) {
+                                      · started {{ t.startedOn | date: 'd MMM y' }}
+                                    }
+                                    @if (t.endedOn) {
+                                      · ended {{ t.endedOn | date: 'd MMM y' }}
+                                    }
+                                  </p>
+                                </div>
+                                @if (canChange() && isOpen(t)) {
+                                  <button
+                                    type="button"
+                                    class="btn btn-secondary btn-compact"
+                                    (click)="openStatus(t)"
+                                  >
+                                    Change status<span class="visually-hidden">
+                                      of {{ t.description }}</span
+                                    >
+                                  </button>
+                                }
+                              </li>
+                            }
+                          </ul>
+                        } @else {
+                          <p class="none">No treatments for this record.</p>
+                        }
+                      } @else if (v.detailState === 'error') {
+                        <div class="notice pane" role="alert">
+                          <app-icon name="alert" />
+                          <div>
+                            <h5>The treatments didn’t load</h5>
+                            <p>Check your connection, then try again.</p>
+                          </div>
+                          <button
+                            type="button"
+                            class="btn btn-secondary btn-compact"
+                            (click)="store.loadDetail(v.record.id)"
+                          >
+                            Try again
+                          </button>
+                        </div>
+                      } @else {
+                        <div
+                          class="skeleton skeleton-tx"
+                          role="status"
+                          aria-busy="true"
+                          aria-label="Loading treatments"
+                        ></div>
+                      }
+                    </div>
+                  </div>
+
+                  @if (canChange() && v.treatments) {
+                    @for (t of v.treatments; track t.id) {
+                      @if (isOpen(t)) {
+                        <app-treatment-status-sheet
+                          [animal]="animal()"
+                          [recordId]="v.record.id"
+                          [treatment]="t"
+                          (changed)="onChanged(v.record.id, $event)"
+                        />
+                      }
+                    }
+                  }
+                }
+              </div>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="pane empty">No medical records yet.</p>
+      }
+    </div>
+  } @else if (failed()) {
+    <div class="notice pane" role="alert">
+      <app-icon name="alert" />
+      <div>
+        <h3>Medical records didn’t load</h3>
+        <p>Check your connection, then try again. The rest of this page still works.</p>
+      </div>
+      <button type="button" class="btn btn-primary" (click)="store.retry()">Try again</button>
+    </div>
+  } @else {
+    <div
+      class="skeleton skeleton-section"
+      role="status"
+      aria-busy="true"
+      aria-label="Loading medical records"
+    ></div>
+  }
+</section>

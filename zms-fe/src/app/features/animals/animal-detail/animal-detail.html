@@ -31,7 +31,7 @@
     </header>
 
     <div class="sections">
-      <!-- Reading order is the visual order: Feeding leads for keepers and follows Location for the rest. -->
+      <!-- Reading order is the visual order. Keepers: Feeding, Status, Location, Health, Record. Vets and admins: Status | Location, Health | Feeding, Record. -->
       @if (feedingFirst()) {
         <app-feeding-section class="lead" [animal]="a" (announce)="announce($event)" />
       }
@@ -82,11 +82,12 @@
         }
       </section>
 
-      @if (!feedingFirst()) {
+      @if (feedingFirst()) {
+        <app-health-section class="lead" [animal]="a" (announce)="announce($event)" />
+      } @else {
+        <app-health-section [animal]="a" (announce)="announce($event)" />
         <app-feeding-section [animal]="a" (announce)="announce($event)" />
       }
-
-      <!-- Health goes here: after Location for keepers, beside Feeding for vets and admins. -->
 
       <section class="section record" aria-labelledby="record-heading">
         <h2 id="record-heading">Record</h2>

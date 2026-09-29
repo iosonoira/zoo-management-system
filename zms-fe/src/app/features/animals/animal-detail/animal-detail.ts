@@ -20,6 +20,7 @@ import { HABITAT_LABELS, STATUS_LABELS } from '../../../core/models/labels';
 import { Session } from '../../../core/session/session';
 import { Icon } from '../../../core/ui/icon/icon';
 import { FeedingSection } from '../../feeding/feeding-section/feeding-section';
+import { HealthSection } from '../../health/health-section/health-section';
 import { EnclosureSign } from '../enclosure-sign/enclosure-sign';
 import { StatusSheet } from '../status-sheet/status-sheet';
 import { StatusTrack } from '../status-track/status-track';
@@ -36,6 +37,7 @@ import { TransferSheet } from '../transfer-sheet/transfer-sheet';
     TransferSheet,
     StatusSheet,
     FeedingSection,
+    HealthSection,
   ],
   templateUrl: './animal-detail.html',
   styleUrl: './animal-detail.scss',
