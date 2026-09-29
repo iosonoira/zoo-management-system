@@ -41,6 +41,11 @@ public class MedicalRecordJpaRepository implements MedicalRecordRepository {
 
     @Override
     public List<MedicalRecord> findPage(UUID animalId, int page, int size) {
+        // setFirstResult takes an int: an offset past it cannot hold rows, and page * size would overflow.
+        long offset = (long) page * size;
+        if (offset > Integer.MAX_VALUE) {
+            return List.of();
+        }
         String jpql = animalId == null
                 ? "SELECT m FROM MedicalRecordEntity m ORDER BY m.examinedOn DESC, m.id"
                 : "SELECT m FROM MedicalRecordEntity m WHERE m.animalId = :animalId ORDER BY m.examinedOn DESC, m.id";
@@ -49,7 +54,7 @@ public class MedicalRecordJpaRepository implements MedicalRecordRepository {
             query.setParameter("animalId", animalId);
         }
         return MedicalRecordEntityMapper.toDomainList(query
-                .setFirstResult(page * size)
+                .setFirstResult((int) offset)
                 .setMaxResults(size)
                 .getResultList());
     }

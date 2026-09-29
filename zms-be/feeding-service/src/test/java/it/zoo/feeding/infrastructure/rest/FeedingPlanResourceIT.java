@@ -326,6 +326,35 @@ class FeedingPlanResourceIT {
     }
 
     @Test
+    void shouldReturnEmptyPlanPageWhenOffsetOverflowsAnInt() {
+        given()
+            .queryParam("page", 21474837)
+            .queryParam("size", 100)
+        .when()
+            .get("/feeding-plans")
+        .then()
+            .statusCode(200)
+            .body("items.size()", equalTo(0))
+            .body("page", equalTo(21474837));
+    }
+
+    @Test
+    @TestSecurity(user = "keeper", roles = {ZooRoles.KEEPER})
+    void shouldReturnEmptyFeedingPageWhenOffsetOverflowsAnInt() {
+        UUID planId = seedPlan(PlanStatus.ACTIVE);
+
+        given()
+            .queryParam("page", 21474837)
+            .queryParam("size", 100)
+        .when()
+            .get("/feeding-plans/" + planId + "/feedings")
+        .then()
+            .statusCode(200)
+            .body("items.size()", equalTo(0))
+            .body("page", equalTo(21474837));
+    }
+
+    @Test
     @TestSecurity(user = "keeper", roles = {ZooRoles.KEEPER})
     void shouldListFeedingsOrderedByFedAtDesc() {
         UUID planId = seedPlan(PlanStatus.ACTIVE);

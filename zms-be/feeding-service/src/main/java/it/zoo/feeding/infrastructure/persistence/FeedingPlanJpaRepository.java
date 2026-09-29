@@ -50,6 +50,11 @@ public class FeedingPlanJpaRepository implements FeedingPlanRepository {
 
     @Override
     public List<FeedingPlan> findPage(UUID animalId, int page, int size) {
+        // setFirstResult takes an int: an offset past it cannot hold rows, and page * size would overflow.
+        long offset = (long) page * size;
+        if (offset > Integer.MAX_VALUE) {
+            return List.of();
+        }
         String jpql = animalId == null
                 ? "SELECT p FROM FeedingPlanEntity p ORDER BY p.startedOn DESC, p.id"
                 : "SELECT p FROM FeedingPlanEntity p WHERE p.animalId = :animalId ORDER BY p.startedOn DESC, p.id";
@@ -58,7 +63,7 @@ public class FeedingPlanJpaRepository implements FeedingPlanRepository {
             query.setParameter("animalId", animalId);
         }
         return FeedingPlanEntityMapper.toDomainList(query
-                .setFirstResult(page * size)
+                .setFirstResult((int) offset)
                 .setMaxResults(size)
                 .getResultList());
     }

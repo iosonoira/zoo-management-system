@@ -27,12 +27,17 @@ public class FeedingJpaRepository implements FeedingRepository {
 
     @Override
     public List<Feeding> findPageByPlanId(UUID planId, int page, int size) {
+        // setFirstResult takes an int: an offset past it cannot hold rows, and page * size would overflow.
+        long offset = (long) page * size;
+        if (offset > Integer.MAX_VALUE) {
+            return List.of();
+        }
         return FeedingEntityMapper.toDomainList(em
                 .createQuery(
                         "SELECT f FROM FeedingEntity f WHERE f.planId = :planId ORDER BY f.fedAt DESC, f.id",
                         FeedingEntity.class)
                 .setParameter("planId", planId)
-                .setFirstResult(page * size)
+                .setFirstResult((int) offset)
                 .setMaxResults(size)
                 .getResultList());
     }

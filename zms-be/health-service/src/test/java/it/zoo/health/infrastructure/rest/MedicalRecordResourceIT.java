@@ -154,6 +154,19 @@ class MedicalRecordResourceIT {
     }
 
     @Test
+    void shouldReturnEmptyPageWhenOffsetOverflowsAnInt() {
+        given()
+            .queryParam("page", 21474837)
+            .queryParam("size", 100)
+        .when()
+            .get("/medical-records")
+        .then()
+            .statusCode(200)
+            .body("items.size()", equalTo(0))
+            .body("page", equalTo(21474837));
+    }
+
+    @Test
     void shouldRejectPageSizeAboveMaximum() {
         given()
             .queryParam("size", 101)
