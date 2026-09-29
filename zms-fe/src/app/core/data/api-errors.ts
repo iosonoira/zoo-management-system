@@ -52,7 +52,10 @@ export function unknownEnclosure(): ApiError {
 }
 
 export function invalidAnimal(): ApiError {
-  return new ApiError(400, 'Some details aren’t valid. Check the name, species and enclosure, then try again.');
+  return new ApiError(
+    400,
+    'Some details aren’t valid. Check the name, species and enclosure, then try again.',
+  );
 }
 
 /** Optimistic locking lost: another writer saved first. The mock cannot produce this. */
@@ -65,7 +68,10 @@ export function sessionExpired(): ApiError {
 }
 
 export function serverError(): ApiError {
-  return new ApiError(500, 'Something went wrong on our side. Check your connection and try again.');
+  return new ApiError(
+    500,
+    'Something went wrong on our side. Check your connection and try again.',
+  );
 }
 
 // ---- health-service ----
@@ -90,5 +96,49 @@ export function invalidTreatment(): ApiError {
 }
 
 export function treatmentChanged(): ApiError {
-  return new ApiError(422, 'This treatment changed since you opened it. Reload to see where it stands.');
+  return new ApiError(
+    422,
+    'This treatment changed since you opened it. Reload to see where it stands.',
+  );
+}
+
+// ---- feeding-service ----
+
+export function planNotFound(): ApiError {
+  return new ApiError(404, 'This feeding plan no longer exists.');
+}
+
+export function invalidPlan(): ApiError {
+  return new ApiError(
+    400,
+    'Some details aren’t valid. Check the food, quantity and feeding times, then try again.',
+  );
+}
+
+export function invalidFeeding(): ApiError {
+  return new ApiError(
+    400,
+    'Some details aren’t valid. Check the quantity and the time, then try again.',
+  );
+}
+
+export function planChanged(): ApiError {
+  return new ApiError(
+    422,
+    'This feeding plan changed since you opened it. Reload to see where it stands.',
+  );
+}
+
+export function planNotActive(): ApiError {
+  return new ApiError(
+    422,
+    'Feedings can only be recorded on an active plan. Reload to see where this plan stands.',
+  );
+}
+
+export function deceasedPlan(): ApiError {
+  return new ApiError(
+    422,
+    'This animal is recorded as deceased, so it can’t get a new feeding plan.',
+  );
 }

@@ -1,5 +1,6 @@
 import { AnimalStatus, Habitat, ZooRole } from './animal';
 import { TreatmentStatus } from './health';
+import { PlanStatus } from './feeding';
 import { IconName } from '../ui/icon/icon';
 
 export interface StatusLabel {
@@ -48,13 +49,13 @@ export const ROLE_LABELS: Record<ZooRole, string> = {
   'zoo-admin': 'Admin',
 };
 
-export interface TreatmentStatusLabel {
+export interface StateLabel {
   readonly label: string;
   readonly description: string;
   readonly icon: IconName;
 }
 
-export const TREATMENT_STATUS_LABELS: Record<TreatmentStatus, TreatmentStatusLabel> = {
+export const TREATMENT_STATUS_LABELS: Record<TreatmentStatus, StateLabel> = {
   PRESCRIBED: {
     label: 'Prescribed',
     description: 'Written up, not started yet.',
@@ -73,6 +74,24 @@ export const TREATMENT_STATUS_LABELS: Record<TreatmentStatus, TreatmentStatusLab
   CANCELLED: {
     label: 'Cancelled',
     description: 'Stopped before it finished.',
+    icon: 'close',
+  },
+};
+
+export const PLAN_STATUS_LABELS: Record<PlanStatus, StateLabel> = {
+  ACTIVE: {
+    label: 'Active',
+    description: 'Meals are given on this schedule.',
+    icon: 'check',
+  },
+  SUSPENDED: {
+    label: 'Suspended',
+    description: 'Paused. No feedings are recorded until it resumes.',
+    icon: 'lock',
+  },
+  ENDED: {
+    label: 'Ended',
+    description: 'Closed for good. Kept for history.',
     icon: 'close',
   },
 };

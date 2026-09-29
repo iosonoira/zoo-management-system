@@ -1,12 +1,18 @@
 import { ApiError } from './api-error';
 import {
   conflict,
+  deceasedPlan,
   deceasedStatus,
   deceasedTransfer,
   forbidden,
+  invalidFeeding,
+  invalidPlan,
   invalidRecord,
   invalidTreatment,
   notFound,
+  planChanged,
+  planNotActive,
+  planNotFound,
   recordNotFound,
   sameStatus,
   serverError,
@@ -58,5 +64,23 @@ describe('api-errors', () => {
     expect(invalidRecord()).toBeInstanceOf(ApiError);
     expect(invalidTreatment()).toBeInstanceOf(ApiError);
     expect(treatmentChanged()).toBeInstanceOf(ApiError);
+  });
+
+  it('carries the status for feeding-service errors', () => {
+    expect(planNotFound().status).toBe(404);
+    expect(invalidPlan().status).toBe(400);
+    expect(invalidFeeding().status).toBe(400);
+    expect(planChanged().status).toBe(422);
+    expect(planNotActive().status).toBe(422);
+    expect(deceasedPlan().status).toBe(422);
+  });
+
+  it('feeding-service errors are ApiError instances', () => {
+    expect(planNotFound()).toBeInstanceOf(ApiError);
+    expect(invalidPlan()).toBeInstanceOf(ApiError);
+    expect(invalidFeeding()).toBeInstanceOf(ApiError);
+    expect(planChanged()).toBeInstanceOf(ApiError);
+    expect(planNotActive()).toBeInstanceOf(ApiError);
+    expect(deceasedPlan()).toBeInstanceOf(ApiError);
   });
 });
