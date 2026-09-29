@@ -4,10 +4,15 @@ import {
   deceasedStatus,
   deceasedTransfer,
   forbidden,
+  invalidRecord,
+  invalidTreatment,
   notFound,
+  recordNotFound,
   sameStatus,
   serverError,
   sessionExpired,
+  treatmentChanged,
+  treatmentNotFound,
   unknownEnclosure,
 } from './api-errors';
 
@@ -37,5 +42,21 @@ describe('api-errors', () => {
   it('tells each role what it may do', () => {
     expect(forbidden('updateStatus').message).toContain('vets');
     expect(forbidden('transfer').message).toContain('keepers');
+  });
+
+  it('carries the status for health-service errors', () => {
+    expect(recordNotFound().status).toBe(404);
+    expect(treatmentNotFound().status).toBe(404);
+    expect(invalidRecord().status).toBe(400);
+    expect(invalidTreatment().status).toBe(400);
+    expect(treatmentChanged().status).toBe(422);
+  });
+
+  it('are ApiError instances', () => {
+    expect(recordNotFound()).toBeInstanceOf(ApiError);
+    expect(treatmentNotFound()).toBeInstanceOf(ApiError);
+    expect(invalidRecord()).toBeInstanceOf(ApiError);
+    expect(invalidTreatment()).toBeInstanceOf(ApiError);
+    expect(treatmentChanged()).toBeInstanceOf(ApiError);
   });
 });

@@ -2,8 +2,8 @@ import { Permission } from '../models/permissions';
 import { ApiError } from './api-error';
 
 /**
- * The single source of user-facing copy for backend failures. `animal-service` returns
- * `{"message": "..."}` on every error, but those strings are either generic
+ * The single source of user-facing copy for backend failures. The backend services return
+ * `{"message": "..."}` on their own errors, but those strings are either generic
  * ("Insufficient role") or technical ("Cannot transfer a deceased animal"), so the
  * adapters map the status code to the copy below instead of forwarding the body.
  */
@@ -66,4 +66,29 @@ export function sessionExpired(): ApiError {
 
 export function serverError(): ApiError {
   return new ApiError(500, 'Something went wrong on our side. Check your connection and try again.');
+}
+
+// ---- health-service ----
+
+export function recordNotFound(): ApiError {
+  return new ApiError(404, 'This medical record no longer exists.');
+}
+
+export function treatmentNotFound(): ApiError {
+  return new ApiError(404, 'This treatment no longer exists.');
+}
+
+export function invalidRecord(): ApiError {
+  return new ApiError(
+    400,
+    'Some details aren’t valid. Check the reason, diagnosis, examination date and vet, then try again.',
+  );
+}
+
+export function invalidTreatment(): ApiError {
+  return new ApiError(400, 'Describe the treatment in 500 characters or fewer, then try again.');
+}
+
+export function treatmentChanged(): ApiError {
+  return new ApiError(422, 'This treatment changed since you opened it. Reload to see where it stands.');
 }

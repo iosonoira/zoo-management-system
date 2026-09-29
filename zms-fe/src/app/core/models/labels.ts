@@ -1,4 +1,5 @@
 import { AnimalStatus, Habitat, ZooRole } from './animal';
+import { TreatmentStatus } from './health';
 import { IconName } from '../ui/icon/icon';
 
 export interface StatusLabel {
@@ -45,4 +46,33 @@ export const ROLE_LABELS: Record<ZooRole, string> = {
   'zoo-keeper': 'Keeper',
   'zoo-vet': 'Vet',
   'zoo-admin': 'Admin',
+};
+
+export interface TreatmentStatusLabel {
+  readonly label: string;
+  readonly description: string;
+  readonly icon: IconName;
+}
+
+export const TREATMENT_STATUS_LABELS: Record<TreatmentStatus, TreatmentStatusLabel> = {
+  PRESCRIBED: {
+    label: 'Prescribed',
+    description: 'Written up, not started yet.',
+    icon: 'status',
+  },
+  ACTIVE: {
+    label: 'Active',
+    description: 'Being given now.',
+    icon: 'cross',
+  },
+  COMPLETED: {
+    label: 'Completed',
+    description: 'Course finished.',
+    icon: 'check',
+  },
+  CANCELLED: {
+    label: 'Cancelled',
+    description: 'Stopped before it finished.',
+    icon: 'close',
+  },
 };
