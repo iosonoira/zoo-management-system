@@ -38,6 +38,7 @@ services:
       ANIMAL_SERVICE_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:?set it in zms-be/infrastructure/.env, see the Live mode table in the root README}
       HEALTH_SERVICE_CLIENT_SECRET: ${HEALTH_OIDC_CLIENT_SECRET:?set it in zms-be/infrastructure/.env, see the Live mode table in the root README}
       FEEDING_SERVICE_CLIENT_SECRET: ${FEEDING_OIDC_CLIENT_SECRET:?set it in zms-be/infrastructure/.env, see the Live mode table in the root README}
+      NOTIFICATION_SERVICE_CLIENT_SECRET: ${NOTIFICATION_OIDC_CLIENT_SECRET:?set it in zms-be/infrastructure/.env, see the Live mode table in the root README}
       ZOO_TEST_USER_PASSWORD: ${ZOO_TEST_USER_PASSWORD:?set it in zms-be/infrastructure/.env, see the Live mode table in the root README}
     ports:
       - "8081:8080"
