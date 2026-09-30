@@ -182,3 +182,27 @@ The entries below were seeded on 2026-09-24 from decisions already stated in `zm
 - **Consequences**:
   - The rule lives only in the frontend (`HealthSection`, `TreatmentStatusSheet`). A direct call to `health-service` can still prescribe or start a treatment for a deceased animal.
   - Enforcing it in the backend needs `health-service` to know which animals are deceased, for example with the event consumer and read model that D9 introduced in `feeding-service`.
+
+## D12. health-service enforces D11 and cancels a deceased animal's open treatments
+
+- **Date**: 2026-09-30 (commits `df3735b`..`ca603fa`)
+- **Service(s)**: health-service, zms-fe
+- **Context**: D11 kept the "no new treatment for a deceased animal" rule in the frontend only, and named the consumer and read model of D9 as the way to enforce it in the backend. `docs/STATE.md` listed "consume animal events, for example cancelling treatments when an animal becomes DECEASED" as decided but not built.
+- **Alternatives considered**:
+  - On `DECEASED`, cancel only `PRESCRIBED` treatments and leave `ACTIVE` ones for a vet to complete or cancel.
+  - On `DECEASED`, change no treatment: record the animal and only refuse new treatments and starts.
+  - Keep `health-service` unchanged and the rule frontend-only.
+- **Decision**:
+  - `health-service` consumes `zoo.animal.events` (consumer group `health-service`, dead-letter topic `zoo.animal.events.health.dlq`). On `ANIMAL_STATUS_CHANGED` with `newStatus = DECEASED` it records the animal in its own `deceased_animals` table and moves every `PRESCRIBED` and `ACTIVE` treatment of the animal to `CANCELLED`.
+  - Prescribing a treatment, or moving one to `ACTIVE`, for an animal in `deceased_animals` returns 422. Creating a medical record, and completing or cancelling a treatment, stay allowed, as in D11.
+  - The event handler, prescribing and every treatment status change take the same per-animal advisory lock before reading treatments.
+  - The frontend shows fixed copy for the new 422s, and its demo mock imitates the consumer.
+- **Rationale** (given by the maintainer, 2026-09-30, who adopted the reasons proposed during planning):
+  - A treatment that was still open when the animal died was not completed, so `CANCELLED` is its accurate end state, and no vet has to close it by hand. It is the same effect `feeding-service` has on feeding plans (D9).
+  - A rule that lives only in the UI can be bypassed by any direct API call; the read model introduced by D9 makes the backend check cheap and keeps the services independent at runtime.
+  - One lock taken by every writer, before any read, avoids the stale-version failure that would send a `DECEASED` event to the dead-letter topic, the problem `feeding-service` fixed with row locks (`0cec3ae`).
+- **Consequences**:
+  - `health-service` now needs Kafka at runtime; in prod it reads `KAFKA_BOOTSTRAP_SERVERS`. On its first start the new consumer group reads the topic from the earliest offset, so animals that died earlier are recorded and their open treatments cancelled.
+  - An animal id that does not exist in `animal-service` is still accepted: only ids already in `deceased_animals` are refused.
+  - Idempotency is per animal id and relies on `DECEASED` being terminal, as in `feeding-service` (`docs/events.md`).
+  - The frontend does not reload a deceased animal's treatments after its status changes, so the Health section can show cancelled treatments as open until the page or animal is reloaded (`docs/STATE.md`).
