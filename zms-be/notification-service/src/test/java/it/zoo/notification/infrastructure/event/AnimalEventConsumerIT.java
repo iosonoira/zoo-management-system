@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @QuarkusTest
@@ -71,6 +72,59 @@ class AnimalEventConsumerIT {
         assertEquals(Severity.WARNING, severityOf(statusChangedEventId));
         // fixture's dangerous=true: NotificationRule maps a dangerous transfer to WARNING.
         assertEquals(Severity.WARNING, severityOf(transferredEventId));
+    }
+
+    @Test
+    void shouldPersistTheStructuredEventFieldsAndLeaveAcknowledgementEmpty() {
+        UUID registeredEventId = UUID.randomUUID();
+        UUID registeredAnimalId = UUID.randomUUID();
+        UUID statusChangedEventId = UUID.randomUUID();
+        UUID statusChangedAnimalId = UUID.randomUUID();
+        UUID transferredEventId = UUID.randomUUID();
+        UUID transferredAnimalId = UUID.randomUUID();
+
+        produce(rewriteFixture("animal-registered.json", registeredEventId, registeredAnimalId));
+        produce(rewriteFixture("animal-status-changed.json", statusChangedEventId, statusChangedAnimalId));
+        produce(rewriteFixture("animal-transferred.json", transferredEventId, transferredAnimalId));
+
+        await().atMost(Duration.ofSeconds(20)).untilAsserted(() ->
+                assertEquals(3, countNotifications()));
+
+        NotificationEntity registered = rowOf(registeredEventId);
+        assertEquals("zoo-admin", registered.getPerformedBy());
+        assertEquals("Leo", registered.getName());
+        assertEquals("Lion", registered.getSpecies());
+        assertEquals(Boolean.TRUE, registered.getDangerous());
+        assertNull(registered.getPreviousStatus());
+        assertNull(registered.getNewStatus());
+        assertNull(registered.getFromEnclosureId());
+        assertEquals(UUID.fromString("33333333-3333-3333-3333-333333333333"), registered.getToEnclosureId());
+        assertNull(registered.getAcknowledgedBy());
+        assertNull(registered.getAcknowledgedAt());
+
+        NotificationEntity statusChanged = rowOf(statusChangedEventId);
+        assertEquals("zoo-vet", statusChanged.getPerformedBy());
+        assertEquals("Leo", statusChanged.getName());
+        assertEquals("Lion", statusChanged.getSpecies());
+        assertNull(statusChanged.getDangerous());
+        assertEquals("HEALTHY", statusChanged.getPreviousStatus());
+        assertEquals("UNDER_OBSERVATION", statusChanged.getNewStatus());
+        assertNull(statusChanged.getFromEnclosureId());
+        assertNull(statusChanged.getToEnclosureId());
+        assertNull(statusChanged.getAcknowledgedBy());
+        assertNull(statusChanged.getAcknowledgedAt());
+
+        NotificationEntity transferred = rowOf(transferredEventId);
+        assertEquals("zoo-keeper", transferred.getPerformedBy());
+        assertEquals("Leo", transferred.getName());
+        assertEquals("Lion", transferred.getSpecies());
+        assertEquals(Boolean.TRUE, transferred.getDangerous());
+        assertNull(transferred.getPreviousStatus());
+        assertNull(transferred.getNewStatus());
+        assertEquals(UUID.fromString("33333333-3333-3333-3333-333333333333"), transferred.getFromEnclosureId());
+        assertEquals(UUID.fromString("44444444-4444-4444-4444-444444444444"), transferred.getToEnclosureId());
+        assertNull(transferred.getAcknowledgedBy());
+        assertNull(transferred.getAcknowledgedAt());
     }
 
     @Test
@@ -145,11 +199,15 @@ class AnimalEventConsumerIT {
     }
 
     private Severity severityOf(UUID eventId) {
+        return rowOf(eventId).getSeverity();
+    }
+
+    private NotificationEntity rowOf(UUID eventId) {
         List<NotificationEntity> rows = QuarkusTransaction.requiringNew().call(() ->
                 em.createQuery("SELECT n FROM NotificationEntity n WHERE n.eventId = :eventId", NotificationEntity.class)
                         .setParameter("eventId", eventId)
                         .getResultList());
         assertTrue(rows.size() == 1, "expected exactly one notification for event " + eventId);
-        return rows.get(0).getSeverity();
+        return rows.get(0);
     }
 }

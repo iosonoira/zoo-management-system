@@ -66,6 +66,83 @@ class HandleAnimalEventServiceTest {
     }
 
     @Test
+    void shouldStoreStructuredFieldsForRegisteredEvent() {
+        when(repository.existsByEventId(any(UUID.class))).thenReturn(false);
+        when(repository.save(any(Notification.class))).thenAnswer(i -> i.getArgument(0));
+
+        service.handle(new HandleAnimalEventCommand(
+            UUID.randomUUID(), AnimalEventType.ANIMAL_REGISTERED, Instant.now(),
+            UUID.randomUUID(), "zoo-admin", "Leo", "Lion", true, null, null, null, null
+        ));
+
+        Notification captured = captureSaved();
+        assertEquals("zoo-admin", captured.getPerformedBy());
+        assertEquals("Leo", captured.getName());
+        assertEquals("Lion", captured.getSpecies());
+        assertEquals(Boolean.TRUE, captured.getDangerous());
+        assertNull(captured.getPreviousStatus());
+        assertNull(captured.getNewStatus());
+        assertNull(captured.getFromEnclosureId());
+        assertNull(captured.getToEnclosureId());
+        assertNull(captured.getAcknowledgedBy());
+        assertNull(captured.getAcknowledgedAt());
+    }
+
+    @Test
+    void shouldStoreStructuredFieldsForStatusChangedEvent() {
+        when(repository.existsByEventId(any(UUID.class))).thenReturn(false);
+        when(repository.save(any(Notification.class))).thenAnswer(i -> i.getArgument(0));
+
+        service.handle(new HandleAnimalEventCommand(
+            UUID.randomUUID(), AnimalEventType.ANIMAL_STATUS_CHANGED, Instant.now(),
+            UUID.randomUUID(), "zoo-vet", "Leo", "Lion", null, "HEALTHY", "UNDER_OBSERVATION", null, null
+        ));
+
+        Notification captured = captureSaved();
+        assertEquals("zoo-vet", captured.getPerformedBy());
+        assertEquals("Leo", captured.getName());
+        assertEquals("Lion", captured.getSpecies());
+        assertNull(captured.getDangerous());
+        assertEquals("HEALTHY", captured.getPreviousStatus());
+        assertEquals("UNDER_OBSERVATION", captured.getNewStatus());
+        assertNull(captured.getFromEnclosureId());
+        assertNull(captured.getToEnclosureId());
+        assertNull(captured.getAcknowledgedBy());
+        assertNull(captured.getAcknowledgedAt());
+    }
+
+    @Test
+    void shouldStoreStructuredFieldsForTransferredEvent() {
+        when(repository.existsByEventId(any(UUID.class))).thenReturn(false);
+        when(repository.save(any(Notification.class))).thenAnswer(i -> i.getArgument(0));
+
+        UUID from = UUID.randomUUID();
+        UUID to = UUID.randomUUID();
+        service.handle(new HandleAnimalEventCommand(
+            UUID.randomUUID(), AnimalEventType.ANIMAL_TRANSFERRED, Instant.now(),
+            UUID.randomUUID(), "zoo-keeper", "Leo", "Lion", true, null, null, from, to
+        ));
+
+        Notification captured = captureSaved();
+        assertEquals("zoo-keeper", captured.getPerformedBy());
+        assertEquals("Leo", captured.getName());
+        assertEquals("Lion", captured.getSpecies());
+        assertEquals(Boolean.TRUE, captured.getDangerous());
+        assertNull(captured.getPreviousStatus());
+        assertNull(captured.getNewStatus());
+        assertEquals(from, captured.getFromEnclosureId());
+        assertEquals(to, captured.getToEnclosureId());
+        assertNull(captured.getAcknowledgedBy());
+        assertNull(captured.getAcknowledgedAt());
+    }
+
+    private Notification captureSaved() {
+        ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+        verify(repository, times(1)).save(captor.capture());
+        return captor.getValue();
+    }
+
+    @Test
     void shouldNotSaveNotificationForDuplicateEvent() {
         UUID eventId = UUID.randomUUID();
         when(repository.existsByEventId(eventId)).thenReturn(true);

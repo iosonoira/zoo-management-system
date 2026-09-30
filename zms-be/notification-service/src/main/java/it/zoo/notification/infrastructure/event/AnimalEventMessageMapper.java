@@ -28,7 +28,7 @@ public final class AnimalEventMessageMapper {
                     null,
                     null,
                     null,
-                    null
+                    uuid(payload, "enclosureId")
             );
             case ANIMAL_STATUS_CHANGED -> new HandleAnimalEventCommand(
                     message.eventId(),

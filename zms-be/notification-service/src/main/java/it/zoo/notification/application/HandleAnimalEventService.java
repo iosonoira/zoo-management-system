@@ -52,7 +52,17 @@ public class HandleAnimalEventService implements HandleAnimalEventUseCase {
             NotificationRule.severityOf(command),
             NotificationRule.messageOf(command),
             command.occurredAt(),
-            Instant.now()
+            Instant.now(),
+            command.performedBy(),
+            command.name(),
+            command.species(),
+            command.dangerous(),
+            command.previousStatus(),
+            command.newStatus(),
+            command.fromEnclosureId(),
+            command.toEnclosureId(),
+            null,
+            null
         );
 
         repository.save(notification);
