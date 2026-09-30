@@ -6,6 +6,10 @@ describe('environment', () => {
     expect(environment.live).toBe(false);
     expect(environment.keycloak).toBeNull();
   });
+
+  it('has no backend origin in demo mode', () => {
+    expect(environment.api).toEqual({ animal: '', health: '', feeding: '', notification: '' });
+  });
 });
 
 describe('ENCLOSURES', () => {

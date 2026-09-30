@@ -1,7 +1,7 @@
 /** Build-time mode flag. Replaced by `environment.live.ts` in the `live` configuration. */
 export const environment = {
   live: false,
-  api: { animal: '', health: '', feeding: '' },
+  api: { animal: '', health: '', feeding: '', notification: '' },
   keycloak: null,
 } as const satisfies Environment;
 
@@ -12,6 +12,11 @@ export interface Environment {
    * Origin of each backend service. Empty in demo mode. The bearer token is attached to
    * these origins and to nothing else.
    */
-  readonly api: { readonly animal: string; readonly health: string; readonly feeding: string };
+  readonly api: {
+    readonly animal: string;
+    readonly health: string;
+    readonly feeding: string;
+    readonly notification: string;
+  };
   readonly keycloak: { readonly url: string; readonly realm: string; readonly clientId: string } | null;
 }
