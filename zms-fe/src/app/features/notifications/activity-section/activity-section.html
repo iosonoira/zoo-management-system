@@ -1,0 +1,123 @@
+<section class="section" aria-labelledby="activity-heading">
+  <div class="head">
+    <h2 id="activity-heading" #heading tabindex="-1">Activity</h2>
+    <a class="btn btn-quiet" routerLink="/notifications">
+      All notifications<app-icon name="arrow-right" />
+    </a>
+  </div>
+
+  @if (ready()) {
+    @if (rows().length > 0) {
+      <p class="note">{{ note() }}</p>
+      <ul class="pane clip">
+        @for (r of rows(); track r.n.id) {
+          @if (r.attention) {
+            <li class="open" [attr.data-row]="r.n.id">
+              <div class="open-main">
+                <app-severity-tile [severity]="r.n.severity" />
+                <span class="open-text">
+                  <app-notification-text class="pred" [notification]="r.n" [withName]="false" />
+                  <app-notification-meta [notification]="r.n" [now]="now()" />
+                </span>
+              </div>
+              @if (canAcknowledge()) {
+                <button
+                  type="button"
+                  class="btn btn-primary btn-compact"
+                  [attr.data-ack]="r.n.id"
+                  [attr.aria-disabled]="isBusy(r.n.id) || null"
+                  (click)="acknowledge(r.n)"
+                >
+                  <app-icon name="check" />Acknowledge<span class="visually-hidden">{{
+                    acknowledgeLabel(r.n)
+                  }}</span>
+                </button>
+              }
+            </li>
+          } @else {
+            <li [attr.data-row]="r.n.id">
+              <button
+                type="button"
+                class="fold"
+                [attr.data-fold]="r.n.id"
+                [attr.aria-expanded]="r.expanded"
+                [attr.aria-controls]="r.panelId"
+                (click)="toggle(r)"
+              >
+                <app-severity-tile [severity]="r.n.severity" size="sm" />
+                <app-notification-text class="fs" [notification]="r.n" [withName]="false" />
+                <span class="fw">{{ day(r.n) }} · {{ r.open ? 'open' : 'acknowledged' }}</span>
+                <app-icon class="chev" name="chevron-down" />
+              </button>
+              <div class="fold-body" [id]="r.panelId" [hidden]="!r.expanded">
+                @if (r.expanded) {
+                  <app-notification-meta [notification]="r.n" [now]="now()" />
+                  @if (r.n.acknowledgedBy) {
+                    <app-acknowledged-note [notification]="r.n" [now]="now()" />
+                  } @else if (canAcknowledge()) {
+                    <div>
+                      <button
+                        type="button"
+                        class="btn btn-secondary btn-compact"
+                        [attr.data-ack]="r.n.id"
+                        [attr.aria-disabled]="isBusy(r.n.id) || null"
+                        (click)="acknowledge(r.n)"
+                      >
+                        <app-icon name="check" />Acknowledge<span class="visually-hidden">{{
+                          acknowledgeLabel(r.n)
+                        }}</span>
+                      </button>
+                    </div>
+                  }
+                }
+              </div>
+            </li>
+          }
+        }
+      </ul>
+
+      @if (store.list.hasMore()) {
+        @if (store.list.moreFailed()) {
+          <p class="form-error" role="alert">
+            <app-icon name="alert" />Earlier activity didn’t load.
+          </p>
+        }
+        <button
+          type="button"
+          class="btn btn-quiet more"
+          [attr.aria-disabled]="store.list.loadingMore() || null"
+          (click)="showEarlier()"
+        >
+          {{ store.list.moreFailed() ? 'Try again' : 'Show earlier' }}<app-icon name="chevron-down" />
+        </button>
+      }
+    } @else {
+      <div class="notice compact pane">
+        <div>
+          <h3>No activity yet</h3>
+          <p>Registration, status changes and transfers of {{ animal().name }} appear here.</p>
+        </div>
+      </div>
+    }
+
+    @if (failure()) {
+      <p class="form-error" role="alert"><app-icon name="alert" />{{ failure() }}</p>
+    }
+  } @else if (failed()) {
+    <div class="notice pane" role="alert">
+      <app-icon name="alert" />
+      <div>
+        <h3>Activity didn’t load</h3>
+        <p>Check your connection, then try again. The rest of this page still works.</p>
+      </div>
+      <button type="button" class="btn btn-primary" (click)="store.retry()">Try again</button>
+    </div>
+  } @else {
+    <div
+      class="skeleton skeleton-list"
+      role="status"
+      aria-busy="true"
+      aria-label="Loading activity"
+    ></div>
+  }
+</section>

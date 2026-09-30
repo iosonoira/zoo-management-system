@@ -31,7 +31,9 @@
     </header>
 
     <div class="sections">
-      <!-- Reading order is the visual order. Keepers: Feeding, Status, Location, Health, Record. Vets and admins: Status | Location, Health | Feeding, Record. -->
+      <!-- Reading order is the visual order. Activity leads for every role, on a row of its own. Keepers then: Feeding, Status, Location, Health, Record. Vets and admins: Status | Location, Health | Feeding, Record. -->
+      <app-activity-section class="lead" [animal]="a" (announce)="announce($event)" />
+
       @if (feedingFirst()) {
         <app-feeding-section class="lead" [animal]="a" (announce)="announce($event)" />
       }

@@ -110,24 +110,31 @@ export function notificationSentence(
  * "Yesterday, 16:20", "28 Sep, 11:05", and with the year once it is not this one.
  */
 export function formatWhen(iso: string, now: Date): string {
+  const day = formatDay(iso, now);
+  if (!day) {
+    return '';
+  }
+  const at = new Date(iso);
+  return `${day}, ${pad(at.getHours())}:${pad(at.getMinutes())}`;
+}
+
+/** The day part alone: "Today", "Yesterday", "28 Sep", or "31 Dec 2025". Empty for a value that is not a date. */
+export function formatDay(iso: string, now: Date): string {
   const at = new Date(iso);
   if (Number.isNaN(at.getTime())) {
     return '';
   }
-  const time = `${pad(at.getHours())}:${pad(at.getMinutes())}`;
   const daysAgo = calendarDays(now) - calendarDays(at);
 
   // A clock a little ahead of the server still reads as today.
   if (daysAgo <= 0) {
-    return `Today, ${time}`;
+    return 'Today';
   }
   if (daysAgo === 1) {
-    return `Yesterday, ${time}`;
+    return 'Yesterday';
   }
   const date = `${at.getDate()} ${MONTHS[at.getMonth()]}`;
-  return at.getFullYear() === now.getFullYear()
-    ? `${date}, ${time}`
-    : `${date} ${at.getFullYear()}, ${time}`;
+  return at.getFullYear() === now.getFullYear() ? date : `${date} ${at.getFullYear()}`;
 }
 
 /** Who did it and when: "keeper.conti · Today, 10:41". A missing author is left out. */

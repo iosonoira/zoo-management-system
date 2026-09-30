@@ -4,6 +4,7 @@ import {
   acknowledgedText,
   describeNotification,
   enclosureName,
+  formatDay,
   formatWhen,
   isOpen,
   notificationMeta,
@@ -192,6 +193,16 @@ describe('formatWhen', () => {
   it('reads a time ahead of the clock as today, and gives nothing for a value that is not a date', () => {
     expect(formatWhen(at(9, 30, 11, 30), NOW)).toBe('Today, 11:30');
     expect(formatWhen('not a date', NOW)).toBe('');
+  });
+});
+
+describe('formatDay', () => {
+  it('gives the day alone, in the same words as formatWhen', () => {
+    expect(formatDay(at(9, 30, 10, 41), NOW)).toBe('Today');
+    expect(formatDay(at(9, 29, 16, 20), NOW)).toBe('Yesterday');
+    expect(formatDay(at(9, 28, 11, 5), NOW)).toBe('28 Sep');
+    expect(formatDay(at(12, 31, 23, 59, 2025), NOW)).toBe('31 Dec 2025');
+    expect(formatDay('not a date', NOW)).toBe('');
   });
 });
 

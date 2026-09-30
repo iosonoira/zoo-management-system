@@ -14,6 +14,7 @@ import {
 import { DatePipe, isPlatformBrowser } from '@angular/common';
 import { Title } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
+import { ActivityStore } from '../../../core/data/activity-store';
 import { AnimalStore } from '../../../core/data/animal-store';
 import { Animal, canBeTransferred, tagCode } from '../../../core/models/animal';
 import { HABITAT_LABELS, STATUS_LABELS } from '../../../core/models/labels';
@@ -21,6 +22,7 @@ import { Session } from '../../../core/session/session';
 import { Icon } from '../../../core/ui/icon/icon';
 import { FeedingSection } from '../../feeding/feeding-section/feeding-section';
 import { HealthSection } from '../../health/health-section/health-section';
+import { ActivitySection } from '../../notifications/activity-section/activity-section';
 import { EnclosureSign } from '../enclosure-sign/enclosure-sign';
 import { StatusSheet } from '../status-sheet/status-sheet';
 import { StatusTrack } from '../status-track/status-track';
@@ -38,6 +40,7 @@ import { TransferSheet } from '../transfer-sheet/transfer-sheet';
     StatusSheet,
     FeedingSection,
     HealthSection,
+    ActivitySection,
   ],
   templateUrl: './animal-detail.html',
   styleUrl: './animal-detail.scss',
@@ -49,6 +52,7 @@ export class AnimalDetail {
   private readonly document = inject(DOCUMENT);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly title = inject(Title);
+  private readonly activity = inject(ActivityStore);
 
   private readonly transferSheet = viewChild(TransferSheet);
   private readonly statusSheet = viewChild(StatusSheet);
@@ -109,6 +113,7 @@ export class AnimalDetail {
   protected onMoved(animal: Animal): void {
     this.applyWithTransition(animal);
     this.announce(`${animal.name} moved to ${this.store.enclosureName(animal.enclosureId)}.`);
+    void this.activity.refresh();
   }
 
   protected onStatusChanged(animal: Animal): void {
@@ -118,6 +123,7 @@ export class AnimalDetail {
         ? `${animal.name} is recorded as deceased.`
         : `${animal.name} is now ${STATUS_LABELS[animal.status].label.toLowerCase()}.`,
     );
+    void this.activity.refresh();
   }
 
   private applyWithTransition(animal: Animal): void {
