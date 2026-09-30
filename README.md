@@ -41,18 +41,20 @@ flowchart LR
   FE -- "REST + JWT" --> HS
   FE -- "REST + JWT" --> FDS
   AS --> ADB[("animal_db<br/>animals, enclosures,<br/>outbox_event")]
-  HS --> HDB[("health_db<br/>medical records,<br/>treatments")]
+  HS --> HDB[("health_db<br/>medical records,<br/>treatments,<br/>deceased_animals")]
   FDS --> FDB[("feeding_db<br/>feeding_plans, feedings,<br/>deceased_animals")]
   AS -- "OutboxRelay" --> K[["Kafka<br/>zoo.animal.events"]]
   K --> NS["notification-service<br/>:8083"]
   K --> FDS
+  K --> HS
   NS --> NDB[("notification_db")]
   NS -. "failed records" .-> DLQ[["zoo.animal.events.dlq"]]
   FDS -. "failed records" .-> FDLQ[["zoo.animal.events.feeding.dlq"]]
+  HS -. "failed records" .-> HDLQ[["zoo.animal.events.health.dlq"]]
 ```
 
 - **animal-service**: registers animals, changes their status, transfers them between enclosures, and lists enclosures. Publishes animal events through a transactional outbox. [README](zms-be/animal-service/README.md)
-- **health-service**: medical records and treatments. Refers to animals by id only, with no call to animal-service. The frontend shows its records and treatments in the Health section of the animal page. [README](zms-be/health-service/README.md)
+- **health-service**: medical records and treatments. Consumes animal events to cancel an animal's prescribed/active treatments when it is declared deceased, and refuses new ones for it. Refers to animals by id only, with no call to animal-service. The frontend shows its records and treatments in the Health section of the animal page. [README](zms-be/health-service/README.md)
 - **notification-service**: consumes animal events and stores one notification per event. No REST API. [README](zms-be/notification-service/README.md)
 - **feeding-service**: feeding plans and feedings. Consumes animal events to end an animal's active/suspended plans when it is declared deceased. The frontend shows its plans and feedings in the Feeding section of the animal page. [README](zms-be/feeding-service/README.md)
 
@@ -64,6 +66,7 @@ Each service has its own Postgres database and follows the same hexagonal layout
 2. `OutboxRelay` runs every 2 seconds and sends unpublished rows to `zoo.animal.events` in order, keyed by animal id.
 3. `notification-service` consumes the event, skips it if its `eventId` was already stored, and saves a notification. A record that fails for any reason goes to `zoo.animal.events.dlq`.
 4. `feeding-service` independently consumes the same topic. It ignores everything except an `ANIMAL_STATUS_CHANGED` event with `newStatus = DECEASED`, on which it records the animal and ends its active/suspended feeding plans, skipping the animal if already recorded. A record it cannot process goes to its own `zoo.animal.events.feeding.dlq`.
+5. `health-service` independently consumes the same topic, with the same filter. On an `ANIMAL_STATUS_CHANGED` event with `newStatus = DECEASED` it records the animal and cancels its prescribed/active treatments, skipping the animal if already recorded. From then on it answers 422 to a new treatment for that animal or to a move to `ACTIVE`. A record it cannot process goes to its own `zoo.animal.events.health.dlq`.
 
 Delivery is at-least-once. Events, payloads, ordering, duplicates and unhandled cases are in [docs/events.md](docs/events.md).
 
@@ -83,13 +86,12 @@ Summary of [docs/decisions.md](docs/decisions.md), where each entry has its cont
 
 From [docs/STATE.md](docs/STATE.md), which has the full list:
 
-- `health-service` does not check that an animal exists or is alive before writing a medical record or treatment.
+- `health-service` does not check that an animal exists before writing a medical record or treatment. It refuses new treatments only for an animal it has recorded as deceased, and still accepts a medical record for one.
 - Published outbox rows are never cleaned up. An outbox row that always fails blocks the rows behind it.
 - `notification-service` sends valid events to the DLQ on a database failure instead of retrying. Nothing reads the DLQ.
 - Notifications have no recipients, no delivery channel and no API.
 - There is no server-side search. The frontend loads the whole roster and filters in the browser.
 - The frontend has no screen for notifications and no view across animals: medical records and feeding plans are sections of one animal's page.
-- The frontend does not offer new treatments for a deceased animal, but `health-service` still accepts them.
 - `feeding-service` only rejects a feeding plan for an animal already recorded as deceased; it never checks that an animal id exists at all.
 - In the prod profile there is no way to create enclosures.
 

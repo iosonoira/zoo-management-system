@@ -2,25 +2,26 @@
 
 Single source of truth for the asynchronous contracts between ZMS services. Service READMEs link here and do not repeat payloads.
 
-All events are produced by `animal-service`. No other event exists in the code: `AnimalEvent` is a sealed interface that permits exactly `AnimalRegistered`, `AnimalStatusChanged` and `AnimalTransferred` (`AnimalEvent`). `health-service` has no Kafka dependency and neither produces nor consumes events (`health-service/pom.xml`).
+All events are produced by `animal-service`. No other event exists in the code: `AnimalEvent` is a sealed interface that permits exactly `AnimalRegistered`, `AnimalStatusChanged` and `AnimalTransferred` (`AnimalEvent`). `health-service` only consumes: it has no outbox and no `@Outgoing` channel (`health-service/pom.xml` has `quarkus-messaging-kafka`).
 
-`zoo.animal.events` has two independent consumers, `notification-service` and `feeding-service`. They read the same topic with their own consumer group and their own dead-letter topic; neither knows about the other.
+`zoo.animal.events` has three independent consumers, `notification-service`, `feeding-service` and `health-service`. They read the same topic with their own consumer group and their own dead-letter topic; none of them knows about the others.
 
 ## Topics
 
 | Topic | Producer | Consumers | Message key | Value |
 |---|---|---|---|---|
-| `zoo.animal.events` | `animal-service`, channel `animal-events-out` (`OutboxRelay`) | `notification-service`, channel `animal-events-in`, group `notification-service` (`AnimalEventConsumer`); `feeding-service`, channel `animal-events-in`, group `feeding-service` (`AnimalEventConsumer`) | animal id, as a UUID string (`OutboxRelay`) | JSON envelope below, as a string (`StringSerializer` / `StringDeserializer`, `application.properties` of all three services) |
+| `zoo.animal.events` | `animal-service`, channel `animal-events-out` (`OutboxRelay`) | `notification-service`, channel `animal-events-in`, group `notification-service` (`AnimalEventConsumer`); `feeding-service`, channel `animal-events-in`, group `feeding-service` (`AnimalEventConsumer`); `health-service`, channel `animal-events-in`, group `health-service` (`AnimalEventConsumer`) | animal id, as a UUID string (`OutboxRelay`) | JSON envelope below, as a string (`StringSerializer` / `StringDeserializer`, `application.properties` of all four services) |
 | `zoo.animal.events.dlq` | `notification-service`, SmallRye `dead-letter-queue` failure strategy (`notification-service/.../application.properties`) | None in this repo | Same as the failed record | Same as the failed record |
 | `zoo.animal.events.feeding.dlq` | `feeding-service`, SmallRye `dead-letter-queue` failure strategy (`feeding-service/.../application.properties`) | None in this repo | Same as the failed record | Same as the failed record |
+| `zoo.animal.events.health.dlq` | `health-service`, SmallRye `dead-letter-queue` failure strategy (`health-service/.../application.properties`) | None in this repo | Same as the failed record | Same as the failed record |
 
-None of the three topics is created explicitly. Locally the Kafka broker auto-creates them (`zms-be/infrastructure/docker-compose.yml`). The partition count is not configured anywhere in the repo.
+None of the four topics is created explicitly. Locally the Kafka broker auto-creates them (`zms-be/infrastructure/docker-compose.yml`). The partition count is not configured anywhere in the repo.
 
-Both consumers start from the earliest offset when their group has no committed offset (`auto.offset.reset=earliest`, in each service's `application.properties`).
+Each consumer starts from the earliest offset when their group has no committed offset (`auto.offset.reset=earliest`, in each service's `application.properties`).
 
 ## Envelope
 
-Every event on `zoo.animal.events` has the same envelope. The producer and each consumer define their own record for it; there is no shared module (`AnimalEventMessage` in `animal-service`, `AnimalEventMessage` in `notification-service`, `AnimalEventMessage` in `feeding-service`).
+Every event on `zoo.animal.events` has the same envelope. The producer and each consumer define their own record for it; there is no shared module (`AnimalEventMessage` in `animal-service`, `AnimalEventMessage` in `notification-service`, `AnimalEventMessage` in `feeding-service`, `AnimalEventMessage` in `health-service`).
 
 | Field | JSON type | Content |
 |---|---|---|
@@ -31,13 +32,13 @@ Every event on `zoo.animal.events` has the same envelope. The producer and each 
 | `performedBy` | string | Principal name of the authenticated caller (`AnimalResource`, `identity.getPrincipal().getName()`) |
 | `payload` | object | Event-specific fields, below |
 
-Each consumer ignores unknown envelope fields (`@JsonIgnoreProperties(ignoreUnknown = true)` on its own `AnimalEventMessage`) and reads `payload` as a raw JSON tree, picking only the fields it needs (`AnimalEventMessageMapper` in `notification-service`; `AnimalEventMessageMapper` in `feeding-service` reads only `payload.newStatus`, and only for `ANIMAL_STATUS_CHANGED`).
+Each consumer ignores unknown envelope fields (`@JsonIgnoreProperties(ignoreUnknown = true)` on its own `AnimalEventMessage`) and reads `payload` as a raw JSON tree, picking only the fields it needs (`AnimalEventMessageMapper` in `notification-service`; `AnimalEventMessageMapper` in `feeding-service` and in `health-service` each read only `payload.newStatus`, and only for `ANIMAL_STATUS_CHANGED`).
 
 The envelope has no schema version field.
 
 ### Contract fixtures
 
-The wire shape is pinned by three JSON fixtures, copied in all three services under `src/test/resources/contract/`: `animal-registered.json`, `animal-status-changed.json`, `animal-transferred.json`. `animal-service` checks that its serialization equals the fixture; `notification-service` and `feeding-service` each check that they can map the fixture to their own command (`AnimalEventMessageContractTest` in each service). Each service reads its own copy; nothing checks that the three copies stay identical.
+The wire shape is pinned by three JSON fixtures, copied in all four services under `src/test/resources/contract/`: `animal-registered.json`, `animal-status-changed.json`, `animal-transferred.json`. `animal-service` checks that its serialization equals the fixture; `notification-service`, `feeding-service` and `health-service` each check that they can map the fixture to their own command (`AnimalEventMessageContractTest` in each service). Each service reads its own copy; nothing checks that the four copies stay identical.
 
 ## Event catalogue
 
@@ -49,7 +50,7 @@ The wire shape is pinned by three JSON fixtures, copied in all three services un
 | Payload class (producer) | `AnimalEventMessage.AnimalRegisteredPayload` |
 | Emitted by | `RegisterAnimalService`, after the animal is saved, in the same transaction |
 | Emitted when | Every successful `POST /animals`. Not emitted when validation fails or the enclosure is unknown (`UnknownEnclosureException` is thrown before the save) |
-| Consumed by | `notification-service` (`HandleAnimalEventService`). Also delivered to `feeding-service` (same topic, consumer group `feeding-service`), whose `HandleAnimalEventService` reads it and returns immediately: it only acts on `ANIMAL_STATUS_CHANGED` |
+| Consumed by | `notification-service` (`HandleAnimalEventService`). Also delivered to `feeding-service` (same topic, consumer group `feeding-service`) and to `health-service` (consumer group `health-service`), whose `HandleAnimalEventService` reads it and returns immediately: each only acts on `ANIMAL_STATUS_CHANGED` |
 
 | Payload field | JSON type | Content |
 |---|---|---|
@@ -69,7 +70,7 @@ Notification: severity `INFO`, message `"<name> (<species>) was registered"` (`N
 | Payload class (producer) | `AnimalEventMessage.AnimalStatusChangedPayload` |
 | Emitted by | `UpdateAnimalStatusService`, after the animal is saved, in the same transaction |
 | Emitted when | `Animal.canTransitionTo` returns true: the current status is not `DECEASED` and the new status differs from the current one. A rejected transition throws `InvalidStatusTransitionException` and writes no outbox row (`AnimalEventOutboxIT.shouldNotWriteOutboxRowWhenStatusTransitionIsRejected`) |
-| Consumed by | `notification-service` (`HandleAnimalEventService`), for every status change. `feeding-service` (`HandleAnimalEventService`) only acts when `payload.newStatus` is `DECEASED`: it records the animal in its `deceased_animals` table and moves every `ACTIVE` or `SUSPENDED` feeding plan for that animal to `ENDED`. Any other `newStatus` (`HEALTHY`, `UNDER_OBSERVATION`, `IN_TREATMENT`) is read by `feeding-service` and ignored |
+| Consumed by | `notification-service` (`HandleAnimalEventService`), for every status change. `feeding-service` (`HandleAnimalEventService`) only acts when `payload.newStatus` is `DECEASED`: it records the animal in its `deceased_animals` table and moves every `ACTIVE` or `SUSPENDED` feeding plan for that animal to `ENDED`. Any other `newStatus` (`HEALTHY`, `UNDER_OBSERVATION`, `IN_TREATMENT`) is read by `feeding-service` and ignored. `health-service` (`HandleAnimalEventService`) also only acts when `payload.newStatus` is `DECEASED`: it records the animal in its own `deceased_animals` table and moves every `PRESCRIBED` or `ACTIVE` treatment of that animal to `CANCELLED`. Any other `newStatus` is read by `health-service` and ignored |
 
 | Payload field | JSON type | Content |
 |---|---|---|
@@ -90,7 +91,7 @@ Notification (`NotificationRule`): severity `CRITICAL` if `newStatus` is `DECEAS
 | Payload class (producer) | `AnimalEventMessage.AnimalTransferredPayload` |
 | Emitted by | `TransferAnimalService`, after the animal is saved, in the same transaction |
 | Emitted when | The animal is not `DECEASED` (`Animal.canBeTransferred`) and the target enclosure exists (`EnclosureRepository.existsById`). A transfer to the enclosure the animal is already in is not rejected and emits an event with `fromEnclosureId` equal to `toEnclosureId` |
-| Consumed by | `notification-service` (`HandleAnimalEventService`). Also delivered to `feeding-service`, which reads it and returns immediately, the same as for `ANIMAL_REGISTERED` |
+| Consumed by | `notification-service` (`HandleAnimalEventService`). Also delivered to `feeding-service` and to `health-service`, which read it and return immediately, the same as for `ANIMAL_REGISTERED` |
 
 | Payload field | JSON type | Content |
 |---|---|---|
@@ -163,6 +164,15 @@ Every resend carries the same `eventId`, because the envelope is serialized once
 - The `deceased_animals` table has a primary key on `animal_id`, but two copies of the same `DECEASED` event no longer race on it: the `AnimalLock` acquired before `existsByAnimalId` serializes them, so the second copy waits for the first to commit and then finds the animal already recorded and skips, instead of racing the insert and dead-lettering (`FeedingConcurrencyIT`). The same lock also serializes a `DECEASED` event against a concurrent `POST /feeding-plans` for the same animal, closing the window where a plan could be created for an animal whose death is mid-flight.
 - When a `DECEASED` event is processed for the first time, every `ACTIVE` or `SUSPENDED` feeding plan for that animal is moved to `ENDED`, read with a pessimistic row lock (`FeedingPlanRepository.findByAnimalIdAndStatusInForUpdate`) in the same transaction as the `deceased_animals` insert, so the two never disagree. The row lock also serializes this step against a concurrent `PUT /feeding-plans/{id}/status` on the same plan (`FeedingConcurrencyIT`), instead of one of the two losing to a stale `@Version` and rolling back the whole event, including the `deceased_animals` insert.
 
+### Consumer idempotency (`health-service`)
+
+- `HandleAnimalEventService.handle` runs in one transaction. It validates `eventId`, `eventType`, `animalId` and `occurredAt` are not null, and (for `ANIMAL_STATUS_CHANGED`) that `newStatus` is not null; it then returns without doing anything for any `eventType` other than `ANIMAL_STATUS_CHANGED`, and for any `newStatus` other than `DECEASED` (`HandleAnimalEventServiceTest`).
+- Like `feeding-service`, `health-service` dedupes per **animal**, not per event: once the event is confirmed to be a `DECEASED` status change, it acquires the per-animal `AnimalLock` (`PostgresAnimalLock`, a `pg_advisory_xact_lock` held for the rest of the transaction), then checks `DeceasedAnimalRepository.existsByAnimalId(animalId)` and, if a row already exists for that animal, returns without writing anything. The row it writes on the first `DECEASED` event, `deceased_animals`, is a read model keyed by `animal_id` (primary key, `V2__create_deceased_animals.sql`), not by `eventId`; the `eventId` and `occurredAt` of that first event are stored in the row but are not part of the key. Covered by `AnimalEventConsumerIT.shouldPersistExactlyOneDeceasedRowWhenEventDeliveredTwiceAndNothingLandsInDlq`.
+- The same reasoning and the same limit as for `feeding-service` apply: it works because `animal-service` makes `DECEASED` terminal (`Animal.canTransitionTo`), and it would not dedupe correctly if an animal could become `DECEASED` more than once.
+- The advisory lock is taken by all three writers that depend on whether an animal is deceased: `HandleAnimalEventService`, `PrescribeTreatmentService` and `UpdateTreatmentStatusService`, each before it reads treatments or `deceased_animals`. Two copies of the same `DECEASED` event are serialized, so the second waits for the first to commit and then skips. A `DECEASED` event is also serialized against a concurrent `POST /medical-records/{id}/treatments` and a concurrent `PUT /treatments/{id}/status` on a treatment of the same animal, so a treatment is either created before the event and cancelled by it, or refused with 422 (`HealthConcurrencyIT`).
+- Unlike `feeding-service`, `health-service` takes no row locks: the treatments to cancel are read with `TreatmentRepository.findByAnimalIdAndStatusIn`, without a lock mode, after the animal lock is held, and `UpdateTreatmentStatusService` finds the animal id with a scalar query (`TreatmentRepository.findAnimalIdByTreatmentId`) and loads the treatment only after the lock.
+- When a `DECEASED` event is processed for the first time, every `PRESCRIBED` or `ACTIVE` treatment of that animal's medical records is moved to `CANCELLED` in the same transaction as the `deceased_animals` insert. `COMPLETED` and `CANCELLED` treatments are left untouched (`AnimalEventConsumerIT.shouldCancelPrescribedAndActiveTreatmentsWhenAnimalDies`).
+
 ### Dead-letter queue
 
 - `notification-service`: topic `zoo.animal.events.dlq`, configured on its own `animal-events-in` channel (`notification-service/.../application.properties`). `AnimalEventConsumer` lets every exception propagate, so any failure dead-letters the record and the consumer moves on to the next one. This includes:
@@ -176,7 +186,12 @@ Every resend carries the same `eventId`, because the envelope is serialized once
   - null `eventId`, `eventType`, `animalId` or `occurredAt` (`InvalidAnimalEventException`, from `HandleAnimalEventService`);
   - a null `newStatus` on an `ANIMAL_STATUS_CHANGED` event (`InvalidAnimalEventException`);
   - any database error while writing `deceased_animals` or ending feeding plans, including the database being unavailable. The `deceased_animals` primary-key race described above no longer reaches this path: the `AnimalLock` serializes concurrent `DECEASED` copies before either inserts.
-- Content, for both: the original record. The SmallRye DLQ strategy also adds `dead-letter-*` headers (reason, cause, source topic, partition, offset); these come from the library, not from code in this repo.
+- `health-service`: topic `zoo.animal.events.health.dlq`, its own topic, configured on its own `animal-events-in` channel (`health-service/.../application.properties`). Its `AnimalEventConsumer` also lets every exception propagate. This includes:
+  - malformed JSON (`InvalidAnimalEventException`, "Malformed animal event JSON");
+  - null `eventId`, `eventType`, `animalId` or `occurredAt` (`InvalidAnimalEventException`, from `HandleAnimalEventService`);
+  - a null `newStatus` on an `ANIMAL_STATUS_CHANGED` event (`InvalidAnimalEventException`);
+  - any database error while writing `deceased_animals` or cancelling treatments, including the database being unavailable. The `deceased_animals` primary-key race no longer reaches this path: the `AnimalLock` serializes concurrent `DECEASED` copies before either inserts.
+- Content, for all three: the original record. The SmallRye DLQ strategy also adds `dead-letter-*` headers (reason, cause, source topic, partition, offset); these come from the library, not from code in this repo.
 - Covered by `AnimalEventConsumerIT.shouldRouteMalformedRecordsToTheDlqAndKeepConsumingAfterwards` in each service.
 
 ### Not handled
@@ -186,9 +201,8 @@ Every resend carries the same `eventId`, because the envelope is serialized once
 | Cleanup of published `outbox_event` rows | `Not handled`. No code deletes or archives rows |
 | Maximum attempts, backoff or parking of an outbox row that always fails | `Not handled`. `attempts` is written but never read (`OutboxRelay`). A row that always fails blocks every later row, because each run restarts from the oldest unpublished row and stops at the first failure |
 | Per-animal ordering with more than one relay instance | `Not handled` (see Ordering) |
-| Retry of transient consumer failures (e.g. database down) | `Not handled`, in both consumers. The record goes straight to the respective DLQ |
-| Reading, alerting on or replaying either DLQ | `Not handled`. No consumer of `zoo.animal.events.dlq` or `zoo.animal.events.feeding.dlq` exists |
+| Retry of transient consumer failures (e.g. database down) | `Not handled`, in all three consumers. The record goes straight to the respective DLQ |
+| Reading, alerting on or replaying any of the DLQs | `Not handled`. No consumer of `zoo.animal.events.dlq`, `zoo.animal.events.feeding.dlq` or `zoo.animal.events.health.dlq` exists |
 | Envelope schema versioning | `Not handled`. No version field |
-| Checking that the three copies of the contract fixtures stay identical | `Not handled` |
-| Events consumed by `health-service` | `Not handled`. `health-service` has no messaging code |
-| `feeding-service` deduping correctly if an animal could become `DECEASED` more than once | `Not handled`. The animal-keyed idempotency check relies entirely on `animal-service`'s `DECEASED` being terminal; nothing in `feeding-service` itself would stop a second legitimate `DECEASED` event for the same animal from being silently skipped |
+| Checking that the four copies of the contract fixtures stay identical | `Not handled` |
+| `feeding-service` and `health-service` deduping correctly if an animal could become `DECEASED` more than once | `Not handled`. The animal-keyed idempotency check relies entirely on `animal-service`'s `DECEASED` being terminal; nothing in `feeding-service` or `health-service` itself would stop a second legitimate `DECEASED` event for the same animal from being silently skipped |
