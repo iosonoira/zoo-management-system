@@ -225,6 +225,12 @@ describe('ActivitySection', () => {
     expect(acks()).toHaveLength(2);
   });
 
+  it('does not mention folded lines when every row needs attention', async () => {
+    const { root } = await setUp([notification()]);
+
+    expect(root.querySelector('.note')!.textContent!.trim()).toBe('1 needs attention.');
+  });
+
   it('unfolds a line on select, showing who and when and the action for an open one', async () => {
     const { folds, acks, settle, root, text } = await setUp([info(), acknowledged(info())]);
     const [openInfo, done] = folds();

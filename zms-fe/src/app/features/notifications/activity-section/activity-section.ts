@@ -97,9 +97,11 @@ export class ActivitySection {
 
   protected readonly note = computed(() => {
     const count = this.store.needAttention();
-    return count > 0
-      ? `${count} ${count === 1 ? 'needs' : 'need'} attention. The rest is folded.`
-      : 'Nothing needs attention. Select a line to unfold it.';
+    if (count === 0) {
+      return 'Nothing needs attention. Select a line to unfold it.';
+    }
+    const attention = `${count} ${count === 1 ? 'needs' : 'need'} attention.`;
+    return this.store.list.loaded().length > count ? `${attention} The rest is folded.` : attention;
   });
 
   constructor() {
