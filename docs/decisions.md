@@ -206,3 +206,30 @@ The entries below were seeded on 2026-09-24 from decisions already stated in `zm
   - An animal id that does not exist in `animal-service` is still accepted: only ids already in `deceased_animals` are refused.
   - Idempotency is per animal id and relies on `DECEASED` being terminal, as in `feeding-service` (`docs/events.md`).
   - The frontend does not reload a deceased animal's treatments after its status changes, so the Health section can show cancelled treatments as open until the page or animal is reloaded (`docs/STATE.md`).
+
+## D13. Notifications: shared acknowledgement, structured fields, triage navigation
+
+- **Date**: 2026-09-30 (commits `19b0f22`..`2efa5e2` and the frontend commits that follow)
+- **Service(s)**: notification-service, zms-fe
+- **Context**: `notification-service` stored one notification per animal event with a pre-formatted message only, and had no REST API; `docs/STATE.md` listed "REST API and UI for notifications" as decided but not built, and `PRODUCT.md` asked the navigation to leave room for them. The stored message contained enclosure UUIDs and not the acting user, and no recipient concept exists (`docs/STATE.md`, notification-service, Open).
+- **Alternatives considered**:
+  - API: read-only list; or per-user read/unread state with a personal unread count.
+  - Data: expose the stored `message` as it is.
+  - UI: a global page only; or an Activity section in the animal page only, with no new navigation (as D10 did for health and feeding). For the page, a dense list grouped by day ("Register") and a split between what needs action and the rest ("Triage") were both drawn as a mockup before any code.
+  - Count badge: always ink, as the mockup proposed; or always red.
+- **Decision**:
+  - `GET /notifications` (paged, filtered by animal, severity and open state) and `PUT /notifications/{id}/acknowledge`, both open to `zoo-admin`, `zoo-vet` and `zoo-keeper`. Acknowledging is shared by all staff and the first acknowledgement wins: a later one returns the existing `acknowledgedBy` and `acknowledgedAt` unchanged. There is no per-user read state and no recipient.
+  - Each notification also stores the event's structured fields (author, animal name, species, dangerous flag, statuses, enclosure ids). The frontend writes its own sentence from them, with enclosure names; `message` is kept and used for rows stored before these fields existed.
+  - The frontend follows the "Triage" direction: a bell in the top bar leading to `/notifications`, a page split into "Needs attention" (open `WARNING` and `CRITICAL`) and "Everything else", and an Activity section at the top of the animal page for every role. This adds the first navigation entry beyond the animal list, which D10 had avoided for health and feeding.
+  - The bell's count shows open `WARNING` and `CRITICAL` notifications. It is ink, and turns red when at least one open `CRITICAL` exists. Severity itself uses no new hue: weight, icon and a visible word.
+- **Rationale** (given by the maintainer, 2026-09-30, who adopted the reasons proposed during planning and chose the direction from the mockup):
+  - The staff work as one team on a shared board: what matters is whether someone has taken a notification in charge, and who, not whether each person has read it. Every write carries its author (`PRODUCT.md`, "Positioning"), and per-user state would have introduced recipients, which are still an open question.
+  - The stored text showed enclosure UUIDs and not who acted; structured fields let the frontend write readable sentences and keep future filters possible.
+  - The keeper on a phone is the primary user (`PRODUCT.md`, "Users"): the page opens on what needs action, and Activity at the top of the animal page shows its open news first.
+  - A death has to stand out from ordinary warnings at a glance; keeping the badge ink otherwise leaves red to danger, as `zms-fe/DESIGN.md` reserves it.
+- **Consequences**:
+  - `notification-service` now opens an HTTP port and needs Keycloak: a new confidential client `notification-service` in the realm, whose secret comes from `NOTIFICATION_OIDC_CLIENT_SECRET` in `zms-be/infrastructure/.env` and `OIDC_CLIENT_SECRET` in `zms-be/notification-service/.env`. An existing Keycloak must be recreated to import it.
+  - The bearer token is attached to a fourth origin, `environment.api.notification` (`keycloak-providers.ts`).
+  - The red badge is an exception to the danger-only use of red in `zms-fe/DESIGN.md`.
+  - The count is refreshed on navigation and after an acknowledgement; there is no push or polling, so a notification created while the page stays open appears only after the next navigation.
+  - "Everything else" in "all" mode is the full history minus the open `WARNING`/`CRITICAL` rows, filtered in the browser, because the API has no filter for acknowledged rows.
