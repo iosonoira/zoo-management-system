@@ -8,7 +8,7 @@ Backend of the [Zoo Management System](../README.md): Java 21 and Quarkus micros
 |---|---|---|---|
 | `animal-service` | 8080 | `animal_db` on :5432 | Registers animals, changes status, transfers them between enclosures, maintains the enclosure directory. Publishes animal events to Kafka through a transactional outbox |
 | `health-service` | 8082 | `health_db` on :5433 | Medical records and treatments. Consumes animal events to cancel an animal's open treatments when it is declared deceased; refers to animals by id only, with no runtime call to animal-service |
-| `notification-service` | 8083 | `notification_db` on :5434 | Consumes animal events idempotently and stores notifications. No REST API yet |
+| `notification-service` | 8083 | `notification_db` on :5434 | Consumes animal events idempotently and stores notifications, with the event's structured fields. `GET /notifications` lists them and `PUT /notifications/{id}/acknowledge` records one shared acknowledgement; no recipients or delivery channel |
 | `feeding-service` | 8084 | `feeding_db` on :5435 | Feeding plans and feedings. Consumes animal events to end an animal's plans when it is declared deceased; refers to animals by id only, with no runtime call to animal-service |
 
 Shared infrastructure lives in [`infrastructure/docker-compose.yml`](infrastructure/docker-compose.yml): the four Postgres 16 databases, Keycloak 26 on :8081 and a single-node Kafka on :9092.
@@ -47,6 +47,7 @@ Any value works locally, but these pairs must match, or the service cannot conne
 | `POSTGRES_FEEDING_USER` / `POSTGRES_FEEDING_PASSWORD` | `DB_USERNAME` / `DB_PASSWORD` in `feeding-service/.env` |
 | `FEEDING_OIDC_CLIENT_SECRET` | `OIDC_CLIENT_SECRET` in `feeding-service/.env` |
 | `POSTGRES_NOTIFICATION_USER` / `POSTGRES_NOTIFICATION_PASSWORD` | `DB_USERNAME` / `DB_PASSWORD` in `notification-service/.env` |
+| `NOTIFICATION_OIDC_CLIENT_SECRET` | `OIDC_CLIENT_SECRET` in `notification-service/.env` |
 
 Postgres applies a password only when its volume is first created. If you change it later, see [Troubleshooting](../README.md#troubleshooting).
 
@@ -83,6 +84,7 @@ Authentication is OIDC against Keycloak, and authorization uses realm roles on e
 | `POST /feeding-plans`, `PUT /feeding-plans/{id}/status` | ✓ | ✓ | |
 | `GET /feeding-plans`, `GET /feeding-plans/{id}`, `GET /feeding-plans/{id}/feedings` | ✓ | ✓ | ✓ |
 | `POST /feeding-plans/{id}/feedings` | ✓ | | ✓ |
+| `GET /notifications`, `PUT /notifications/{id}/acknowledge` | ✓ | ✓ | ✓ |
 
 A missing token returns 401 and a wrong role returns 403, both with a JSON body. Writes record the acting user in `createdBy` / `updatedBy`. Attempting to register or transfer an animal to an unknown enclosure returns 400 with an error message.
 

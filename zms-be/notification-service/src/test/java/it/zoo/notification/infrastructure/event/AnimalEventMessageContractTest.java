@@ -44,7 +44,7 @@ class AnimalEventMessageContractTest {
         assertNull(command.previousStatus());
         assertNull(command.newStatus());
         assertNull(command.fromEnclosureId());
-        assertNull(command.toEnclosureId());
+        assertEquals(UUID.fromString("33333333-3333-3333-3333-333333333333"), command.toEnclosureId());
     }
 
     @Test

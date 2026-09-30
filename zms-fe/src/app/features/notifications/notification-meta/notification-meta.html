@@ -1,0 +1,10 @@
+<b class="sevword" [attr.data-severity]="notification().severity">{{ severity().label }}</b>
+@if (showSpecies() && notification().species) {
+  · {{ notification().species }}
+  @if (notification().dangerous) {
+    <span class="danger-tab"><app-icon name="danger" />Danger</span>
+  }
+}
+@if (meta()) {
+  · <span class="tabular">{{ meta() }}</span>
+}

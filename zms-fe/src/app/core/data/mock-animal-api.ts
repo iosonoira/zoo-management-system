@@ -12,6 +12,7 @@ import {
   sameStatus,
   unknownEnclosure,
 } from './api-errors';
+import { DemoEventFeed } from './demo-event-feed';
 import { ENCLOSURES } from './enclosure-directory';
 import { DEMO_ANIMALS } from './demo-data';
 
@@ -24,6 +25,7 @@ const LATENCY_MS = 380;
  */
 export class MockAnimalApi extends AnimalApi {
   private readonly session = inject(Session);
+  private readonly events = inject(DemoEventFeed);
   private animals = new Map<string, Animal>(DEMO_ANIMALS.map((a) => [a.id, a]));
 
   async listAll(): Promise<Animal[]> {
@@ -45,7 +47,16 @@ export class MockAnimalApi extends AnimalApi {
     if (!canTransitionTo(animal, status)) {
       throw animal.status === 'DECEASED' ? deceasedStatus(animal.name) : sameStatus(animal.name);
     }
-    return this.save({ ...animal, status, updatedBy: this.session.username() });
+    const updated = { ...animal, status, updatedBy: this.session.username() };
+    const saved = this.save(updated);
+    this.events.publish({
+      eventType: 'ANIMAL_STATUS_CHANGED',
+      animal: saved,
+      performedBy: this.session.username(),
+      previousStatus: animal.status,
+      fromEnclosureId: null,
+    });
+    return saved;
   }
 
   async transfer(id: string, targetEnclosureId: string, _name?: string): Promise<Animal> {
@@ -60,7 +71,17 @@ export class MockAnimalApi extends AnimalApi {
     if (!ENCLOSURES.some((e) => e.id === targetEnclosureId)) {
       throw unknownEnclosure();
     }
-    return this.save({ ...animal, enclosureId: targetEnclosureId, updatedBy: this.session.username() });
+    const fromEnclosureId = animal.enclosureId;
+    const updated = { ...animal, enclosureId: targetEnclosureId, updatedBy: this.session.username() };
+    const saved = this.save(updated);
+    this.events.publish({
+      eventType: 'ANIMAL_TRANSFERRED',
+      animal: saved,
+      performedBy: this.session.username(),
+      previousStatus: null,
+      fromEnclosureId,
+    });
+    return saved;
   }
 
   async register(input: NewAnimal): Promise<Animal> {
@@ -83,7 +104,15 @@ export class MockAnimalApi extends AnimalApi {
       createdBy: this.session.username(),
       updatedBy: this.session.username(),
     };
-    return this.save(animal);
+    const saved = this.save(animal);
+    this.events.publish({
+      eventType: 'ANIMAL_REGISTERED',
+      animal: saved,
+      performedBy: this.session.username(),
+      previousStatus: null,
+      fromEnclosureId: null,
+    });
+    return saved;
   }
 
   async listEnclosures(): Promise<Enclosure[]> {

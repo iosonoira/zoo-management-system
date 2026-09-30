@@ -28,6 +28,8 @@ export function forbidden(permission: Permission): ApiError {
       return new ApiError(403, 'Only vets and admins can change a feeding plan’s status.');
     case 'recordFeeding':
       return new ApiError(403, 'Only keepers and admins can record feedings.');
+    case 'acknowledgeNotification':
+      return new ApiError(403, 'Only zoo staff can acknowledge notifications.');
   }
 }
 
@@ -155,4 +157,10 @@ export function deceasedPlan(): ApiError {
     422,
     'This animal is recorded as deceased, so it can’t get a new feeding plan.',
   );
+}
+
+// ---- notification-service ----
+
+export function notificationNotFound(): ApiError {
+  return new ApiError(404, 'This notification no longer exists.');
 }

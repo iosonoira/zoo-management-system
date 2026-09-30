@@ -24,6 +24,7 @@ describe('bearerTokenConditions', () => {
       'http://localhost:8080',
       'http://localhost:8082',
       'http://localhost:8084',
+      'http://localhost:8083',
     ]);
   });
 
@@ -34,12 +35,14 @@ describe('bearerTokenConditions', () => {
     expect(matches('http://localhost:8082/treatments/1/status')).toBe(true);
     expect(matches('http://localhost:8084/feeding-plans/1/feedings')).toBe(true);
     expect(matches('http://localhost:8084')).toBe(true);
+    expect(matches('http://localhost:8083/notifications?open=true')).toBe(true);
+    expect(matches('http://localhost:8083/notifications/1/acknowledge')).toBe(true);
   });
 
   it('never matches Keycloak, the app itself or another port', () => {
     expect(matches(`${live.keycloak.url}/realms/zoo/protocol/openid-connect/token`)).toBe(false);
     expect(matches('http://localhost:4200/animals')).toBe(false);
-    expect(matches('http://localhost:8083/notifications')).toBe(false);
+    expect(matches('http://localhost:8085/notifications')).toBe(false);
     expect(matches('/animals')).toBe(false);
   });
 
@@ -78,6 +81,7 @@ describe('includeBearerTokenInterceptor with the live conditions', () => {
     'http://localhost:8080/animals',
     'http://localhost:8082/medical-records',
     'http://localhost:8084/feeding-plans',
+    'http://localhost:8083/notifications',
   ])('sends the bearer token to %s', async (url) => {
     const pending = firstValueFrom(http.get(url));
     // The interceptor refreshes the token asynchronously before sending.

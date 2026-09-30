@@ -2,7 +2,7 @@
 
 Snapshot of what exists, what is decided but not built, and what is still open. Updated at the end of every phase.
 
-Last updated: 2026-09-30, at commit `7286b41`.
+Last updated: 2026-09-30, at commit `82bd994`.
 
 The three labels never mix:
 - **Implemented**: in the code on `main`. Every line cites a class or file.
@@ -68,16 +68,22 @@ Contracts and failure behaviour per service are in the service READMEs. Events a
 
 ### Implemented
 - Kafka consumer of `zoo.animal.events` that stores one notification per event (`AnimalEventConsumer`, `HandleAnimalEventService`, `V1__create_notifications_table.sql`).
+- The event's structured fields stored per notification: author, animal name, species, dangerous flag, statuses, enclosure ids. The registered event's `enclosureId` is stored as `toEnclosureId` (`V2__add_event_fields_and_acknowledgement.sql`, `AnimalEventMessageMapper`, `AnimalEventConsumerIT.shouldPersistTheStructuredEventFieldsAndLeaveAcknowledgementEmpty`). Details: [events.md](events.md#what-notification-service-stores).
+- `GET /notifications`, paged, filtered by `animalId`, a repeatable `severity` and `open`, ordered by event time newest first, then id; an unknown severity is 400 (`NotificationResource.list`, `ListNotificationsService`, `NotificationJpaRepository.findPage`, `NotificationResourceIT`).
+- `PUT /notifications/{id}/acknowledge`: one acknowledgement shared by all staff, the first one wins through a conditional `UPDATE`; an unknown id is 404 (`AcknowledgeNotificationService`, `NotificationJpaRepository.acknowledge`, `NotificationAcknowledgementIT`, [D13](decisions.md#d13-notifications-shared-acknowledgement-structured-fields-triage-navigation)).
+- Role-based authorization, all three roles on both endpoints (`@RolesAllowed` on `NotificationResource`, `ZooRoles`, `NotificationSecurityIT`). OIDC in `%dev` and `%prod` with client `notification-service`, CORS, and a JSON body on 401 and 403 (`application.properties`, `SecurityExceptionMapper`, `UnauthorizedExceptionMapper`, `ForbiddenExceptionMapper`).
+- The response hides `eventId` and `createdAt` (`NotificationResponse`).
 - Idempotency by `eventId`: an existence check plus a unique constraint (`NotificationRepository.existsByEventId`, `uq_notifications_event_id`, `AnimalEventConsumerIT`).
 - Severity and message rules per event type (`NotificationRule`, `NotificationRuleTest`).
 - Dead-letter queue for any failed record (`application.properties`, `failure-strategy=dead-letter-queue`).
 - Wire-format contract test against shared fixtures (`AnimalEventMessageContractTest`).
 
 ### Decided, not built
-- REST API and UI for notifications (next-phases list in `zms-be/CLAUDE.md` at commit `febdaf6`).
+- Nothing currently recorded beyond what is implemented.
 
 ### Open
-- Notification recipients and delivery channel. No recipient concept exists in code.
+- Notification recipients and delivery channel. No recipient concept exists in code, and acknowledgement is one state shared by all staff, not per user.
+- `GET /notifications` has no filter for acknowledged state, only `open` (`ListNotificationsService`).
 - A transient database failure sends a valid event to the DLQ with no retry.
 - Nothing reads, alerts on or replays the DLQ.
 - Two copies of the same event processed at once: the second fails on the unique constraint and goes to the DLQ instead of being skipped.
@@ -116,7 +122,7 @@ Contracts and failure behaviour per service are in the service READMEs. Events a
 
 ### Implemented
 - Hexagonal layout, checked by `DomainPurityTest` in all four services (no Jakarta, Quarkus, Hibernate or MapStruct imports under `domain/`).
-- Local infrastructure: four Postgres databases, Keycloak with realm `zoo`, single-node Kafka (`zms-be/infrastructure/docker-compose.yml`, `keycloak/realm-export.json`).
+- Local infrastructure: four Postgres databases, Keycloak with realm `zoo`, single-node Kafka (`zms-be/infrastructure/docker-compose.yml`, `keycloak/realm-export.json`). The realm has a client for each of the four services and one for the frontend; the secret of `notification-service` is `${NOTIFICATION_SERVICE_CLIENT_SECRET}`, which compose fills from `NOTIFICATION_OIDC_CLIENT_SECRET` in `zms-be/infrastructure/.env`.
 - Backend CI: `mvnw verify` for the four modules on push to `main` and on pull requests touching `zms-be/` (`.github/workflows/backend-ci.yml`).
 
 ### Open
@@ -126,28 +132,36 @@ Contracts and failure behaviour per service are in the service READMEs. Events a
 
 ### Implemented
 - Two build-time modes: demo (default) and live (`src/environments/environment.ts`, `environment.live.ts`, `angular.json`).
-- Demo mode: in-memory APIs for animals, health and feeding with the same error statuses as the backend (`MockAnimalApi`, `MockHealthApi`, `MockFeedingApi`, `demo-data.ts`, `demo-health.ts`, `demo-feeding.ts`, `enclosure-directory.ts`), and a role switcher persisted in `localStorage` (`DemoSession`).
-- Live mode: Keycloak login with PKCE S256 and `check-sso`, token auto-refresh, bearer token sent only to the three service origins in `environment.api` (`animal`, `health`, `feeding`), and a route guard that asks a visitor who is not signed in to log in (`keycloak-providers.ts` `bearerTokenConditions` and `signedInGuard`, `KeycloakSession`).
+- Demo mode: in-memory APIs for animals, health, feeding and notifications with the same error statuses as the backend (`MockAnimalApi`, `MockHealthApi`, `MockFeedingApi`, `MockNotificationApi`, `demo-data.ts`, `demo-health.ts`, `demo-feeding.ts`, `demo-notifications.ts`, `enclosure-directory.ts`), and a role switcher persisted in `localStorage` (`DemoSession`). `MockAnimalApi` publishes each registration, status change and transfer to `DemoEventFeed`, and `MockNotificationApi` turns new events into notifications on its next read, with the severity rules of `NotificationRule` (`DemoEventFeed`).
+- Live mode: Keycloak login with PKCE S256 and `check-sso`, token auto-refresh, bearer token sent only to the four service origins in `environment.api` (`animal`, `health`, `feeding`, `notification`), and a route guard that asks a visitor who is not signed in to log in (`keycloak-providers.ts` `bearerTokenConditions` and `signedInGuard`, `KeycloakSession`).
 - Animal list grouped by enclosure, with client-side search by name, species or 4-character tag and a status filter (`AnimalList`).
 - Animal detail, status change, transfer, and registration for admins (`AnimalDetail`, `StatusSheet`, `TransferSheet`, `RegisterSheet`).
 - Health section on the animal page: medical records newest first, each opening onto its diagnosis and treatments; add a record, prescribe a treatment and change a treatment's status (`HealthSection`, `RecordSheet`, `TreatmentSheet`, `TreatmentStatusSheet`, `HealthStore`, `HttpHealthApi`).
 - Feeding section on the animal page: today's meals as a meal track, the plan behind them, a log of recent feedings ten at a time with "Show earlier feedings", earlier plans; record a feeding, start a plan and suspend, resume or end it (`FeedingSection`, `MealTrack`, `FeedingSheet`, `PlanSheet`, `PlanStatusSheet`, `FeedingStore`, `HttpFeedingApi`).
 - Meal states `fed`, `due`, `missed` and `later` per scheduled time, computed in the browser from the plan's times and the loaded feedings, with a one-hour window before a time and one hour of "due" after it (`meal-slots.ts`).
-- Order of the sections by role: keepers see Feeding, Status, Location, Health, Record; vets and admins see Status and Location, then Health and Feeding, then Record ([D10](decisions.md#d10-health-and-feeding-live-inside-the-animal-page), `AnimalDetail`).
-- Each of the Health and Feeding sections loads and fails on its own, with a "Try again" button (`HealthSection`, `FeedingSection`, `HealthStore.state`, `FeedingStore.state`).
+- Order of the sections by role: Activity first for every role; then keepers see Feeding, Status, Location, Health, Record, and vets and admins see Status and Location, then Health and Feeding, then Record ([D10](decisions.md#d10-health-and-feeding-live-inside-the-animal-page), [D13](decisions.md#d13-notifications-shared-acknowledgement-structured-fields-triage-navigation), `AnimalDetail`).
+- Each of the Activity, Health and Feeding sections loads and fails on its own, with a "Try again" button (`ActivitySection`, `HealthSection`, `FeedingSection`, `ActivityStore.list`, `HealthStore.state`, `FeedingStore.state`).
 - For a deceased animal, no prescribing and no starting a treatment (moving it to `ACTIVE`); a new medical record is still offered and an open treatment can still be completed or cancelled ([D11](decisions.md#d11-no-new-treatments-for-a-deceased-animal-frontend-only), `HealthSection`, `TreatmentStatusSheet`). `health-service` enforces the same rule with a 422 (see above, [D12](decisions.md#d12-health-service-enforces-d11-and-cancels-a-deceased-animals-open-treatments)), which `HttpHealthApi.toApiError` maps to fixed copy: `deceasedTreatment()` for a 422 on prescribe and `treatmentNotStartable()` for a 422 on a move to `ACTIVE` (`api-errors.ts`). In demo mode `MockHealthApi` imitates the `health-service` consumer: through `settleDeceased` it cancels a deceased animal's `PRESCRIBED` and `ACTIVE` treatments when records are listed or read or a treatment is prescribed or changed, and refuses prescribing and starting with a 422.
 - For a deceased animal, the Feeding section offers neither recording a feeding nor starting a plan (`FeedingSection.canRecord`, `canStartPlan`). In demo mode `MockFeedingApi` ends the animal's active and suspended plans, as the `feeding-service` consumer does.
-- Role-aware actions, using the same matrix as `AnimalResource`, `MedicalRecordResource`, `TreatmentResource` and `FeedingPlanResource` (`core/models/permissions.ts`).
+- Role-aware actions, using the same matrix as `AnimalResource`, `MedicalRecordResource`, `TreatmentResource`, `FeedingPlanResource` and `NotificationResource`; `acknowledgeNotification` is open to all three roles (`core/models/permissions.ts`).
 - Full roster loaded by walking every page of `GET /animals` at size 100 (`HttpAnimalApi.listAll`); enclosures loaded from `GET /enclosures` (`HttpAnimalApi.listEnclosures`). An animal's medical records and feeding plans are loaded the same way (`HttpHealthApi.listRecords`, `HttpFeedingApi.listPlans`).
-- HTTP status mapped to fixed user-facing error copy (`http-animal-api.ts`, `http-health-api.ts` and `http-feeding-api.ts` `toApiError`, `api-errors.ts`). A 422 on a status change and a 400 on a transfer re-read the animal to choose between the two possible messages (`HttpAnimalApi.explainRejection`).
+- HTTP status mapped to fixed user-facing error copy (`http-animal-api.ts`, `http-health-api.ts`, `http-feeding-api.ts` and `http-notification-api.ts` `toApiError`, `api-errors.ts`). A 422 on a status change and a 400 on a transfer re-read the animal to choose between the two possible messages (`HttpAnimalApi.explainRejection`).
+- Notification data access: `GET /notifications` with the `animalId`, repeated `severity` and `open` filters, 20 per page, and `PUT /notifications/{id}/acknowledge` (`NotificationApi`, `HttpNotificationApi`, `NOTIFICATION_PAGE_SIZE`).
+- The `/notifications` page, in two lists that load and fail on their own: Needs attention (open `WARNING` and `CRITICAL`) and Everything else. Everything else has two modes: Open (open `INFO`, asked of the server) and All (the full history, with the open `WARNING` and `CRITICAL` rows hidden in the browser). Acknowledging is offered to all three roles; the notification that comes back says who acknowledged first ([D13](decisions.md#d13-notifications-shared-acknowledgement-structured-fields-triage-navigation), `NotificationsPage`, `NotificationStore`, `NotificationList`).
+- The bell in the top bar counts open `WARNING` and `CRITICAL` notifications. It is ink, and red while an open `CRITICAL` exists. The count is read again on every navigation and after an acknowledgement, and a failed read keeps the last count silently (`App.bell`, `NotificationStore.refreshCount`, `HttpNotificationApi.countOpen`, which takes the `total` of two one-item pages).
+- Activity section at the top of the animal page for every role: open `WARNING` and `CRITICAL` notifications as expanded rows with Acknowledge, the rest as folded lines, 20 per page with "Show earlier". It reloads after a status change or transfer made on that page (`ActivitySection`, `ActivityStore`, `AnimalDetail.onStatusChanged`, `AnimalDetail.onMoved`).
+- The sentence of a notification is written from its structured fields, with enclosure names; a row with a missing field shows the stored `message` (`notification-copy.ts`).
 - Unit tests with Vitest (`*.spec.ts` under `src/app/`).
 
 ### Decided, not built
 - Italian UI through Angular i18n ("prepared for Italian via Angular i18n", `PRODUCT.md`). No i18n setup exists in the code.
-- Navigation that leaves room for notifications (`PRODUCT.md`). Health and feeding went into the animal page instead, with no new navigation ([D10](decisions.md#d10-health-and-feeding-live-inside-the-animal-page)).
 
 ### Open
-- No UI for notifications. The frontend calls `/animals`, `/enclosures`, `/medical-records`, `/treatments` and `/feeding-plans`.
+- The notification count has no push or polling. It is read on every navigation and after an acknowledgement, so a notification created while a page stays open shows only after the next one (`App`, `NotificationStore.refreshCount`, [D13](decisions.md#d13-notifications-shared-acknowledgement-structured-fields-triage-navigation)).
+- In live mode a notification is created asynchronously: the outbox relay, Kafka and the consumer run after the change commits (`OutboxRelay`, `AnimalEventConsumer`). `ActivityStore.refresh` reads the list right after a status change or transfer, with no wait or retry (`Not handled`), so the new notification may be missing until the section is loaded again. In demo mode `MockNotificationApi` includes it at once.
+- The Activity note counts only the loaded rows (`ActivityStore.needAttention`). Open `WARNING` and `CRITICAL` rows on a page not yet loaded are not counted.
+- "Everything else" in All mode is filtered in the browser: the API has no filter for acknowledged rows, so the page loads the full history and hides the open `WARNING` and `CRITICAL` rows. It reads further pages when a whole page is hidden, and shows "Showing N so far" instead of a total (`NotificationStore.restItems`, `NotificationStore.fillRest`, `NotificationsPage.restCaption`).
+- Enclosure names in notification sentences come from the static `ENCLOSURES` list in `enclosure-directory.ts`, in live mode too, and not from `GET /enclosures`. An id that is not in the list reads as "an unknown enclosure" (`notification-copy.ts` `enclosureName`).
 - Search and filtering run in the browser over the full roster; the backend has no search endpoint.
 - No view across animals, for example all feedings due now. Health and feeding are sections of one animal's page ([D10](decisions.md#d10-health-and-feeding-live-inside-the-animal-page)).
 - Meal states use only the feedings loaded for a plan, which start as the newest page of 10 (`FEEDING_PAGE_SIZE`, `FeedingStore.loadFeedings`). A plan with more than 10 feedings on the current day would show the meals fed earlier that day as not recorded until "Show earlier feedings" loads them (`FeedingSection`, `mealSlots`).

@@ -37,7 +37,7 @@ Not a generic admin panel over a CRUD table: the UI is shaped by the zoo's actua
 
 ## Capabilities and Constraints
 
-**Available today in the UI** (`zms-be/animal-service` under `/animals` and `/enclosures`, `zms-be/health-service` under `/medical-records` and `/treatments`, `zms-be/feeding-service` under `/feeding-plans`):
+**Available today in the UI** (`zms-be/animal-service` under `/animals` and `/enclosures`, `zms-be/health-service` under `/medical-records` and `/treatments`, `zms-be/feeding-service` under `/feeding-plans`, `zms-be/notification-service` under `/notifications`):
 
 | Capability | Endpoint | Roles |
 |---|---|---|
@@ -57,12 +57,12 @@ Not a generic admin panel over a CRUD table: the UI is shaped by the zoo's actua
 | Update a feeding plan's status | `PUT /feeding-plans/{id}/status` | vet, admin |
 | List a plan's feedings (paged, 10 per page) | `GET /feeding-plans/{id}/feedings` | admin, vet, keeper |
 | Record a feeding | `POST /feeding-plans/{id}/feedings` | keeper, admin |
+| List notifications (paged, 20 per page; by animal, severity, open state) | `GET /notifications` | admin, vet, keeper |
+| Acknowledge a notification | `PUT /notifications/{id}/acknowledge` | admin, vet, keeper |
 
 Health and feeding appear as sections of the animal page, not as pages of their own ([D10](docs/decisions.md)). The UI never calls `GET /feeding-plans/{id}`. For a deceased animal the UI offers no new treatment and no start of one, while a new medical record is still offered; `health-service` enforces the same rule with a 422 ([D11](docs/decisions.md), [D12](docs/decisions.md#d12-health-service-enforces-d11-and-cancels-a-deceased-animals-open-treatments)).
 
-**Available in the backend, not in the UI yet**:
-
-- `zms-be/notification-service`: stores a notification for every animal event it receives from Kafka. It has no REST API ([README](zms-be/notification-service/README.md)).
+Notifications appear in three places: a bell in the top bar that counts open warnings and criticals, the `/notifications` page, and the Activity section at the top of the animal page. Acknowledging is shared by all staff and the first acknowledgement wins ([D13](docs/decisions.md#d13-notifications-shared-acknowledgement-structured-fields-triage-navigation)).
 
 **Domain terminology** (use these terms consistently in the UI):
 
@@ -76,8 +76,6 @@ Health and feeding appear as sections of the animal page, not as pages of their 
 
 - Frontend: Angular 22 with SSR (`zms-fe/`), standalone components, signals, Signal Forms, each component split in `.ts` / `.html` / `.scss`; only official angular.dev documentation as source (binding rules in `zms-fe/CLAUDE.md`).
 - Search and filtering happen in the browser. The API has paging on `GET /animals` but no search or filter parameter. The frontend loads every page, then filters by status and searches by name, species or 4-character tag (`zms-fe/src/app/features/animals/animal-list/animal-list.ts`). `GET /enclosures` returns the full list without paging.
-
-**Not in the UI yet** (do not show as working features or empty placeholders): notifications (`notification-service` exists, with no API or UI). The navigation should leave room for them.
 
 **Open decisions**: dashboard/home content.
 

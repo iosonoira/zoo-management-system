@@ -35,5 +35,14 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/animals/animal-detail/animal-detail').then((m) => m.AnimalDetail),
   },
+  {
+    path: 'notifications',
+    title: 'Notifications · Zoo Management System',
+    canActivate: guards,
+    loadComponent: () =>
+      import('./features/notifications/notifications-page/notifications-page').then(
+        (m) => m.NotificationsPage,
+      ),
+  },
   { path: '**', redirectTo: 'animals' },
 ];

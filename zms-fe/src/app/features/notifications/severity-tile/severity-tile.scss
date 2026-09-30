@@ -1,0 +1,38 @@
+:host {
+  --tile: 2.25rem;
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: var(--tile);
+  block-size: var(--tile);
+  border-radius: var(--radius);
+  background: var(--pane);
+  --icon-size: 1.25rem;
+  --icon-stroke: 2.2;
+}
+
+:host([data-severity='CRITICAL']) {
+  background: var(--ink);
+  color: var(--pane);
+}
+
+:host([data-severity='WARNING']) {
+  box-shadow: inset 0 0 0 2px var(--ink);
+  color: var(--ink);
+}
+
+:host([data-severity='INFO']) {
+  box-shadow: inset 0 0 0 1px var(--rule-strong);
+  color: var(--ink-2);
+}
+
+:host([data-size='sm']) {
+  --tile: 1.75rem;
+  --icon-size: 1.0625rem;
+  border-radius: var(--radius-sm);
+}
+
+:host([data-size='lg']) {
+  --tile: 2.75rem;
+  --icon-size: 1.5rem;
+}

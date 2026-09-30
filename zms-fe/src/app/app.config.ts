@@ -12,6 +12,9 @@ import { MockHealthApi } from './core/data/mock-health-api';
 import { FeedingApi } from './core/data/feeding-api';
 import { HttpFeedingApi } from './core/data/http-feeding-api';
 import { MockFeedingApi } from './core/data/mock-feeding-api';
+import { NotificationApi } from './core/data/notification-api';
+import { HttpNotificationApi } from './core/data/http-notification-api';
+import { MockNotificationApi } from './core/data/mock-notification-api';
 import { DemoSession } from './core/session/demo-session';
 import { Session } from './core/session/session';
 
@@ -27,6 +30,7 @@ export const appConfig: ApplicationConfig = {
     { provide: AnimalApi, useClass: environment.live ? HttpAnimalApi : MockAnimalApi },
     { provide: HealthApi, useClass: environment.live ? HttpHealthApi : MockHealthApi },
     { provide: FeedingApi, useClass: environment.live ? HttpFeedingApi : MockFeedingApi },
+    { provide: NotificationApi, useClass: environment.live ? HttpNotificationApi : MockNotificationApi },
     // Overridden by keycloakProviders() in the browser when live. The server keeps the
     // demo session so `App` can render the shell; the platform guard in AnimalStore
     // means it never issues a request with it.

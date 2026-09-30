@@ -16,7 +16,7 @@ zoo-management-system/
 │   ├── animal-service/          ← Core: animal registry
 │   ├── health-service/          ← Medical records
 │   ├── feeding-service/         ← Feeding plans
-│   ├── notification-service/    ← Kafka consumer for notifications
+│   ├── notification-service/    ← Notifications: Kafka consumer, list and acknowledge API
 │   └── infrastructure/
 │       ├── docker-compose.yml
 │       └── keycloak/
@@ -238,8 +238,9 @@ Examples: `shouldRegisterAnimalWithHealthyStatus`, `shouldThrowWhenNameIsBlank`
   | `POSTGRES_FEEDING_USER` / `POSTGRES_FEEDING_PASSWORD` | `DB_USERNAME` / `DB_PASSWORD` in `feeding-service/.env` |
   | `FEEDING_OIDC_CLIENT_SECRET` | `OIDC_CLIENT_SECRET` in `feeding-service/.env` |
   | `POSTGRES_NOTIFICATION_USER` / `POSTGRES_NOTIFICATION_PASSWORD` | `DB_USERNAME` / `DB_PASSWORD` in `notification-service/.env` |
+  | `NOTIFICATION_OIDC_CLIENT_SECRET` | `OIDC_CLIENT_SECRET` in `notification-service/.env` |
 
-  At import, the Keycloak realm substitutes `${ANIMAL_SERVICE_CLIENT_SECRET}`, `${HEALTH_SERVICE_CLIENT_SECRET}`, `${FEEDING_SERVICE_CLIENT_SECRET}` and `${ZOO_TEST_USER_PASSWORD}`. Compose fills them from `OIDC_CLIENT_SECRET`, `HEALTH_OIDC_CLIENT_SECRET`, `FEEDING_OIDC_CLIENT_SECRET` and `ZOO_TEST_USER_PASSWORD`.
+  At import, the Keycloak realm substitutes `${ANIMAL_SERVICE_CLIENT_SECRET}`, `${HEALTH_SERVICE_CLIENT_SECRET}`, `${FEEDING_SERVICE_CLIENT_SECRET}`, `${NOTIFICATION_SERVICE_CLIENT_SECRET}` and `${ZOO_TEST_USER_PASSWORD}`. Compose fills them from `OIDC_CLIENT_SECRET`, `HEALTH_OIDC_CLIENT_SECRET`, `FEEDING_OIDC_CLIENT_SECRET`, `NOTIFICATION_OIDC_CLIENT_SECRET` and `ZOO_TEST_USER_PASSWORD`.
 - **Dev Services**: `%dev.quarkus.devservices.enabled=false` is set in all four services, and only for `%dev`. In dev mode no Dev Service starts (Postgres, Kafka, Keycloak), and the services use the containers from `docker-compose.yml`. In `%test`, Dev Services stay on (see "Infrastructure layer tests")
 
 ---

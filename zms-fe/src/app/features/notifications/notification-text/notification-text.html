@@ -1,0 +1,11 @@
+@for (part of parts(); track $index) {
+  @if (part.kind === 'name') {
+    <b class="name">{{ part.text }}</b>
+  } @else if (part.kind === 'status' && part.icon) {
+    <span class="st" [attr.data-status]="part.status"
+      ><app-icon [name]="part.icon" /><b>{{ part.text }}</b></span
+    >
+  } @else {
+    <span>{{ part.text }}</span>
+  }
+}

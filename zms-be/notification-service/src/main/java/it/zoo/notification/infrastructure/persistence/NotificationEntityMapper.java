@@ -15,7 +15,17 @@ public final class NotificationEntityMapper {
                 entity.getSeverity(),
                 entity.getMessage(),
                 entity.getOccurredAt(),
-                entity.getCreatedAt()
+                entity.getCreatedAt(),
+                entity.getPerformedBy(),
+                entity.getName(),
+                entity.getSpecies(),
+                entity.getDangerous(),
+                entity.getPreviousStatus(),
+                entity.getNewStatus(),
+                entity.getFromEnclosureId(),
+                entity.getToEnclosureId(),
+                entity.getAcknowledgedBy(),
+                entity.getAcknowledgedAt()
         );
     }
 
@@ -29,6 +39,16 @@ public final class NotificationEntityMapper {
         entity.setMessage(notification.getMessage());
         entity.setOccurredAt(notification.getOccurredAt());
         entity.setCreatedAt(notification.getCreatedAt());
+        entity.setPerformedBy(notification.getPerformedBy());
+        entity.setName(notification.getName());
+        entity.setSpecies(notification.getSpecies());
+        entity.setDangerous(notification.getDangerous());
+        entity.setPreviousStatus(notification.getPreviousStatus());
+        entity.setNewStatus(notification.getNewStatus());
+        entity.setFromEnclosureId(notification.getFromEnclosureId());
+        entity.setToEnclosureId(notification.getToEnclosureId());
+        entity.setAcknowledgedBy(notification.getAcknowledgedBy());
+        entity.setAcknowledgedAt(notification.getAcknowledgedAt());
         return entity;
     }
 }

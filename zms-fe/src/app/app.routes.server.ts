@@ -5,5 +5,6 @@ export const serverRoutes: ServerRoute[] = [
   // demo mode would bake a snapshot of the mock into the HTML.
   { path: 'animals', renderMode: RenderMode.Client },
   { path: 'animals/:id', renderMode: RenderMode.Client },
+  { path: 'notifications', renderMode: RenderMode.Client },
   { path: '**', renderMode: RenderMode.Server },
 ];
