@@ -12,12 +12,14 @@ import {
 import { HealthApi } from './health-api';
 import { ApiError } from './api-error';
 import {
+  deceasedTreatment,
   forbidden,
   invalidRecord,
   invalidTreatment,
   recordNotFound,
   treatmentChanged,
   treatmentNotFound,
+  treatmentNotStartable,
 } from './api-errors';
 import { HttpHealthApi, RECORD_PAGE_SIZE } from './http-health-api';
 
@@ -231,8 +233,8 @@ describe('HttpHealthApi', () => {
     });
   });
 
-  it('maps 422 to treatmentChanged copy', async () => {
-    const pending = api.updateTreatmentStatus('treatment-1', 'ACTIVE');
+  it('maps 422 on updateTreatmentStatus with invalid transition to treatmentChanged copy', async () => {
+    const pending = api.updateTreatmentStatus('treatment-1', 'CANCELLED');
     http
       .expectOne(`${environment.api.health}/treatments/treatment-1/status`)
       .flush({ message: 'Unprocessable' }, { status: 422, statusText: 'Unprocessable Entity' });
@@ -297,6 +299,45 @@ describe('HttpHealthApi', () => {
     await expect(pending).rejects.toSatisfy((error: ApiError) => {
       expect(error.status).toBe(409);
       expect(error.message).toContain('this treatment');
+      return true;
+    });
+  });
+
+  it('maps 422 on prescribe to deceasedTreatment copy', async () => {
+    const pending = api.prescribe('record-1', 'Rest');
+    http
+      .expectOne(`${BASE}/medical-records/record-1/treatments`)
+      .flush({ message: 'Animal is deceased' }, { status: 422, statusText: 'Unprocessable Entity' });
+
+    await expect(pending).rejects.toSatisfy((error: ApiError) => {
+      expect(error.status).toBe(422);
+      expect(error.message).toBe(deceasedTreatment().message);
+      return true;
+    });
+  });
+
+  it('maps 422 on updateTreatmentStatus with ACTIVE to treatmentNotStartable copy', async () => {
+    const pending = api.updateTreatmentStatus('treatment-1', 'ACTIVE');
+    http
+      .expectOne(`${environment.api.health}/treatments/treatment-1/status`)
+      .flush({ message: 'Animal is deceased' }, { status: 422, statusText: 'Unprocessable Entity' });
+
+    await expect(pending).rejects.toSatisfy((error: ApiError) => {
+      expect(error.status).toBe(422);
+      expect(error.message).toBe(treatmentNotStartable().message);
+      return true;
+    });
+  });
+
+  it('maps 422 on updateTreatmentStatus with COMPLETED to treatmentChanged copy', async () => {
+    const pending = api.updateTreatmentStatus('treatment-1', 'COMPLETED');
+    http
+      .expectOne(`${environment.api.health}/treatments/treatment-1/status`)
+      .flush({ message: 'Invalid transition' }, { status: 422, statusText: 'Unprocessable Entity' });
+
+    await expect(pending).rejects.toSatisfy((error: ApiError) => {
+      expect(error.status).toBe(422);
+      expect(error.message).toBe(treatmentChanged().message);
       return true;
     });
   });

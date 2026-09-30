@@ -14,6 +14,7 @@ import { ApiError } from './api-error';
 import { collectPages, Page } from './page';
 import {
   conflict,
+  deceasedTreatment,
   forbidden,
   invalidRecord,
   invalidTreatment,
@@ -22,11 +23,13 @@ import {
   sessionExpired,
   treatmentChanged,
   treatmentNotFound,
+  treatmentNotStartable,
 } from './api-errors';
 
 interface RequestContext {
   readonly action?: 'createMedicalRecord' | 'prescribeTreatment' | 'updateTreatmentStatus';
   readonly target?: 'record' | 'treatment';
+  readonly status?: TreatmentStatus;
 }
 
 /** `ListMedicalRecordsUseCase.MAX_PAGE_SIZE`; a larger value is rejected with 400. */
@@ -85,6 +88,7 @@ export class HttpHealthApi extends HealthApi {
       {
         action: 'updateTreatmentStatus',
         target: 'treatment',
+        status,
       },
     );
   }
@@ -118,6 +122,12 @@ function toApiError(error: unknown, context: RequestContext): ApiError {
     case 409:
       return conflict(context.target === 'treatment' ? 'this treatment' : 'this medical record');
     case 422:
+      if (context.action === 'prescribeTreatment') {
+        return deceasedTreatment();
+      }
+      if (context.action === 'updateTreatmentStatus' && context.status === 'ACTIVE') {
+        return treatmentNotStartable();
+      }
       return treatmentChanged();
     default:
       // Includes status 0, which is what a CORS rejection or an unreachable host looks like.

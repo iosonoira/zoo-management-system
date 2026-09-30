@@ -1,16 +1,20 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { Animal, AnimalStatus, ZooRole } from '../models/animal';
 import { MedicalRecord, NewMedicalRecord, Treatment } from '../models/health';
 import { HealthApi } from './health-api';
 import { ApiError } from './api-error';
 import {
+  deceasedTreatment,
   forbidden,
   invalidRecord,
   invalidTreatment,
   recordNotFound,
   treatmentChanged,
   treatmentNotFound,
+  treatmentNotStartable,
 } from './api-errors';
+import { AnimalApi } from './animal-api';
 import { MockHealthApi } from './mock-health-api';
 import { Session } from '../session/session';
 
@@ -25,9 +29,9 @@ function medicalRecord(overrides: Partial<MedicalRecord> = {}): NewMedicalRecord
   };
 }
 
-function mockSession(role: string): Session {
+function mockSession(role: ZooRole): Session {
   return {
-    role: signal(role as any),
+    role: signal(role),
     username: signal('test.user'),
     can: () => true,
     canSwitchRole: false,
@@ -37,11 +41,36 @@ function mockSession(role: string): Session {
   } as Session;
 }
 
-function storeWithMock(role: string): { api: HealthApi } {
+function mockAnimal(status: AnimalStatus = 'HEALTHY'): Animal {
+  return {
+    id: 'animal-1',
+    name: 'Test Animal',
+    species: 'Test',
+    dangerous: false,
+    habitat: 'TERRESTRIAL',
+    enclosureId: 'enclosure-1',
+    arrivalDate: '2026-01-01',
+    status,
+    createdBy: 'admin.test',
+    updatedBy: 'admin.test',
+  };
+}
+
+function mockAnimalApi(animal: Animal | (() => Animal)): Partial<AnimalApi> {
+  return {
+    getById: async () => (typeof animal === 'function' ? animal() : animal),
+  };
+}
+
+function storeWithMock(
+  role: ZooRole,
+  animal: Animal | (() => Animal) = mockAnimal(),
+): { api: HealthApi } {
   TestBed.resetTestingModule();
   TestBed.configureTestingModule({
     providers: [
       { provide: Session, useValue: mockSession(role) },
+      { provide: AnimalApi, useValue: mockAnimalApi(animal) },
       { provide: HealthApi, useClass: MockHealthApi },
     ],
   });
@@ -204,13 +233,27 @@ describe('MockHealthApi', () => {
     expect(completed.endedOn).not.toBeNull();
   });
 
-  it('COMPLETED to ACTIVE throws treatmentChanged', async () => {
+  it('COMPLETED to ACTIVE throws treatmentNotStartable, the copy HttpHealthApi shows for that 422', async () => {
     const { api } = storeWithMock('zoo-vet');
     const record = await api.createRecord(medicalRecord());
     const treatment = await api.prescribe(record.id, 'Rest');
     const active = await api.updateTreatmentStatus(treatment.id, 'ACTIVE');
     const completed = await api.updateTreatmentStatus(active.id, 'COMPLETED');
     await expect(api.updateTreatmentStatus(completed.id, 'ACTIVE')).rejects.toSatisfy(
+      (error: ApiError) => {
+        expect(error.message).toBe(treatmentNotStartable().message);
+        return true;
+      },
+    );
+  });
+
+  it('COMPLETED to CANCELLED throws treatmentChanged', async () => {
+    const { api } = storeWithMock('zoo-vet');
+    const record = await api.createRecord(medicalRecord());
+    const treatment = await api.prescribe(record.id, 'Rest');
+    const active = await api.updateTreatmentStatus(treatment.id, 'ACTIVE');
+    const completed = await api.updateTreatmentStatus(active.id, 'COMPLETED');
+    await expect(api.updateTreatmentStatus(completed.id, 'CANCELLED')).rejects.toSatisfy(
       (error: ApiError) => {
         expect(error.message).toBe(treatmentChanged().message);
         return true;
@@ -250,5 +293,62 @@ describe('MockHealthApi', () => {
     expect(list[0].id).toBe(first);
     expect(list[1].id).toBe(second);
     expect(list[2].id).toBe(rec1.id);
+  });
+
+  describe('deceased animals', () => {
+    it('rejects prescribe for deceased animal', async () => {
+      const { api } = storeWithMock('zoo-vet', mockAnimal('DECEASED'));
+      const record = await api.createRecord(medicalRecord());
+
+      await expect(api.prescribe(record.id, 'Rest')).rejects.toSatisfy((error: ApiError) => {
+        expect(error.message).toBe(deceasedTreatment().message);
+        return true;
+      });
+    });
+
+    it('cancels open treatments once the animal is deceased, and leaves closed ones alone', async () => {
+      let animal = mockAnimal();
+      const { api } = storeWithMock('zoo-vet', () => animal);
+      const record = await api.createRecord(medicalRecord());
+      const prescribed = await api.prescribe(record.id, 'Rest');
+      const active = await api.prescribe(record.id, 'Antibiotics');
+      await api.updateTreatmentStatus(active.id, 'ACTIVE');
+      const completed = await api.prescribe(record.id, 'Bandage');
+      await api.updateTreatmentStatus(completed.id, 'ACTIVE');
+      await api.updateTreatmentStatus(completed.id, 'COMPLETED');
+
+      animal = mockAnimal('DECEASED');
+      const detail = await api.getRecord(record.id);
+
+      const statusOf = (id: string) => detail.treatments.find((t) => t.id === id)?.status;
+      expect(statusOf(prescribed.id)).toBe('CANCELLED');
+      expect(statusOf(active.id)).toBe('CANCELLED');
+      expect(statusOf(completed.id)).toBe('COMPLETED');
+      expect(detail.treatments.find((t) => t.id === prescribed.id)?.updatedBy).toBe('admin.test');
+    });
+
+    it('rejects starting a treatment of a deceased animal', async () => {
+      let animal = mockAnimal();
+      const { api } = storeWithMock('zoo-vet', () => animal);
+      const record = await api.createRecord(medicalRecord());
+      const treatment = await api.prescribe(record.id, 'Rest');
+
+      animal = mockAnimal('DECEASED');
+
+      await expect(api.updateTreatmentStatus(treatment.id, 'ACTIVE')).rejects.toSatisfy(
+        (error: ApiError) => {
+          expect(error.status).toBe(422);
+          expect(error.message).toBe(treatmentNotStartable().message);
+          return true;
+        },
+      );
+    });
+
+    it('allows creating medical records for deceased animals', async () => {
+      const { api } = storeWithMock('zoo-vet', mockAnimal('DECEASED'));
+      const record = await api.createRecord(medicalRecord());
+      expect(record).toBeDefined();
+      expect(record.animalId).toBe('test-animal');
+    });
   });
 });
