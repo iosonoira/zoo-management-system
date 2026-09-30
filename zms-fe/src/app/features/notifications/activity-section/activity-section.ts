@@ -105,8 +105,11 @@ export class ActivitySection {
   });
 
   constructor() {
+    // Only a different animal loads here: a status change or transfer replaces the `animal`
+    // object with the same id, and the page asks the store to refresh for those itself.
+    const animalId = computed(() => this.animal().id);
     effect(() => {
-      const id = this.animal().id;
+      const id = animalId();
       untracked(() => void this.store.load(id).then(() => this.now.set(new Date())));
     });
   }
