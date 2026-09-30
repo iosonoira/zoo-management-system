@@ -67,11 +67,12 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 
 - `pnpm start` — demo mode. In-memory data, role switcher in the header, no backend needed.
 - `pnpm start:live` — live mode against `animal-service` on :8080, `health-service` on :8082,
-  `feeding-service` on :8084 and Keycloak on :8081.
+  `feeding-service` on :8084, `notification-service` on :8083 and Keycloak on :8081.
   Requires `docker compose up -d` in `zms-be/infrastructure` and `./mvnw quarkus:dev` in
-  `zms-be/animal-service`, `zms-be/health-service` and `zms-be/feeding-service`. Without
-  `health-service` or `feeding-service` the animal page still works and only its Health or
-  Feeding section shows an error. Sign in as `keeper.conti`, `vet.bianchi` or `admin.rossi`.
+  `zms-be/animal-service`, `zms-be/health-service`, `zms-be/feeding-service` and
+  `zms-be/notification-service`. Without `health-service`, `feeding-service` or
+  `notification-service` the animal page still works and only its Health, Feeding or Activity
+  section shows an error. Sign in as `keeper.conti`, `vet.bianchi` or `admin.rossi`.
 
 ---
 

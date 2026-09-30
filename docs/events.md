@@ -60,7 +60,7 @@ The wire shape is pinned by three JSON fixtures, copied in all four services und
 | `habitat` | string | `TERRESTRIAL`, `AQUATIC` or `AMPHIBIOUS` (`Habitat`) |
 | `enclosureId` | string (UUID) | Enclosure the animal was registered into |
 
-Notification: severity `INFO`, message `"<name> (<species>) was registered"` (`NotificationRule`).
+Notification: severity `INFO`, message `"<name> (<species>) was registered"` (`NotificationRule`). Stored fields: see [What notification-service stores](#what-notification-service-stores).
 
 ### `ANIMAL_STATUS_CHANGED`
 
@@ -81,7 +81,7 @@ Notification: severity `INFO`, message `"<name> (<species>) was registered"` (`N
 
 The payload has no `dangerous` field.
 
-Notification (`NotificationRule`): severity `CRITICAL` if `newStatus` is `DECEASED`, `WARNING` if it is `UNDER_OBSERVATION` or `IN_TREATMENT`, otherwise `INFO`. Message `"<name> (<species>) status changed from <previousStatus> to <newStatus>"`.
+Notification (`NotificationRule`): severity `CRITICAL` if `newStatus` is `DECEASED`, `WARNING` if it is `UNDER_OBSERVATION` or `IN_TREATMENT`, otherwise `INFO`. Message `"<name> (<species>) status changed from <previousStatus> to <newStatus>"`. Stored fields: see [What notification-service stores](#what-notification-service-stores).
 
 ### `ANIMAL_TRANSFERRED`
 
@@ -101,7 +101,7 @@ Notification (`NotificationRule`): severity `CRITICAL` if `newStatus` is `DECEAS
 | `species` | string | Species |
 | `dangerous` | boolean | Dangerous flag |
 
-Notification (`NotificationRule`): severity `WARNING` if `dangerous` is true, otherwise `INFO`. Message `"<name> (<species>) was transferred from enclosure <from> to enclosure <to>"`. The message contains enclosure ids, not names.
+Notification (`NotificationRule`): severity `WARNING` if `dangerous` is true, otherwise `INFO`. Message `"<name> (<species>) was transferred from enclosure <from> to enclosure <to>"`. The message contains enclosure ids, not names. Stored fields: see [What notification-service stores](#what-notification-service-stores).
 
 ## Delivery semantics
 
@@ -150,11 +150,30 @@ Delivery is at-least-once. The relay can send the same row more than once when:
 
 Every resend carries the same `eventId`, because the envelope is serialized once when the row is written and the relay sends the stored `payload` unchanged (`OutboxAnimalEventPublisher`, `OutboxRelay`).
 
+### What `notification-service` stores
+
+One `notifications` row per event, written by `HandleAnimalEventService` from the command built in `AnimalEventMessageMapper`. Besides the `event_id`, `animal_id`, `event_type`, `occurred_at`, the severity and the message (`NotificationRule`), it stores the event's fields in their own columns (`V2__add_event_fields_and_acknowledgement.sql`). A dash means the column is null:
+
+| Column | `ANIMAL_REGISTERED` | `ANIMAL_STATUS_CHANGED` | `ANIMAL_TRANSFERRED` |
+|---|---|---|---|
+| `performed_by` | envelope `performedBy` | envelope `performedBy` | envelope `performedBy` |
+| `animal_name` | `payload.name` | `payload.name` | `payload.name` |
+| `species` | `payload.species` | `payload.species` | `payload.species` |
+| `dangerous` | `payload.dangerous` | - | `payload.dangerous` |
+| `previous_status` | - | `payload.previousStatus` | - |
+| `new_status` | - | `payload.newStatus` | - |
+| `from_enclosure_id` | - | - | `payload.fromEnclosureId` |
+| `to_enclosure_id` | `payload.enclosureId` | - | `payload.toEnclosureId` |
+
+`acknowledged_by` and `acknowledged_at` start null and are written only by `PUT /notifications/{id}/acknowledge`, not by an event ([notification-service README](../zms-be/notification-service/README.md#3-contracts)). A payload field that is missing is stored as null (`AnimalEventMessageMapper`).
+
+The message still contains enclosure ids, not names. The frontend does not show it for a row that has its structured fields: it writes its own sentence from them, with enclosure names from the static `ENCLOSURES` list (`enclosure-directory.ts`) and not from `GET /enclosures`, and shows the stored message only for a row where a field it needs is null (`notification-copy.ts`, `describeNotification`, `enclosureName`). An enclosure id that is not in that list reads as "an unknown enclosure".
+
 ### Consumer idempotency (`notification-service`)
 
 - `HandleAnimalEventService.handle` runs in one transaction. It validates `eventId`, `eventType`, `animalId` and `occurredAt` are not null, then checks `NotificationRepository.existsByEventId`. If a notification with that `eventId` exists, it returns without writing or logging. Covered by `AnimalEventConsumerIT.shouldPersistExactlyOneRowWhenTheSameEventIsDeliveredTwice`.
 - The `notifications` table has a unique constraint on `event_id` (`uq_notifications_event_id`, `V1__create_notifications_table.sql`). If two copies of the same event pass the existence check at the same time, the second insert fails on the constraint, the exception propagates, and that record goes to the DLQ instead of being skipped.
-- Payload fields are not validated. A missing `name`, `species`, status or enclosure id is stored as the text `null` in the notification message (`AnimalEventMessageMapper`, `NotificationRule`).
+- Payload fields are not validated. A missing `name`, `species`, status or enclosure id is stored as the text `null` in the notification message and as a null column (`AnimalEventMessageMapper`, `HandleAnimalEventService`, `NotificationRule`).
 
 ### Consumer idempotency (`feeding-service`)
 
@@ -179,7 +198,7 @@ Every resend carries the same `eventId`, because the envelope is serialized once
   - malformed JSON (`InvalidAnimalEventException`, "Malformed animal event JSON");
   - null or unknown `eventType` (`InvalidAnimalEventException`);
   - null `eventId`, `animalId` or `occurredAt` (`InvalidAnimalEventException`, from `HandleAnimalEventService`);
-  - a `fromEnclosureId` / `toEnclosureId` that is not a valid UUID (`IllegalArgumentException` from `UUID.fromString`);
+  - an `enclosureId` (`ANIMAL_REGISTERED`), `fromEnclosureId` or `toEnclosureId` (`ANIMAL_TRANSFERRED`) that is not a valid UUID (`IllegalArgumentException` from `UUID.fromString`, in `AnimalEventMessageMapper`);
   - any database error while storing the notification, including the database being unavailable and the unique-constraint race above.
 - `feeding-service`: topic `zoo.animal.events.feeding.dlq`, its own topic, configured on its own `animal-events-in` channel (`feeding-service/.../application.properties`). Its `AnimalEventConsumer` also lets every exception propagate. This includes:
   - malformed JSON (`InvalidAnimalEventException`, "Malformed animal event JSON");
