@@ -1,0 +1,263 @@
+<div class="page">
+  <header class="head">
+    <h1>Notifications</h1>
+    <p class="lede">
+      @if (store.attention.state() === 'ready') {
+        @if (attentionTotal() > 0) {
+          <b class="tabular">{{ attentionTotal() }} {{ needsWord() }} attention.</b>
+          Acknowledging takes one in charge for everyone.
+        } @else {
+          Nothing needs attention.
+        }
+      } @else {
+        What needs someone first, then everything else.
+      }
+    </p>
+    @if (!canAcknowledge()) {
+      <p class="note"><app-icon name="lock" />Only zoo staff can acknowledge notifications.</p>
+    }
+  </header>
+
+  <div class="triage">
+    <section class="tri-sec" aria-labelledby="attention-heading">
+      <div class="sh">
+        <h2 id="attention-heading" #attentionHeading tabindex="-1">
+          Needs attention
+          @if (store.attention.state() === 'ready' && attentionTotal() > 0) {
+            <span class="pill tabular">{{ attentionTotal() }}</span>
+          }
+        </h2>
+      </div>
+      <p class="hint">Open warning and critical notifications, newest first.</p>
+
+      @switch (store.attention.state()) {
+        @case ('error') {
+          <div class="notice pane" role="alert">
+            <app-icon name="alert" />
+            <div>
+              <h3>Notifications that need attention didn’t load</h3>
+              <p>Check your connection, then try again.</p>
+            </div>
+            <button type="button" class="btn btn-primary" (click)="store.retryAttention()">
+              Try again
+            </button>
+          </div>
+        }
+        @case ('ready') {
+          @if (store.attention.loaded().length > 0) {
+            <ul class="pane clip">
+              @for (n of store.attention.loaded(); track n.id) {
+                <li class="rb">
+                  <a
+                    class="rb-link rowlink"
+                    [routerLink]="['/animals', n.animalId]"
+                    [attr.data-link]="n.id"
+                  >
+                    <app-severity-tile [severity]="n.severity" size="lg" />
+                    <span class="rb-body">
+                      @if (n.name) {
+                        <span class="rb-head">
+                          <span class="rb-name name">{{ n.name }}</span>
+                          @if (n.dangerous) {
+                            <span class="danger-tab"><app-icon name="danger" />Danger</span>
+                          }
+                          @if (n.species) {
+                            <span class="rb-sp">{{ n.species }}</span>
+                          }
+                        </span>
+                      }
+                      <app-notification-text
+                        class="rb-pred"
+                        [notification]="n"
+                        [withName]="!n.name"
+                      />
+                      <app-notification-meta [notification]="n" [now]="now()" />
+                    </span>
+                  </a>
+                  @if (canAcknowledge()) {
+                    <button
+                      type="button"
+                      class="btn btn-primary btn-compact rb-act"
+                      [attr.data-ack]="n.id"
+                      [attr.aria-disabled]="isBusy(n.id) || null"
+                      (click)="acknowledge(n, 'attention')"
+                    >
+                      <app-icon name="check" />Acknowledge<span class="visually-hidden">{{
+                        acknowledgeLabel(n)
+                      }}</span>
+                    </button>
+                  }
+                </li>
+              }
+            </ul>
+            @if (store.attention.hasMore()) {
+              <div class="more">
+                @if (store.attention.moreFailed()) {
+                  <p class="more-error" role="alert">
+                    <app-icon name="alert" />More notifications didn’t load.
+                  </p>
+                }
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  [attr.aria-disabled]="store.attention.loadingMore() || null"
+                  (click)="showMore('attention')"
+                >
+                  {{ store.attention.moreFailed() ? 'Try again' : 'Show more' }}
+                </button>
+                <span class="tabular"
+                  >Showing {{ store.attention.loaded().length }} of {{ attentionTotal() }}.</span
+                >
+              </div>
+            }
+          } @else {
+            <div class="notice pane">
+              <app-severity-tile severity="INFO" size="lg" icon="check" />
+              <div>
+                <h3>Nothing needs attention</h3>
+                <p>
+                  Open warnings and critical notifications show up here until someone acknowledges
+                  them.
+                </p>
+              </div>
+            </div>
+          }
+        }
+        @default {
+          <div
+            class="skeleton skeleton-list"
+            role="status"
+            aria-busy="true"
+            aria-label="Loading notifications that need attention"
+          ></div>
+        }
+      }
+    </section>
+
+    <section class="tri-sec" aria-labelledby="rest-heading">
+      <div class="sh">
+        <h2 id="rest-heading" #restHeading tabindex="-1">Everything else</h2>
+        <div class="fgroup" role="group" aria-label="Show">
+          @for (m of restModes; track m.value) {
+            <button
+              type="button"
+              class="chip"
+              [attr.aria-pressed]="store.mode() === m.value"
+              (click)="setMode(m.value)"
+            >
+              {{ m.label }}
+            </button>
+          }
+        </div>
+      </div>
+      <p class="hint">Information and acknowledged notifications, newest first.</p>
+      <p class="visually-hidden" aria-live="polite">{{ restSummary() }}</p>
+
+      @switch (store.rest.state()) {
+        @case ('error') {
+          <div class="notice pane" role="alert">
+            <app-icon name="alert" />
+            <div>
+              <h3>The rest of the notifications didn’t load</h3>
+              <p>Check your connection, then try again.</p>
+            </div>
+            <button type="button" class="btn btn-primary" (click)="store.retryRest()">
+              Try again
+            </button>
+          </div>
+        }
+        @case ('ready') {
+          @if (store.restItems().length > 0) {
+            <ul class="pane clip">
+              @for (n of store.restItems(); track n.id) {
+                <li class="rl" [attr.data-open]="!n.acknowledgedBy">
+                  <a
+                    class="rl-link rowlink"
+                    [routerLink]="['/animals', n.animalId]"
+                    [attr.data-link]="n.id"
+                  >
+                    <app-severity-tile [severity]="n.severity" size="sm" />
+                    <span class="rl-body">
+                      <app-notification-text class="sent" [notification]="n" />
+                      <app-notification-meta
+                        [notification]="n"
+                        [now]="now()"
+                        [showSpecies]="true"
+                      />
+                    </span>
+                  </a>
+                  <div class="rl-act">
+                    @if (n.acknowledgedBy) {
+                      <app-acknowledged-note [notification]="n" [now]="now()" />
+                    } @else if (canAcknowledge()) {
+                      <button
+                        type="button"
+                        class="btn btn-secondary btn-compact"
+                        [attr.data-ack]="n.id"
+                        [attr.aria-disabled]="isBusy(n.id) || null"
+                        (click)="acknowledge(n, 'rest')"
+                      >
+                        <app-icon name="check" />Acknowledge<span class="visually-hidden">{{
+                          acknowledgeLabel(n)
+                        }}</span>
+                      </button>
+                    }
+                  </div>
+                </li>
+              }
+            </ul>
+          } @else if (!store.rest.hasMore()) {
+            <div class="notice compact pane">
+              <div>
+                @if (store.mode() === 'open') {
+                  <h3>No open information notices</h3>
+                  <p>Switch to All to see what has been acknowledged.</p>
+                } @else {
+                  <h3>No notifications yet</h3>
+                  <p>Registrations, status changes and transfers of animals appear here.</p>
+                }
+              </div>
+            </div>
+          }
+          @if (store.rest.hasMore()) {
+            <div class="more">
+              @if (store.rest.moreFailed()) {
+                <p class="more-error" role="alert">
+                  <app-icon name="alert" />More notifications didn’t load.
+                </p>
+              }
+              <button
+                type="button"
+                class="btn btn-secondary"
+                [attr.aria-disabled]="store.rest.loadingMore() || null"
+                (click)="showMore('rest')"
+              >
+                {{ store.rest.moreFailed() ? 'Try again' : 'Show more' }}
+              </button>
+              <span class="tabular">{{ restCaption() }}</span>
+            </div>
+          }
+        }
+        @default {
+          <div
+            class="skeleton skeleton-list"
+            role="status"
+            aria-busy="true"
+            aria-label="Loading the rest of the notifications"
+          ></div>
+        }
+      }
+    </section>
+  </div>
+
+  <p class="toast" role="status" [class.show]="announcement()">
+    @if (announcement()) {
+      <app-icon name="check" />{{ announcement() }}
+    }
+  </p>
+  <p class="toast" role="alert" [class.show]="failure()">
+    @if (failure()) {
+      <app-icon name="alert" />{{ failure() }}
+    }
+  </p>
+</div>

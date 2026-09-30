@@ -1,0 +1,27 @@
+:host {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.name {
+  font-weight: 700;
+}
+
+/* A status inside a sentence: its icon and its ink, so the word never stands on colour alone */
+.st {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25em;
+  white-space: nowrap;
+  color: var(--status, var(--ink));
+  --icon-size: 0.9em;
+  --icon-stroke: 2.6;
+
+  app-icon {
+    align-self: center;
+  }
+
+  b {
+    font-weight: 700;
+  }
+}

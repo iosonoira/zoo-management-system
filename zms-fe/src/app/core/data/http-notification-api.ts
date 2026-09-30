@@ -2,7 +2,7 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Notification, NotificationQuery } from '../models/notification';
+import { Notification, NotificationQuery, OpenCount, Severity } from '../models/notification';
 import { NotificationApi, NOTIFICATION_PAGE_SIZE } from './notification-api';
 import { ApiError } from './api-error';
 import { Page } from './page';
@@ -41,22 +41,28 @@ export class HttpNotificationApi extends NotificationApi {
     return this.request(() => this.http.get<Page<Notification>>(this.base, { params }));
   }
 
-  async countOpen(): Promise<number> {
-    const page = await this.request(() =>
-      this.http.get<Page<Notification>>(this.base, {
-        params: new HttpParams()
-          .set('open', 'true')
-          .append('severity', 'WARNING')
-          .append('severity', 'CRITICAL')
-          .set('page', '0')
-          .set('size', '1'),
-      }),
-    );
-    return page.total;
+  async countOpen(): Promise<OpenCount> {
+    const [attention, critical] = await Promise.all([
+      this.countOpenWith(['WARNING', 'CRITICAL']),
+      this.countOpenWith(['CRITICAL']),
+    ]);
+    return { attention, critical };
   }
 
   async acknowledge(id: string): Promise<Notification> {
     return this.request(() => this.http.put<Notification>(`${this.base}/${id}/acknowledge`, null));
+  }
+
+  /** A page of one item is enough: only its `total` is read. */
+  private async countOpenWith(severities: readonly Severity[]): Promise<number> {
+    let params = new HttpParams().set('open', 'true');
+    for (const severity of severities) {
+      params = params.append('severity', severity);
+    }
+    params = params.set('page', '0').set('size', '1');
+
+    const page = await this.request(() => this.http.get<Page<Notification>>(this.base, { params }));
+    return page.total;
   }
 
   private async request<T>(

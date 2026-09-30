@@ -1,4 +1,4 @@
-import { Notification, NotificationQuery } from '../models/notification';
+import { Notification, NotificationQuery, OpenCount } from '../models/notification';
 import { Page } from './page';
 
 /** Page size for the notification lists (notifications page and the animal's Activity). */
@@ -9,8 +9,8 @@ export abstract class NotificationApi {
   /** One page, newest first. */
   abstract list(query: NotificationQuery, page: number): Promise<Page<Notification>>;
 
-  /** How many open notifications need attention (severity WARNING or CRITICAL). */
-  abstract countOpen(): Promise<number>;
+  /** How many open notifications need attention (WARNING or CRITICAL), and how many of those are CRITICAL. */
+  abstract countOpen(): Promise<OpenCount>;
 
   /** First acknowledgement wins: an already acknowledged notification comes back unchanged. */
   abstract acknowledge(id: string): Promise<Notification>;

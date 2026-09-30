@@ -160,19 +160,43 @@ describe('HttpNotificationApi', () => {
   });
 
   describe('countOpen', () => {
-    it('sends correct query for open WARNING and CRITICAL', async () => {
+    it('sends two size-1 queries in parallel and reads the total of each', async () => {
       const pending = api.countOpen();
-      const request = http.expectOne(
+      const attention = http.expectOne(
         `${BASE}/notifications?open=true&severity=WARNING&severity=CRITICAL&page=0&size=1`,
       );
-      expect(request.request.method).toBe('GET');
-      request.flush({
-        items: [notification({ severity: 'WARNING' })],
-        page: 0,
-        size: 1,
-        total: 42,
+      const critical = http.expectOne(
+        `${BASE}/notifications?open=true&severity=CRITICAL&page=0&size=1`,
+      );
+      expect(attention.request.method).toBe('GET');
+      expect(critical.request.method).toBe('GET');
+      attention.flush({ items: [notification({ severity: 'WARNING' })], page: 0, size: 1, total: 42 });
+      critical.flush({ items: [notification({ severity: 'CRITICAL' })], page: 0, size: 1, total: 5 });
+      await expect(pending).resolves.toEqual({ attention: 42, critical: 5 });
+    });
+
+    it('counts zero when nothing is open', async () => {
+      const pending = api.countOpen();
+      const empty = { items: [], page: 0, size: 1, total: 0 };
+      http
+        .expectOne(`${BASE}/notifications?open=true&severity=WARNING&severity=CRITICAL&page=0&size=1`)
+        .flush(empty);
+      http.expectOne(`${BASE}/notifications?open=true&severity=CRITICAL&page=0&size=1`).flush(empty);
+      await expect(pending).resolves.toEqual({ attention: 0, critical: 0 });
+    });
+
+    it('fails when either query fails', async () => {
+      const pending = api.countOpen();
+      http
+        .expectOne(`${BASE}/notifications?open=true&severity=WARNING&severity=CRITICAL&page=0&size=1`)
+        .flush({ items: [], page: 0, size: 1, total: 1 });
+      http
+        .expectOne(`${BASE}/notifications?open=true&severity=CRITICAL&page=0&size=1`)
+        .flush({ message: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
+      await expect(pending).rejects.toSatisfy((error: ApiError) => {
+        expect(error.status).toBe(401);
+        return true;
       });
-      await expect(pending).resolves.toBe(42);
     });
   });
 

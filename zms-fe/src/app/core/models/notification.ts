@@ -32,5 +32,13 @@ export interface NotificationQuery {
   readonly openOnly?: boolean;
 }
 
+/** What the bell shows: open notifications, by how much they need someone to act. */
+export interface OpenCount {
+  /** Open WARNING and CRITICAL. */
+  readonly attention: number;
+  /** Open CRITICAL, a subset of `attention`. */
+  readonly critical: number;
+}
+
 /** Severities that need someone to act: they light the open count. */
 export const ATTENTION_SEVERITIES: readonly Severity[] = ['WARNING', 'CRITICAL'];

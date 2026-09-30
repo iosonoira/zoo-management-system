@@ -8,6 +8,21 @@
   </a>
 
   <div class="controls">
+    <a
+      class="bell"
+      routerLink="/notifications"
+      routerLinkActive
+      ariaCurrentWhenActive="page"
+      [attr.aria-label]="bell().label"
+    >
+      <app-icon name="bell" />
+      @if (bell().attention > 0) {
+        <span class="badge" [class.badge-critical]="bell().critical > 0" aria-hidden="true">{{
+          bell().badge
+        }}</span>
+      }
+    </a>
+
     @if (canSwitchRole) {
       <app-role-select />
     } @else {

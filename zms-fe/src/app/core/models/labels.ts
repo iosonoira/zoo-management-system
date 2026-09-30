@@ -1,6 +1,7 @@
 import { AnimalStatus, Habitat, ZooRole } from './animal';
 import { TreatmentStatus } from './health';
 import { PlanStatus } from './feeding';
+import { Severity } from './notification';
 import { IconName } from '../ui/icon/icon';
 
 export interface StatusLabel {
@@ -35,6 +36,13 @@ export const STATUS_LABELS: Record<AnimalStatus, StatusLabel> = {
     description: 'Permanent. The record stays for history and can no longer change.',
     icon: 'ribbon',
   },
+};
+
+/** Each severity owns a word and a pictogram, so it never reads by colour alone. */
+export const SEVERITY_LABELS: Record<Severity, { label: string; icon: IconName }> = {
+  CRITICAL: { label: 'Critical', icon: 'alert' },
+  WARNING: { label: 'Warning', icon: 'bang' },
+  INFO: { label: 'Info', icon: 'info' },
 };
 
 export const HABITAT_LABELS: Record<Habitat, { label: string; icon: IconName }> = {

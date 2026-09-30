@@ -1,5 +1,11 @@
 import { inject } from '@angular/core';
-import { Notification, NotificationQuery, Severity, ATTENTION_SEVERITIES } from '../models/notification';
+import {
+  Notification,
+  NotificationQuery,
+  OpenCount,
+  Severity,
+  ATTENTION_SEVERITIES,
+} from '../models/notification';
 import { can } from '../models/permissions';
 import { Session } from '../session/session';
 import { NotificationApi, NOTIFICATION_PAGE_SIZE } from './notification-api';
@@ -59,14 +65,17 @@ export class MockNotificationApi extends NotificationApi {
     };
   }
 
-  async countOpen(): Promise<number> {
+  async countOpen(): Promise<OpenCount> {
     await delay();
     this.syncEventsToNotifications();
 
     const open = [...this.notifications.values()].filter(
       (n) => !n.acknowledgedBy && ATTENTION_SEVERITIES.includes(n.severity),
     );
-    return open.length;
+    return {
+      attention: open.length,
+      critical: open.filter((n) => n.severity === 'CRITICAL').length,
+    };
   }
 
   async acknowledge(id: string): Promise<Notification> {

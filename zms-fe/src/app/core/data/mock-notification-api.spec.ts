@@ -159,13 +159,16 @@ describe('MockNotificationApi', () => {
   });
 
   describe('countOpen', () => {
-    it('counts open notifications with WARNING or CRITICAL', async () => {
+    it('counts open notifications with WARNING or CRITICAL, and those that are CRITICAL', async () => {
       const result = await api.list({ openOnly: true }, 0);
       const attention = result.items.filter(
         (n) => n.severity === 'WARNING' || n.severity === 'CRITICAL',
       );
+      const critical = attention.filter((n) => n.severity === 'CRITICAL');
       const count = await api.countOpen();
-      expect(count).toBe(attention.length);
+      expect(count).toEqual({ attention: attention.length, critical: critical.length });
+      expect(count.critical).toBeGreaterThan(0);
+      expect(count.attention).toBeGreaterThan(count.critical);
     });
   });
 
@@ -211,7 +214,8 @@ describe('MockNotificationApi', () => {
       }
       await api.acknowledge(openAttention.id);
       const open2 = await api.countOpen();
-      expect(open2).toBe(open1 - 1);
+      expect(open2.attention).toBe(open1.attention - 1);
+      expect(open2.critical).toBe(open1.critical - (openAttention.severity === 'CRITICAL' ? 1 : 0));
     });
 
     it('throws notificationNotFound for unknown id', async () => {
