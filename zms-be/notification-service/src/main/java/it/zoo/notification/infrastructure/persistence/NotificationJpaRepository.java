@@ -7,6 +7,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -42,6 +43,20 @@ public class NotificationJpaRepository implements NotificationRepository {
     public Optional<Notification> findById(UUID id) {
         return Optional.ofNullable(em.find(NotificationEntity.class, id))
                 .map(NotificationEntityMapper::toDomain);
+    }
+
+    @Override
+    public boolean acknowledge(UUID id, String actor, Instant at) {
+        // Bulk update: it bypasses the persistence context, so no NotificationEntity for this id
+        // may be loaded in the same transaction before it (findById afterwards reads the new row).
+        int updated = em.createQuery(
+                        "UPDATE NotificationEntity n SET n.acknowledgedBy = :actor, n.acknowledgedAt = :at "
+                                + "WHERE n.id = :id AND n.acknowledgedAt IS NULL")
+                .setParameter("actor", actor)
+                .setParameter("at", at)
+                .setParameter("id", id)
+                .executeUpdate();
+        return updated == 1;
     }
 
     @Override
