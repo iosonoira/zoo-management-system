@@ -102,6 +102,20 @@ export function treatmentChanged(): ApiError {
   );
 }
 
+export function deceasedTreatment(): ApiError {
+  return new ApiError(
+    422,
+    'This animal is recorded as deceased, so no treatment can be prescribed or started.',
+  );
+}
+
+export function treatmentNotStartable(): ApiError {
+  return new ApiError(
+    422,
+    'This treatment can’t be started: it changed since you opened it, or the animal is recorded as deceased. Reload to see where it stands.',
+  );
+}
+
 // ---- feeding-service ----
 
 export function planNotFound(): ApiError {

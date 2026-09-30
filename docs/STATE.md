@@ -2,7 +2,7 @@
 
 Snapshot of what exists, what is decided but not built, and what is still open. Updated at the end of every phase.
 
-Last updated: 2026-09-29, at commit `2e012b5`.
+Last updated: 2026-09-30, at commit `7286b41`.
 
 The three labels never mix:
 - **Implemented**: in the code on `main`. Every line cites a class or file.
@@ -48,12 +48,18 @@ Contracts and failure behaviour per service are in the service READMEs. Events a
 - Examination date not in the future in any time zone, i.e. at most today at UTC+14 (`CreateMedicalRecordService.EARLIEST_ZONE`).
 - Role-based authorization per endpoint (`@RolesAllowed` on `MedicalRecordResource`, `TreatmentResource`; `HealthSecurityIT`).
 - Audit columns and optimistic locking (`V1__create_medical_records_and_treatments.sql`, `TreatmentJpaRepository.save`).
+- Kafka consumer of `zoo.animal.events`, own consumer group `health-service`: on an `ANIMAL_STATUS_CHANGED` event with `newStatus = DECEASED`, records the animal in `deceased_animals` and moves every `PRESCRIBED` or `ACTIVE` treatment of its medical records to `CANCELLED`; `ANIMAL_REGISTERED`, `ANIMAL_TRANSFERRED` and any other new status are read and ignored (`AnimalEventConsumer`, `HandleAnimalEventService`, `V2__create_deceased_animals.sql`). Idempotent per animal id via `deceased_animals`, not per event id. Details: [events.md](events.md#consumer-idempotency-health-service).
+- A treatment cannot be prescribed for an animal recorded as deceased, and cannot be moved to `ACTIVE`; a move to `COMPLETED` or `CANCELLED` is still allowed, and a medical record can still be created. All refusals are 422 (`PrescribeTreatmentService`, `UpdateTreatmentStatusService`, `DeceasedAnimalRepository.existsByAnimalId`, `AnimalDeceasedExceptionMapper`, `MedicalRecordResourceIT`).
+- Concurrency safety between the Kafka consumer, prescribing and treatment status changes: a per-animal Postgres advisory lock (`AnimalLock`, `PostgresAnimalLock`) taken by `HandleAnimalEventService`, `PrescribeTreatmentService` and `UpdateTreatmentStatusService` before they read treatments; no row locks (`HealthConcurrencyIT`).
+- Dead-letter queue for any failed consumed record, on its own topic `zoo.animal.events.health.dlq` (`application.properties`, `failure-strategy=dead-letter-queue`).
+- Wire-format contract test against shared fixtures (`AnimalEventMessageContractTest`).
+- Prod Kafka configuration from an environment variable (`application.properties`, `%prod.kafka.bootstrap.servers=${KAFKA_BOOTSTRAP_SERVERS}`).
 
 ### Decided, not built
-- Consume animal events, for example cancelling treatments when an animal becomes `DECEASED` (next-phases list in `zms-be/CLAUDE.md` at commit `febdaf6`).
+- Nothing currently recorded beyond what is implemented.
 
 ### Open
-- Eventual consistency with `animal-service`. Confirmed in code: nothing checks that the animal exists or is not `DECEASED` before a medical record is created or a treatment is prescribed or activated (`CreateMedicalRecordService`, `PrescribeTreatmentService`, `UpdateTreatmentStatusService`). There is no call to `animal-service` and no local copy of animal data.
+- Eventual consistency with `animal-service`. Confirmed in code: nothing checks that an animal id exists at all before a medical record is created or a treatment is prescribed; `PrescribeTreatmentService` only rejects an id already present in `deceased_animals` (`CreateMedicalRecordService`, `PrescribeTreatmentService`). There is no call to `animal-service`, so `health-service` learns that an animal is deceased only when it consumes the event. Creating a medical record for a deceased animal is accepted by `CreateMedicalRecordService` ([D11](decisions.md#d11-no-new-treatments-for-a-deceased-animal-frontend-only), [D12](decisions.md#d12-health-service-enforces-d11-and-cancels-a-deceased-animals-open-treatments)).
 - Malformed JSON body: there is no `JsonProcessingException` mapper and no test for it.
 - Treatments in a record's detail are ordered by a random UUID (`TreatmentJpaRepository.findByMedicalRecordId`).
 - No update or delete of a medical record, although `ConcurrentMedicalRecordUpdateException` is mapped to 409.
@@ -129,7 +135,7 @@ Contracts and failure behaviour per service are in the service READMEs. Events a
 - Meal states `fed`, `due`, `missed` and `later` per scheduled time, computed in the browser from the plan's times and the loaded feedings, with a one-hour window before a time and one hour of "due" after it (`meal-slots.ts`).
 - Order of the sections by role: keepers see Feeding, Status, Location, Health, Record; vets and admins see Status and Location, then Health and Feeding, then Record ([D10](decisions.md#d10-health-and-feeding-live-inside-the-animal-page), `AnimalDetail`).
 - Each of the Health and Feeding sections loads and fails on its own, with a "Try again" button (`HealthSection`, `FeedingSection`, `HealthStore.state`, `FeedingStore.state`).
-- For a deceased animal, no prescribing and no starting a treatment (moving it to `ACTIVE`); a new medical record is still offered and an open treatment can still be completed or cancelled ([D11](decisions.md#d11-no-new-treatments-for-a-deceased-animal-frontend-only), `HealthSection`, `TreatmentStatusSheet`).
+- For a deceased animal, no prescribing and no starting a treatment (moving it to `ACTIVE`); a new medical record is still offered and an open treatment can still be completed or cancelled ([D11](decisions.md#d11-no-new-treatments-for-a-deceased-animal-frontend-only), `HealthSection`, `TreatmentStatusSheet`). `health-service` enforces the same rule with a 422 (see above, [D12](decisions.md#d12-health-service-enforces-d11-and-cancels-a-deceased-animals-open-treatments)), which `HttpHealthApi.toApiError` maps to fixed copy: `deceasedTreatment()` for a 422 on prescribe and `treatmentNotStartable()` for a 422 on a move to `ACTIVE` (`api-errors.ts`). In demo mode `MockHealthApi` imitates the `health-service` consumer: through `settleDeceased` it cancels a deceased animal's `PRESCRIBED` and `ACTIVE` treatments when records are listed or read or a treatment is prescribed or changed, and refuses prescribing and starting with a 422.
 - For a deceased animal, the Feeding section offers neither recording a feeding nor starting a plan (`FeedingSection.canRecord`, `canStartPlan`). In demo mode `MockFeedingApi` ends the animal's active and suspended plans, as the `feeding-service` consumer does.
 - Role-aware actions, using the same matrix as `AnimalResource`, `MedicalRecordResource`, `TreatmentResource` and `FeedingPlanResource` (`core/models/permissions.ts`).
 - Full roster loaded by walking every page of `GET /animals` at size 100 (`HttpAnimalApi.listAll`); enclosures loaded from `GET /enclosures` (`HttpAnimalApi.listEnclosures`). An animal's medical records and feeding plans are loaded the same way (`HttpHealthApi.listRecords`, `HttpFeedingApi.listPlans`).
@@ -144,8 +150,7 @@ Contracts and failure behaviour per service are in the service READMEs. Events a
 - No UI for notifications. The frontend calls `/animals`, `/enclosures`, `/medical-records`, `/treatments` and `/feeding-plans`.
 - Search and filtering run in the browser over the full roster; the backend has no search endpoint.
 - No view across animals, for example all feedings due now. Health and feeding are sections of one animal's page ([D10](decisions.md#d10-health-and-feeding-live-inside-the-animal-page)).
-- The rule that blocks new treatments for a deceased animal exists only in the frontend. A direct call to `health-service` can still prescribe or start one ([D11](decisions.md#d11-no-new-treatments-for-a-deceased-animal-frontend-only)).
 - Meal states use only the feedings loaded for a plan, which start as the newest page of 10 (`FEEDING_PAGE_SIZE`, `FeedingStore.loadFeedings`). A plan with more than 10 feedings on the current day would show the meals fed earlier that day as not recorded until "Show earlier feedings" loads them (`FeedingSection`, `mealSlots`).
 - Meal states are the frontend's own reading of the plan: local time zone of the browser, fixed one-hour windows (`EARLY_MS`, `DUE_MS` in `meal-slots.ts`). `feeding-service` has no endpoint that reports missed meals (`FeedingPlanResource`).
-- `FeedingStore` and `HealthStore` hold one animal and do not reload it while it stays the current one (`FeedingStore.load`, `HealthStore.load`). After a status change to `DECEASED`, nothing reloads the plans that `feeding-service` ends in response, so the section keeps showing them with their old status (without the meal track or Record feeding, which it hides for a deceased animal) until another animal is opened or the page is reloaded.
+- `FeedingStore` and `HealthStore` hold one animal and do not reload it while it stays the current one (`FeedingStore.load`, `HealthStore.load`). After a status change to `DECEASED`, nothing reloads the plans that `feeding-service` ends in response, so the section keeps showing them with their old status (without the meal track or Record feeding, which it hides for a deceased animal) until another animal is opened or the page is reloaded. `HealthStore` behaves the same way for the treatments `health-service` cancels: it does not reload the records or an already loaded record's treatments after the status change, so the section keeps showing them as `PRESCRIBED` or `ACTIVE` (without the prescribe and start actions, which it hides for a deceased animal) (`HealthStore.load`, `HealthStore.loadDetail`).
 - Dashboard or home content (`PRODUCT.md`, "Open decisions").

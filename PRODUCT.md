@@ -58,7 +58,7 @@ Not a generic admin panel over a CRUD table: the UI is shaped by the zoo's actua
 | List a plan's feedings (paged, 10 per page) | `GET /feeding-plans/{id}/feedings` | admin, vet, keeper |
 | Record a feeding | `POST /feeding-plans/{id}/feedings` | keeper, admin |
 
-Health and feeding appear as sections of the animal page, not as pages of their own ([D10](docs/decisions.md)). The UI never calls `GET /feeding-plans/{id}`. For a deceased animal the UI offers no new treatment and no start of one, while a new medical record is still offered; this rule exists only in the frontend ([D11](docs/decisions.md)).
+Health and feeding appear as sections of the animal page, not as pages of their own ([D10](docs/decisions.md)). The UI never calls `GET /feeding-plans/{id}`. For a deceased animal the UI offers no new treatment and no start of one, while a new medical record is still offered; `health-service` enforces the same rule with a 422 ([D11](docs/decisions.md), [D12](docs/decisions.md#d12-health-service-enforces-d11-and-cancels-a-deceased-animals-open-treatments)).
 
 **Available in the backend, not in the UI yet**:
 

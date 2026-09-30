@@ -4,12 +4,14 @@ import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
+import it.zoo.health.infrastructure.persistence.DeceasedAnimalEntity;
 import it.zoo.health.infrastructure.security.ZooRoles;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
@@ -29,7 +31,29 @@ class MedicalRecordResourceIT {
         QuarkusTransaction.requiringNew().run(() -> {
             em.createQuery("DELETE FROM TreatmentEntity").executeUpdate();
             em.createQuery("DELETE FROM MedicalRecordEntity").executeUpdate();
+            em.createQuery("DELETE FROM DeceasedAnimalEntity").executeUpdate();
         });
+    }
+
+    private void markAnimalDeceased() {
+        QuarkusTransaction.requiringNew().run(() -> {
+            DeceasedAnimalEntity entity = new DeceasedAnimalEntity();
+            entity.setAnimalId(ANIMAL_ID);
+            entity.setEventId(UUID.randomUUID());
+            entity.setOccurredAt(Instant.now());
+            em.persist(entity);
+        });
+    }
+
+    private String postTreatment(String recordId) {
+        return given()
+                .contentType(ContentType.JSON)
+                .body("{\"description\": \"Antibiotics\"}")
+            .when()
+                .post("/medical-records/" + recordId + "/treatments")
+            .then()
+                .statusCode(201)
+                .extract().path("id");
     }
 
     private String recordJson(String reason) {
@@ -251,5 +275,73 @@ class MedicalRecordResourceIT {
             .put("/treatments/" + UUID.randomUUID() + "/status")
         .then()
             .statusCode(404);
+    }
+
+    @Test
+    void shouldReturn422WhenPrescribingForDeceasedAnimal() {
+        String recordId = postRecord("Limping");
+        markAnimalDeceased();
+
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"description\": \"Antibiotics\"}")
+        .when()
+            .post("/medical-records/" + recordId + "/treatments")
+        .then()
+            .statusCode(422)
+            .body("message", notNullValue());
+    }
+
+    @Test
+    void shouldReturn422WhenActivatingTreatmentOfDeceasedAnimal() {
+        String recordId = postRecord("Limping");
+        String treatmentId = postTreatment(recordId);
+        markAnimalDeceased();
+
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"status\": \"ACTIVE\"}")
+        .when()
+            .put("/treatments/" + treatmentId + "/status")
+        .then()
+            .statusCode(422)
+            .body("message", notNullValue());
+    }
+
+    @Test
+    void shouldCompleteActiveTreatmentOfDeceasedAnimal() {
+        String recordId = postRecord("Limping");
+        String treatmentId = postTreatment(recordId);
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"status\": \"ACTIVE\"}")
+        .when()
+            .put("/treatments/" + treatmentId + "/status")
+        .then()
+            .statusCode(200);
+        markAnimalDeceased();
+
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"status\": \"COMPLETED\"}")
+        .when()
+            .put("/treatments/" + treatmentId + "/status")
+        .then()
+            .statusCode(200)
+            .body("status", equalTo("COMPLETED"));
+    }
+
+    @Test
+    void shouldCreateMedicalRecordForDeceasedAnimal() {
+        markAnimalDeceased();
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(recordJson("Post-mortem"))
+        .when()
+            .post("/medical-records")
+        .then()
+            .statusCode(201)
+            .body("animalId", equalTo(ANIMAL_ID.toString()));
     }
 }

@@ -1,8 +1,10 @@
 import { PLATFORM_ID } from '@angular/core';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { Animal } from '../models/animal';
 import { MedicalRecord, MedicalRecordDetail, NewMedicalRecord, Treatment } from '../models/health';
 import { HealthApi } from './health-api';
+import { AnimalApi } from './animal-api';
 import { ApiError } from './api-error';
 import { HealthStore } from './health-store';
 import { MockHealthApi } from './mock-health-api';
@@ -71,6 +73,27 @@ function storeOn(platform: string): { store: HealthStore; api: FakeHealthApi } {
   return { store: TestBed.inject(HealthStore), api };
 }
 
+function mockAnimal(): Animal {
+  return {
+    id: 'animal-1',
+    name: 'Test Animal',
+    species: 'Test',
+    dangerous: false,
+    habitat: 'TERRESTRIAL',
+    enclosureId: 'enclosure-1',
+    arrivalDate: '2026-01-01',
+    status: 'HEALTHY',
+    createdBy: 'admin.test',
+    updatedBy: 'admin.test',
+  };
+}
+
+function mockAnimalApi(animal: Animal): Partial<AnimalApi> {
+  return {
+    getById: async () => animal,
+  };
+}
+
 function storeWithMock(): { store: HealthStore; api: MockHealthApi } {
   const mockSession: Partial<Session> = {
     role: signal('zoo-vet' as any),
@@ -86,6 +109,7 @@ function storeWithMock(): { store: HealthStore; api: MockHealthApi } {
     providers: [
       { provide: PLATFORM_ID, useValue: 'browser' },
       { provide: Session, useValue: mockSession as Session },
+      { provide: AnimalApi, useValue: mockAnimalApi(mockAnimal()) },
       { provide: HealthApi, useClass: MockHealthApi },
       HealthStore,
     ],

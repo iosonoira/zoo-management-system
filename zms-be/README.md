@@ -7,7 +7,7 @@ Backend of the [Zoo Management System](../README.md): Java 21 and Quarkus micros
 | Service | Dev port | Database | What it does |
 |---|---|---|---|
 | `animal-service` | 8080 | `animal_db` on :5432 | Registers animals, changes status, transfers them between enclosures, maintains the enclosure directory. Publishes animal events to Kafka through a transactional outbox |
-| `health-service` | 8082 | `health_db` on :5433 | Medical records and treatments. Refers to animals by id only, with no runtime call to animal-service |
+| `health-service` | 8082 | `health_db` on :5433 | Medical records and treatments. Consumes animal events to cancel an animal's open treatments when it is declared deceased; refers to animals by id only, with no runtime call to animal-service |
 | `notification-service` | 8083 | `notification_db` on :5434 | Consumes animal events idempotently and stores notifications. No REST API yet |
 | `feeding-service` | 8084 | `feeding_db` on :5435 | Feeding plans and feedings. Consumes animal events to end an animal's plans when it is declared deceased; refers to animals by id only, with no runtime call to animal-service |
 
@@ -27,7 +27,7 @@ In `health-service`, `DomainPurityTest` fails the build if anything under `domai
 
 ### Events
 
-`animal-service` writes `ANIMAL_REGISTERED`, `ANIMAL_STATUS_CHANGED` and `ANIMAL_TRANSFERRED` to an `outbox_event` table in the same transaction as the change. A scheduled relay sends them to the `zoo.animal.events` topic, keyed by animal id. `notification-service` and `feeding-service` each consume them independently at-least-once, with their own consumer group and DLQ. `notification-service` skips duplicates by event id and sends records it cannot read to `zoo.animal.events.dlq`; `feeding-service` acts only on an `ANIMAL_STATUS_CHANGED` event with `newStatus = DECEASED`, skips it if the animal is already recorded, and sends records it cannot process to `zoo.animal.events.feeding.dlq`. Details: [docs/events.md](../docs/events.md).
+`animal-service` writes `ANIMAL_REGISTERED`, `ANIMAL_STATUS_CHANGED` and `ANIMAL_TRANSFERRED` to an `outbox_event` table in the same transaction as the change. A scheduled relay sends them to the `zoo.animal.events` topic, keyed by animal id. `notification-service`, `feeding-service` and `health-service` each consume them independently at-least-once, with their own consumer group and DLQ. `notification-service` skips duplicates by event id and sends records it cannot read to `zoo.animal.events.dlq`; `feeding-service` acts only on an `ANIMAL_STATUS_CHANGED` event with `newStatus = DECEASED`, skips it if the animal is already recorded, and sends records it cannot process to `zoo.animal.events.feeding.dlq`; `health-service` also acts only on an `ANIMAL_STATUS_CHANGED` event with `newStatus = DECEASED`, skips it if the animal is already recorded, cancels the animal's `PRESCRIBED` and `ACTIVE` treatments, and sends records it cannot process to `zoo.animal.events.health.dlq`. Details: [docs/events.md](../docs/events.md).
 
 ## Local configuration
 
