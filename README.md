@@ -1,13 +1,13 @@
 # Zoo Management System
 
-> **TODO (maintainer): two-line pitch.**
+Keepers transfer and feed, vets change clinical status and prescribe, admins register: a zoo management system whose API and UI enforce the same domain rules and roles.
+Four Quarkus microservices, Kafka events and an Angular frontend.
 
 **What this project demonstrates**
 
-> **TODO (maintainer): three things this project demonstrates.**
-> 1. …
-> 2. …
-> 3. …
+1. **Hexagonal architecture enforced by a test.** In every service, `DomainPurityTest` fails the build if `domain/` imports a framework.
+2. **Reliable events across services.** A transactional outbox, idempotent consumers with their own dead-letter topics, and a per-animal lock where concurrent writes meet.
+3. **Domain rules and roles visible end to end.** The same role matrix in the API (`@RolesAllowed`, one security integration test per service) and in the UI. A deceased animal is terminal: health-service and feeding-service react to its death and refuse new treatments and feeding plans.
 
 | Folder | What it is | Details |
 |---|---|---|
@@ -17,17 +17,14 @@
 
 ## Screenshots
 
-> **TODO (maintainer): screenshots not added yet.** Expected files in `docs/images/`:
->
-> | File | Content |
-> |---|---|
-> | `docs/images/animal-list-desktop.png` | Animal list grouped by enclosure, desktop |
-> | `docs/images/animal-list-mobile.png` | Animal list on a phone |
-> | `docs/images/animal-detail.png` | One animal's record |
-> | `docs/images/status-change.png` | Status change sheet (vet) |
-> | `docs/images/transfer.png` | Transfer sheet (keeper) |
-> | `docs/images/register.png` | Register sheet (admin) |
-> | `docs/images/dark-mode.png` | Any screen in dark mode |
+Demo mode, desktop at 1280 px, dark mode.
+
+| | |
+|---|---|
+| ![The animal list, grouped by enclosure, with status filters](docs/images/animal-list.png) | ![The record of Pepe, a lemur under treatment: status, activity and feeding](docs/images/animal-detail.png) |
+| Animal list, grouped by enclosure | One animal's record: status, activity and feeding |
+| ![The sheet for moving Pepe to another enclosure](docs/images/transfer.png) | ![The notifications page, with those needing attention at the top](docs/images/notifications.png) |
+| Transfer to another enclosure | Notifications, those needing attention first |
 
 ## Architecture
 
@@ -83,6 +80,14 @@ Summary of [docs/decisions.md](docs/decisions.md), where each entry has its cont
 - **Role matrix** per endpoint with `@RolesAllowed`: keepers transfer, vets change clinical status, admins register.
 - **Demo mode as the frontend default**, with in-memory data and a role switcher. Live mode is a build configuration.
 - **Keycloak login with PKCE** in the frontend.
+- **One exception mapper per exception**, plus a catch-all that logs and answers 500. Framework errors keep their own status.
+- **feeding-service**: feeding plans plus an append-only feeding log, and a local read model of deceased animals fed by events.
+- **Health and feeding inside the animal page**, ordered by role, with no new navigation.
+- **No new treatments for a deceased animal**: first a frontend rule, then enforced by health-service, which also cancels the animal's open treatments.
+- **Notifications with a shared acknowledgement**: the first member of staff who takes one in charge wins. A bell, a triage page and an Activity section in the animal page.
+- **Quarkus** for the backend services, to learn it before using it at work.
+- **Angular** for the frontend: a complete framework with uniform conventions.
+- **Microservices instead of a modular monolith**, a cost accepted on purpose to work with events, the outbox and idempotency.
 
 ## Known limits
 
