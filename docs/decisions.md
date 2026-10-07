@@ -233,3 +233,42 @@ The entries below were seeded on 2026-09-24 from decisions already stated in `zm
   - The red badge is an exception to the danger-only use of red in `zms-fe/DESIGN.md`.
   - The count is refreshed on navigation and after an acknowledgement; there is no push or polling, so a notification created while the page stays open appears only after the next navigation.
   - "Everything else" in "all" mode is the full history minus the open `WARNING`/`CRITICAL` rows, filtered in the browser, because the API has no filter for acknowledged rows.
+
+## D14. Quarkus for the backend services
+
+- **Date**: 2026-06-26 (backend scaffold, commit `df122c7`)
+- **Service(s)**: animal-service, health-service, feeding-service, notification-service
+- **Context**: The backend is written in Java 21. The framework had to be chosen before the first service.
+- **Alternatives considered**: Spring Boot.
+- **Decision**: Every backend service is a Quarkus application, on one Quarkus platform version set in the parent POM (`zms-be/pom.xml`, `quarkus.platform.version` 3.20.0).
+- **Rationale** (given by the maintainer, 2026-10-07): to learn Quarkus before using it at work. It is a framework designed for the cloud, younger than Spring Boot but at the leading edge.
+- **Consequences**:
+  - Panache's repository methods clash with the domain ports' methods of the same name, which led to the Repository pattern with `EntityManager` adapters (D2).
+  - Quarkus registers its own mappers for `UnauthorizedException` and `ForbiddenException`, which answer with an empty body. Every service needs its own `UnauthorizedExceptionMapper` and `ForbiddenExceptionMapper` to keep the `{"message": ...}` contract (commits `f446251`, `683449e`).
+  - The Kafka consumers run on SmallRye Reactive Messaging and are marked `@Blocking`, because their use cases call the database through JDBC (`AnimalEventConsumer` in health-service, feeding-service and notification-service).
+
+## D15. Angular for the frontend
+
+- **Date**: 2026-09-19 (commit `7be7b2b`)
+- **Service(s)**: zms-fe
+- **Context**: The staff use the system through a web frontend that calls the backend services.
+- **Alternatives considered**: not recorded.
+- **Decision**: The frontend is an Angular application with server-side rendering (`zms-fe/`; Angular 22 in `package.json`), built with standalone components, signals and Signal Forms (`PRODUCT.md`).
+- **Rationale** (given by the maintainer, 2026-10-07): a complete framework, with router, forms and HTTP calls already included, and uniform conventions: an imposed structure helps as the project grows.
+- **Consequences**:
+  - Pages that need a token in live mode are rendered in the browser (`RenderMode.Client` for `animals`, `animals/:id` and `notifications` in `app.routes.server.ts`), and Keycloak code is loaded only in the browser (D7).
+  - The forms with input fields (register, medical record, treatment, feeding plan, feeding) use Signal Forms (`@angular/forms/signals`); no reactive forms are used.
+
+## D16. Microservices instead of a modular monolith
+
+- **Date**: 2026-06-28 (four services planned in `zms-be/CLAUDE.md`, commit `0c78602`)
+- **Service(s)**: animal-service, health-service, feeding-service, notification-service
+- **Context**: The domain splits into animals, health, feeding and notifications. At this size a single deployable split into modules would have been enough.
+- **Alternatives considered**: a modular monolith.
+- **Decision**: Four separately deployed services, each with its own Postgres database. They share data only through the `zoo.animal.events` Kafka topic (`README.md`, Architecture).
+- **Rationale** (given by the maintainer, 2026-10-07): to work on the patterns used every day at work (events, outbox, idempotency), knowing that a modular monolith would have been enough at this size. The extra cost was accepted on purpose.
+- **Consequences**:
+  - A write and its event need the transactional outbox (D3), and every consumer must be idempotent, with its own dead-letter topic.
+  - health-service and feeding-service cannot query animals: they keep a local `deceased_animals` read model fed by events (D9, D12), and they never check that an animal id exists.
+  - Each service has its own Keycloak client and secret, and running live mode locally needs a `.env` file in up to five folders (`README.md`, Run it).
+  - The frontend calls four origins (`environment.api`; D10, D13), and CI builds and tests the four modules separately (`.github/workflows/backend-ci.yml`).
